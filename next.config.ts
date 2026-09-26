@@ -2,8 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
-    serverActions: { bodySizeLimit: "10mb" }, // gallery uploads
+    serverActions: { bodySizeLimit: "220mb" }, // gallery uploads (videos)
   },
+  serverExternalPackages: ["sharp", "heic-convert"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.discordapp.com" },

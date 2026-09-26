@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "impressum", robots: { index: false } };
 
-// TODO(Luis): Fill in your real details before going live. Required by § 5 DDG for German websites.
+// Pflichtangaben nach § 5 DDG. Platzhalter in eckigen Klammern vor dem Livegang ersetzen.
 export default function ImpressumPage() {
   return (
     <div className="grid gap-4 text-sm">

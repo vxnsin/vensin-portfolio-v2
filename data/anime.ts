@@ -1,5 +1,4 @@
-// Favorites: edit this list freely. Covers are pulled from the Jikan (MyAnimeList) API by malId.
-// PLACEHOLDER picks until Luis fills in his real favorites.
+// All-time favorites. Posters and ratings are looked up on Kitsu via the MyAnimeList id.
 export type FavoriteAnime = { title: string; note?: string; malId: number };
 
 export const favoriteAnime: FavoriteAnime[] = [

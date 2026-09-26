@@ -21,8 +21,9 @@ export default async function AboutPage() {
           things for the web with TypeScript and Next.js, and I still like running game servers on the side.
         </p>
         <p className="mb-3">
-          Outside of code I watch a lot of anime, listen to music basically all day, ride, and hang out with friends. I like
-          making things that feel a bit personal instead of another generic template. This site is one of those things.
+          Outside of code I ride my motorcycle whenever the weather allows, watch a lot of anime, listen to music basically all
+          day, and hang out with friends. I like making things that feel a bit personal instead of another generic template.
+          This site is one of those things.
         </p>
       </div>
 
@@ -59,7 +60,7 @@ export default async function AboutPage() {
             <li>anime (obviously)</li>
             <li>music, all day, every day</li>
             <li>minecraft servers &amp; the tech behind them</li>
-            <li>riding</li>
+            <li>motorcycle rides, especially at golden hour</li>
             <li>clean uis with a bit of personality</li>
             <li>late night coding sessions</li>
           </ul>

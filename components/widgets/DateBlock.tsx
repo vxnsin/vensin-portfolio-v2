@@ -15,14 +15,13 @@ const getTick = () => Math.floor(Date.now() / TICK_MS);
 export function DateBlock() {
   // null on the server: the visitor's local date is only known in the browser
   const tick = useSyncExternalStore(subscribe, getTick, () => null);
-
-  if (tick === null) return <div className="h-[132px]" />;
+  if (tick === null) return <div />;
 
   const now = new Date();
   const time = now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="text-center">
+    <div className="text-center leading-tight">
       <div className="pixel text-accent-2 leading-none" style={{ fontSize: 72 }}>
         {now.getDate()}
       </div>

@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { site, socials } from "@/data/site";
 import { getSettings } from "@/lib/store";
-import { getLatestGithubActivity, relativeTime } from "@/lib/github";
+import { getContributionYears, getLatestGithubActivity } from "@/lib/github";
 import { Window } from "@/components/layout/Window";
+import { GithubBox } from "@/components/github/GithubBox";
 
 export default async function Home() {
-  const [settings, gh] = await Promise.all([getSettings(), getLatestGithubActivity()]);
+  const [settings, gh, contributions] = await Promise.all([getSettings(), getLatestGithubActivity(), getContributionYears()]);
 
   return (
     <div className="grid gap-5">
@@ -53,30 +54,7 @@ export default async function Home() {
         </Window>
       </div>
 
-      <Window title="latest on github" dashed bodyClassName="text-xs">
-        {gh ? (
-          <div className="grid gap-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <a href={gh.url} target="_blank" rel="noreferrer" className="pixel text-sm">
-                {gh.repo}
-              </a>
-              {gh.language && <span className="chip text-[10px]">{gh.language}</span>}
-              <span className="text-ink-soft">pushed {relativeTime(gh.pushedAt)}</span>
-            </div>
-            {gh.description && <div className="text-ink-soft">{gh.description}</div>}
-            {gh.commit && (
-              <div className="truncate">
-                <span className="text-ink-soft">last commit:</span>{" "}
-                <a href={gh.commit.url} target="_blank" rel="noreferrer" title={gh.commit.message}>
-                  {gh.commit.message}
-                </a>
-              </div>
-            )}
-          </div>
-        ) : (
-          <p className="text-ink-soft">github is being shy right now.</p>
-        )}
-      </Window>
+      <GithubBox gh={gh} contributions={contributions} />
 
       <div className="grid gap-4 sm:grid-cols-3 text-center">
         <Link href="/about" className="btn justify-center no-underline">

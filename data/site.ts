@@ -3,8 +3,8 @@ export const site = {
   domain: "vensin.dev",
   url: "https://vensin.dev",
   jpName: "ヴェンシン",
-  tagline: "developer · anime enjoyer · music lover",
-  description: "vensin's cozy corner of the internet: projects, anime, photos, and what I'm up to right now.",
+  tagline: "developer · anime enjoyer · motorcycle rider",
+  description: "vensin's cozy corner of the internet: projects, anime, photos from the bike, and what I'm up to right now.",
   discordUserId: "531896089096486922",
   githubUser: "vxnsin",
   codingSince: 2018,
@@ -12,22 +12,15 @@ export const site = {
   typewriter: [
     "a full-stack developer",
     "an anime enthusiast",
+    "a motorcycle rider",
     "a music lover",
-    "a passionate rider",
     "probably watching something right now",
   ],
   intro: [
     "Hi, I'm Luis (online: vensin). I'm a developer from Germany who likes building things for the web, running Minecraft servers and watching way too much anime.",
-    "This is version 2 of my little corner of the internet. You'll find my projects, what I'm currently into, and a live look at what I'm doing right now via Discord.",
-    "Everything here is a work in progress and will keep changing. Enjoy your stay!",
+    "When I'm not at the keyboard I'm probably on my motorcycle. Some of the photos from those rides end up in the gallery.",
+    "This is version 2 of my little corner of the internet. You'll find my projects, what I'm currently into, and a live look at what I'm doing right now via Discord. Everything here is a work in progress. Enjoy your stay!",
   ],
-  // defaults for the "now" box; editable in /admin/site, overridden live by Discord when possible
-  now: {
-    watching: "see the anime page",
-    playing: "Minecraft / War Thunder / Phasmophobia",
-    listening: "whatever Spotify says",
-    mood: "building this site",
-  },
   // seed entries; the live list is managed in /admin/updates
   updateLog: [
     { date: "2026-09-26", text: "new site is live! rebuilt from scratch, old-web vibes, actually works on phones now." },
@@ -44,6 +37,7 @@ export const site = {
     "go watch more anime",
     "ヽ(>∀<☆)ノ",
     "minecraft servers are my love language",
+    "new bike photos in the gallery",
   ],
 };
 

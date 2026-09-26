@@ -7,15 +7,40 @@ import { site } from "@/data/site";
 /* ---------- types ---------- */
 
 export type Message = { id: string; name: string; email: string; message: string; createdAt: string; read: boolean };
-export type GalleryItem = { id: string; url: string; caption: string; tag: string; createdAt: string; pathname?: string };
+export type GalleryItem = {
+  id: string;
+  url: string;
+  kind: "image" | "video";
+  caption: string;
+  tag: string;
+  createdAt: string;
+  pathname?: string;
+};
 export type UpdateEntry = { id: string; date: string; text: string };
-export type NowBox = { watching: string; playing: string; listening: string; mood: string };
-export type Settings = { updateLog: UpdateEntry[]; marquee: string[]; now: NowBox };
+export type Settings = { updateLog: UpdateEntry[]; marquee: string[] };
+
+export type Health = {
+  move: number;
+  moveGoal: number;
+  exercise: number;
+  exerciseGoal: number;
+  stand: number;
+  standGoal: number;
+  steps?: number;
+  date?: string;
+  updatedAt: string;
+};
+
+export type Latest = {
+  playing?: { name: string; at: string };
+  watching?: { title: string; service: string; at: string };
+  listening?: { song: string; artist: string; trackId?: string | null; at: string };
+  checkedAt?: string;
+};
 
 const DEFAULT_SETTINGS: Settings = {
   updateLog: site.updateLog.map((u, i) => ({ id: `seed-${i}`, ...u })),
   marquee: site.marquee,
-  now: site.now,
 };
 
 /* ---------- backend: Upstash Redis, or a JSON file when not configured ---------- */
@@ -24,8 +49,9 @@ const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
 const redis = REDIS_URL && REDIS_TOKEN ? new Redis({ url: REDIS_URL, token: REDIS_TOKEN }) : null;
 
-// local fallback (dev). On Vercel without Redis this lands in /tmp and is ephemeral.
-const FILE = process.env.VERCEL ? "/tmp/vensin-store.json" : path.join(process.cwd(), ".data", "store.json");
+// file fallback: DATA_DIR (default ./.data). On Vercel without Redis this is /tmp and not persistent.
+export const DATA_DIR = process.env.DATA_DIR ?? (process.env.VERCEL ? "/tmp/vensin-data" : path.join(process.cwd(), ".data"));
+const FILE = path.join(DATA_DIR, "store.json");
 
 export const storage = {
   kind: redis ? ("redis" as const) : ("file" as const),
@@ -61,17 +87,15 @@ async function set<T>(key: string, value: T) {
 
 export const uid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
-/* ---------- settings (update log, marquee, now box) ---------- */
+/* ---------- settings (update log, marquee) ---------- */
 
 const settingsCached = unstable_cache(() => get<Settings>("settings", DEFAULT_SETTINGS), ["settings"], { tags: ["settings"], revalidate: 300 });
 
 export async function getSettings(): Promise<Settings> {
-  const s = await settingsCached();
-  return { ...DEFAULT_SETTINGS, ...s, now: { ...DEFAULT_SETTINGS.now, ...s.now } };
+  return { ...DEFAULT_SETTINGS, ...(await settingsCached()) };
 }
 export async function getSettingsFresh(): Promise<Settings> {
-  const s = await get<Settings>("settings", DEFAULT_SETTINGS);
-  return { ...DEFAULT_SETTINGS, ...s, now: { ...DEFAULT_SETTINGS.now, ...s.now } };
+  return { ...DEFAULT_SETTINGS, ...(await get<Settings>("settings", DEFAULT_SETTINGS)) };
 }
 export async function saveSettings(patch: Partial<Settings>) {
   const current = await getSettingsFresh();
@@ -127,4 +151,24 @@ export async function removeGalleryItem(id: string) {
   revalidateTag("gallery", "max");
   revalidatePath("/gallery");
   return item;
+}
+
+/* ---------- apple watch rings ---------- */
+
+const healthCached = unstable_cache(() => get<Health | null>("health", null), ["health"], { tags: ["health"], revalidate: 300 });
+export const getHealth = () => healthCached();
+export async function saveHealth(h: Health) {
+  await set("health", h);
+  revalidateTag("health", "max");
+  revalidatePath("/", "layout");
+}
+
+/* ---------- latest discord activity ---------- */
+
+const latestCached = unstable_cache(() => get<Latest>("latest", {}), ["latest"], { tags: ["latest"], revalidate: 60 });
+export const getLatest = () => latestCached();
+export const getLatestFresh = () => get<Latest>("latest", {});
+export async function saveLatest(l: Latest) {
+  await set("latest", l);
+  revalidateTag("latest", "max");
 }

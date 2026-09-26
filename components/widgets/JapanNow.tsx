@@ -23,10 +23,10 @@ function timeOfDay(hour: number) {
   return { label: "late night", jp: "おやすみ", icon: "🌙" };
 }
 
-/** Tokyo clock + current anime season. Because why not. */
+/** Tokyo clock + current anime season. Shown until Apple Watch data arrives. */
 export function JapanNow() {
   const tick = useSyncExternalStore(subscribe, getTick, () => null);
-  if (tick === null) return <div className="h-[132px]" />;
+  if (tick === null) return <div />;
 
   const now = new Date();
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -40,20 +40,24 @@ export function JapanNow() {
   const hour = parseInt(get("hour"), 10);
   const tod = timeOfDay(hour);
   const season = animeSeason(now.getMonth() + 1, now.getFullYear());
-  const ahead = 9 - (-now.getTimezoneOffset() / 60);
+  const ahead = 9 - -now.getTimezoneOffset() / 60;
 
   return (
-    <div className="text-center">
-      <div className="text-2xl leading-none" aria-hidden>
-        {tod.icon}
-      </div>
-      <div className="pixel text-accent-2 leading-none mt-1" style={{ fontSize: 44 }}>
-        {get("hour")}:{get("minute")}
+    <div className="text-center leading-tight">
+      <div className="flex items-center justify-center gap-3">
+        <span className="text-2xl" aria-hidden>
+          {tod.icon}
+        </span>
+        <span className="pixel text-accent-2 leading-none" style={{ fontSize: 48 }}>
+          {get("hour")}:{get("minute")}
+        </span>
       </div>
       <div className="pixel text-sm mt-1">
         {tod.jp} · {tod.label} in tokyo
       </div>
-      <div className="text-[11px] text-ink-soft">{get("weekday").toLowerCase()} · {ahead > 0 ? `${ahead}h ahead of you` : "same time as you"}</div>
+      <div className="text-[11px] text-ink-soft">
+        {get("weekday").toLowerCase()} · {ahead > 0 ? `${ahead}h ahead of you` : "same time as you"}
+      </div>
       <div className="text-[11px] text-ink-soft mt-1">
         anime season: <span className="text-accent">{season.jp} {season.name} {season.year}</span>
       </div>

@@ -32,11 +32,11 @@ function describe(code: number, day: boolean): { label: string; icon: string } {
 }
 
 function mood(temp: number, code: number) {
-  if (code >= 95) return "perfect thunderstorm-and-anime weather";
+  if (code >= 95) return "thunderstorm + anime = perfect";
   if (code >= 61 && code <= 82) return "rainy. stay in, watch something.";
   if (code >= 71 && code <= 86) return "snow! kotatsu season.";
-  if (temp >= 28) return "too hot. send help (and ice).";
-  if (temp >= 20) return "nice out. might actually go outside.";
+  if (temp >= 28) return "too hot. send ice.";
+  if (temp >= 20) return "nice out. bike weather.";
   if (temp >= 10) return "hoodie weather.";
   if (temp >= 0) return "cold. tea and code.";
   return "freezing. do not go outside.";
@@ -77,18 +77,20 @@ export function Weather() {
   const d = describe(data.code, data.isDay);
 
   return (
-    <div className="text-center">
-      <div className="text-3xl leading-none" aria-hidden>
-        {d.icon}
-      </div>
-      <div className="pixel text-accent-2 leading-none mt-1" style={{ fontSize: 44 }}>
-        {Math.round(data.temperature)}°
+    <div className="text-center leading-tight">
+      <div className="flex items-center justify-center gap-3">
+        <span className="text-3xl" aria-hidden>
+          {d.icon}
+        </span>
+        <span className="pixel text-accent-2 leading-none" style={{ fontSize: 48 }}>
+          {Math.round(data.temperature)}°
+        </span>
       </div>
       <div className="pixel text-sm mt-1">{d.label}</div>
-      <div className="text-[11px] text-ink-soft">
+      <div className="text-[11px] text-ink-soft mt-0.5">
         feels {Math.round(data.feelsLike)}° · wind {Math.round(data.wind)} km/h · {data.humidity}%
       </div>
-      <div className="text-[11px] text-ink-soft mt-1 italic">{mood(data.temperature, data.code)}</div>
+      <div className="text-[11px] text-ink-soft mt-1 italic truncate">{mood(data.temperature, data.code)}</div>
       <div className="text-[10px] text-ink-soft mt-1 opacity-70">outside my window{data.time ? ` · ${data.time}` : ""}</div>
     </div>
   );

@@ -7,6 +7,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { login, logout, requireAdmin } from "@/lib/auth";
 import { addGalleryItem, deleteMessage, removeGalleryItem, saveSettings, updateMessage, getSettingsFresh, uid } from "@/lib/store";
+import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
 
 export type ActionState = { ok: boolean; error?: string } | null;
 
@@ -39,7 +40,7 @@ export async function deleteMessageAction(formData: FormData) {
 
 /* ---------- gallery ---------- */
 
-const MAX_BYTES = 8 * 1024 * 1024;
+const UPLOAD_DIR = process.env.UPLOAD_DIR ?? path.join(process.cwd(), "public", "uploads");
 
 export async function uploadAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
@@ -47,29 +48,32 @@ export async function uploadAction(_prev: ActionState, formData: FormData): Prom
   const caption = String(formData.get("caption") ?? "").trim().slice(0, 120);
   const tag = String(formData.get("tag") ?? "").trim().toLowerCase().slice(0, 30) || "misc";
 
-  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "pick an image first" };
-  if (!file.type.startsWith("image/")) return { ok: false, error: "images only" };
-  if (file.size > MAX_BYTES) return { ok: false, error: "max 8 MB per image" };
-
-  const safeName = file.name.replace(/[^a-z0-9._-]/gi, "_").toLowerCase();
-  const key = `gallery/${uid()}-${safeName}`;
+  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "pick a file first" };
+  const video = isVideo(file);
+  if (!video && !file.type.startsWith("image/") && !/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(file.name)) {
+    return { ok: false, error: "images (jpg, png, webp, gif, heic) or videos (mp4, mov, webm) only" };
+  }
+  if (file.size > (video ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) {
+    return { ok: false, error: video ? "max 200 MB per video" : "max 30 MB per image" };
+  }
 
   try {
+    const processed = await processUpload(file);
+    const name = `${uid()}${processed.ext}`;
     let url: string;
     let pathname: string | undefined;
+
     if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const blob = await put(key, file, { access: "public", addRandomSuffix: false });
+      const blob = await put(`gallery/${name}`, processed.buffer, { access: "public", addRandomSuffix: false, contentType: processed.contentType });
       url = blob.url;
       pathname = blob.pathname;
     } else {
-      // local dev fallback: public/uploads (gitignored)
-      const dir = path.join(process.cwd(), "public", "uploads");
-      await fs.mkdir(dir, { recursive: true });
-      const name = key.replace("gallery/", "");
-      await fs.writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
+      await fs.mkdir(UPLOAD_DIR, { recursive: true });
+      await fs.writeFile(path.join(UPLOAD_DIR, name), processed.buffer);
       url = `/uploads/${name}`;
     }
-    await addGalleryItem({ url, caption, tag, pathname });
+
+    await addGalleryItem({ url, kind: processed.kind, caption, tag, pathname });
     revalidatePath("/admin/gallery");
     return { ok: true };
   } catch (e) {
@@ -83,7 +87,7 @@ export async function deleteGalleryAction(formData: FormData) {
   if (item) {
     try {
       if (item.pathname && process.env.BLOB_READ_WRITE_TOKEN) await del(item.url);
-      else if (item.url.startsWith("/uploads/")) await fs.unlink(path.join(process.cwd(), "public", item.url));
+      else if (item.url.startsWith("/uploads/")) await fs.unlink(path.join(UPLOAD_DIR, item.url.replace("/uploads/", "")));
     } catch {}
   }
   revalidatePath("/admin/gallery");
@@ -109,7 +113,7 @@ export async function deleteUpdateAction(formData: FormData) {
   revalidatePath("/admin/updates");
 }
 
-/* ---------- marquee + now box ---------- */
+/* ---------- marquee ---------- */
 
 export async function saveSiteAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
   await requireAdmin();
@@ -118,14 +122,8 @@ export async function saveSiteAction(_prev: ActionState, formData: FormData): Pr
     .map((l) => l.trim())
     .filter(Boolean)
     .slice(0, 40);
-  const now = {
-    watching: String(formData.get("watching") ?? "").trim().slice(0, 80),
-    playing: String(formData.get("playing") ?? "").trim().slice(0, 80),
-    listening: String(formData.get("listening") ?? "").trim().slice(0, 80),
-    mood: String(formData.get("mood") ?? "").trim().slice(0, 80),
-  };
   try {
-    await saveSettings({ marquee, now });
+    await saveSettings({ marquee });
     revalidatePath("/admin/site");
     return { ok: true };
   } catch {

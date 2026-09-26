@@ -14,16 +14,21 @@ export default async function AdminGallery() {
 
   return (
     <div className="grid gap-4">
-      <Window title="upload photo" dashed>
+      <Window title="upload" dashed>
         <UploadForm tags={tags} />
       </Window>
 
-      <h2 className="pixel text-accent">photos ({items.length})</h2>
+      <h2 className="pixel text-accent">gallery ({items.length})</h2>
       <ul className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {items.map((it) => (
           <li key={it.id} className="text-[11px]">
-            <div className="aspect-square border border-line bg-paper-2 overflow-hidden">
-              <img src={it.url} alt={it.caption} className="w-full h-full object-cover" />
+            <div className="aspect-square border border-line bg-paper-2 overflow-hidden relative">
+              {it.kind === "video" ? (
+                <video src={it.url} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+              ) : (
+                <img src={it.url} alt={it.caption} className="w-full h-full object-cover" />
+              )}
+              {it.kind === "video" && <span className="absolute bottom-1 right-1 chip text-[9px] bg-paper">▶ video</span>}
             </div>
             <div className="truncate mt-1">{it.caption || <span className="text-ink-soft">no caption</span>}</div>
             <div className="flex items-center justify-between">

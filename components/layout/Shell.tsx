@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { site } from "@/data/site";
 import { build } from "@/lib/build";
-import { getSettings } from "@/lib/store";
+import { getHealth, getLatest, getSettings } from "@/lib/store";
 import { NavTabs } from "./NavTabs";
 import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
@@ -10,13 +10,13 @@ import { Window } from "./Window";
 import { LanyardProvider } from "@/components/discord/LanyardProvider";
 import { DiscordPresence } from "@/components/discord/DiscordPresence";
 import { TodayCycle } from "@/components/widgets/TodayCycle";
-import { NowBox } from "@/components/widgets/NowBox";
+import { LatestBox } from "@/components/widgets/LatestBox";
 import { Typewriter } from "@/components/widgets/Typewriter";
 import { Kaomoji } from "@/components/widgets/Kaomoji";
 
 export async function Shell({ children }: { children: ReactNode }) {
   const year = new Date().getFullYear();
-  const settings = await getSettings();
+  const [settings, health, latest] = await Promise.all([getSettings(), getHealth(), getLatest()]);
 
   return (
     <LanyardProvider>
@@ -45,9 +45,9 @@ export async function Shell({ children }: { children: ReactNode }) {
             <Window title="discord" right={<Kaomoji className="text-[11px] text-ink-soft" />}>
               <DiscordPresence />
             </Window>
-            <TodayCycle />
-            <Window title="now">
-              <NowBox fallback={settings.now} />
+            <TodayCycle health={health} />
+            <Window title="latest">
+              <LatestBox latest={latest} />
             </Window>
           </aside>
         </div>

@@ -7,5 +7,5 @@ export const dynamic = "force-dynamic";
 export default async function AdminSite() {
   await requireAdmin();
   const settings = await getSettingsFresh();
-  return <SiteForm marquee={settings.marquee} now={settings.now} />;
+  return <SiteForm marquee={settings.marquee} />;
 }
