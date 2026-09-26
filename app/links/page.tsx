@@ -21,8 +21,8 @@ export default function LinksPage() {
               rel="noreferrer"
               className="win win-dashed flex items-center gap-3 px-3 py-2 no-underline hover:bg-accent-soft transition-colors group"
             >
-              <span className="w-8 grid place-items-center text-accent-2 group-hover:text-accent transition-colors">
-                <PixelIcon name={s.id} size={26} />
+              <span className="w-9 grid place-items-center text-accent-2 group-hover:text-accent transition-colors">
+                <PixelIcon name={s.id} size={30} />
               </span>
               <span className="min-w-0">
                 <span className="block pixel text-ink">{s.label}</span>

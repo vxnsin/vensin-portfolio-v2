@@ -41,7 +41,10 @@ export function ContactForm() {
         <button type="submit" disabled={pending} className="btn disabled:opacity-60">
           {pending ? "sending…" : "send →"}
         </button>
-        <span className="text-[10px] text-ink-soft">your name, email and message are stored so i can reply. nothing else.</span>
+        <span className="text-[10px] text-ink-soft">
+          your name, email and message are stored so i can reply, and i get a discord ping. details in the{" "}
+          <a href="/privacy">privacy policy</a>.
+        </span>
       </div>
     </form>
   );

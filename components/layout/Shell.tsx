@@ -86,8 +86,17 @@ export async function Shell({ children }: { children: ReactNode }) {
               <Link href="/contact" className="btn text-xs no-underline">
                 contact
               </Link>
-              <Link href="/impressum" className="btn text-xs no-underline">
-                impressum
+              {process.env.IMPRESSUM_URL ? (
+                <a href={process.env.IMPRESSUM_URL} target="_blank" rel="noreferrer" className="btn text-xs no-underline">
+                  impressum ↗
+                </a>
+              ) : (
+                <Link href="/impressum" className="btn text-xs no-underline">
+                  impressum
+                </Link>
+              )}
+              <Link href="/privacy" className="btn text-xs no-underline">
+                privacy
               </Link>
               <ThemeToggle />
               <a href="#top" className="btn text-xs no-underline" aria-label="back to top">

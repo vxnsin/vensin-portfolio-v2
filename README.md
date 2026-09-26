@@ -52,7 +52,8 @@ Every job can be triggered from the admin dashboard ("run now"). On a serverless
 | `/gallery` | photos & videos with tags + lightbox |
 | `/links` | socials |
 | `/contact` | contact form → Discord DM + admin inbox |
-| `/impressum` | legal |
+| `/impressum` | forwards to the external impressum service (`IMPRESSUM_URL`) |
+| `/privacy` | Datenschutzerklärung |
 | `/admin` | login-protected panel: messages, uploads, update log, marquee |
 
 ## Sidebar widgets
@@ -99,7 +100,8 @@ Photos are rotated by EXIF, resized to max 2200px and saved as WebP. HEIC/HEIF f
 | Tech stack | `data/techstack.ts` (icons in `public/icons`) |
 | Favorite anime (by MAL id) + aniworld profile | `data/anime.ts` |
 | Update log, marquee, photos, messages | `/admin` |
-| Impressum | `app/impressum/page.tsx` |
+| Impressum | external service, `IMPRESSUM_URL` in `.env.local` |
+| Privacy policy | `app/privacy/page.tsx` |
 | Colors / box styles | `app/globals.css` |
 
 ## Deploy
