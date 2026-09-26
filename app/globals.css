@@ -57,6 +57,149 @@
   }
 }
 
+
+/* ---------- seasons: spring is the default palette, the others override it ---------- */
+:root[data-season="summer"] {
+  --bg: #f5f0e4;
+  --paper: #fffdf6;
+  --paper-2: #fbf3e3;
+  --line: #d4b58c;
+  --accent: #ec7f47;
+  --accent-2: #2f9fbf;
+  --accent-soft: #ffe6d3;
+  --glow-1: rgba(255, 170, 80, 0.32);
+  --glow-2: rgba(60, 180, 210, 0.26);
+}
+:root[data-season="summer"][data-theme="dark"] {
+  --bg: #14171f;
+  --paper: #1c2130;
+  --paper-2: #242b3b;
+  --line: #4f5c78;
+  --accent: #ffb066;
+  --accent-2: #6fd3ea;
+  --accent-soft: #33302a;
+  --glow-1: rgba(255, 176, 102, 0.16);
+  --glow-2: rgba(111, 211, 234, 0.16);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-season="summer"]:not([data-theme="light"]) {
+    --bg: #14171f;
+    --paper: #1c2130;
+    --paper-2: #242b3b;
+    --line: #4f5c78;
+    --accent: #ffb066;
+    --accent-2: #6fd3ea;
+    --accent-soft: #33302a;
+    --glow-1: rgba(255, 176, 102, 0.16);
+    --glow-2: rgba(111, 211, 234, 0.16);
+  }
+}
+:root[data-season="autumn"] {
+  --bg: #f3e9dc;
+  --paper: #fff9f1;
+  --paper-2: #f8ecdc;
+  --line: #c9a385;
+  --accent: #d9702e;
+  --accent-2: #8a6d1e;
+  --accent-soft: #fbe3cf;
+  --glow-1: rgba(217, 112, 46, 0.30);
+  --glow-2: rgba(184, 70, 47, 0.22);
+}
+:root[data-season="autumn"][data-theme="dark"] {
+  --bg: #1a1310;
+  --paper: #241a15;
+  --paper-2: #2f2219;
+  --line: #6b4d3a;
+  --accent: #ff9a4a;
+  --accent-2: #e0b34a;
+  --accent-soft: #3d2a1f;
+  --glow-1: rgba(255, 154, 74, 0.16);
+  --glow-2: rgba(224, 179, 74, 0.14);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-season="autumn"]:not([data-theme="light"]) {
+    --bg: #1a1310;
+    --paper: #241a15;
+    --paper-2: #2f2219;
+    --line: #6b4d3a;
+    --accent: #ff9a4a;
+    --accent-2: #e0b34a;
+    --accent-soft: #3d2a1f;
+    --glow-1: rgba(255, 154, 74, 0.16);
+    --glow-2: rgba(224, 179, 74, 0.14);
+  }
+}
+:root[data-season="halloween"] {
+  --bg: #ece6f2;
+  --paper: #f8f5fb;
+  --paper-2: #efe9f5;
+  --line: #b59ec9;
+  --accent: #f2701a;
+  --accent-2: #7d4fd6;
+  --accent-soft: #ffe3cc;
+  --glow-1: rgba(242, 112, 26, 0.30);
+  --glow-2: rgba(125, 79, 214, 0.28);
+}
+:root[data-season="halloween"][data-theme="dark"] {
+  --bg: #0f0a14;
+  --paper: #17111f;
+  --paper-2: #221a2c;
+  --line: #533f66;
+  --accent: #ff8c2e;
+  --accent-2: #a985ff;
+  --accent-soft: #3a2440;
+  --glow-1: rgba(255, 140, 46, 0.18);
+  --glow-2: rgba(169, 133, 255, 0.20);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-season="halloween"]:not([data-theme="light"]) {
+    --bg: #0f0a14;
+    --paper: #17111f;
+    --paper-2: #221a2c;
+    --line: #533f66;
+    --accent: #ff8c2e;
+    --accent-2: #a985ff;
+    --accent-soft: #3a2440;
+    --glow-1: rgba(255, 140, 46, 0.18);
+    --glow-2: rgba(169, 133, 255, 0.20);
+  }
+}
+:root[data-season="winter"] {
+  --bg: #e9eff6;
+  --paper: #fbfdff;
+  --paper-2: #eef4fa;
+  --line: #a9bcd3;
+  --accent: #4f93d6;
+  --accent-2: #8e86d9;
+  --accent-soft: #ddebf8;
+  --glow-1: rgba(79, 147, 214, 0.28);
+  --glow-2: rgba(142, 134, 217, 0.24);
+}
+:root[data-season="winter"][data-theme="dark"] {
+  --bg: #0f1420;
+  --paper: #171d2b;
+  --paper-2: #202838;
+  --line: #4a5a76;
+  --accent: #8cc8ff;
+  --accent-2: #b7b0ff;
+  --accent-soft: #26304a;
+  --glow-1: rgba(140, 200, 255, 0.16);
+  --glow-2: rgba(183, 176, 255, 0.16);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-season="winter"]:not([data-theme="light"]) {
+    --bg: #0f1420;
+    --paper: #171d2b;
+    --paper-2: #202838;
+    --line: #4a5a76;
+    --accent: #8cc8ff;
+    --accent-2: #b7b0ff;
+    --accent-soft: #26304a;
+    --glow-1: rgba(140, 200, 255, 0.16);
+    --glow-2: rgba(183, 176, 255, 0.16);
+  }
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-paper: var(--paper);
@@ -176,27 +319,72 @@ body::before {
 .marquee:hover .marquee-track { animation-play-state: paused; }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-/* sakura petals */
-.petals {
+/* ---------- seasonal particles ---------- */
+.particles {
   position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
-  /* keep the header area clear so petals never look like stray dots next to the title */
+  /* keep the header area clear so nothing looks like a stray dot next to the title */
   mask-image: linear-gradient(to bottom, transparent 0, transparent 150px, #000 230px);
 }
-.petal {
-  position: absolute;
-  top: -5vh;
-  width: 12px; height: 12px;
-  background: var(--accent);
-  opacity: 0.35;
-  border-radius: 100% 0 100% 0;
-  transform: scaleX(0.75);
-  animation: fall linear infinite, sway ease-in-out infinite alternate;
+.particle { position: absolute; top: -6vh; display: block; }
+.particle > i { display: block; }
+
+/* spring: sakura petals */
+.petal { animation: p-fall linear infinite, p-sway ease-in-out infinite alternate; }
+.petal > i { width: 100%; height: 100%; background: var(--accent); border-radius: 100% 0 100% 0; transform: scaleX(0.75); animation: p-spin linear infinite; }
+
+/* summer: fireflies rising from the bottom */
+.firefly { top: auto; bottom: -6vh; width: 5px; height: 5px; animation: p-rise linear infinite, p-sway ease-in-out infinite alternate; }
+.firefly > i { width: 100%; height: 100%; background: #ffe066; box-shadow: 0 0 6px 2px rgba(255, 224, 102, 0.55); animation: p-blink ease-in-out infinite alternate; }
+
+/* autumn: tumbling leaves */
+.leaf { animation: p-fall linear infinite, p-sway ease-in-out infinite alternate; opacity: 0.8; }
+.leaf > i { border-radius: 100% 0 100% 0; animation: p-tumble linear infinite; }
+
+/* halloween: ghosts drift up, bats cross the sky */
+.ghost { top: auto; bottom: -10vh; color: var(--ink); opacity: 0.35; animation: p-rise linear infinite, p-sway ease-in-out infinite alternate; }
+.ghost > i { animation: p-bob 2.4s ease-in-out infinite alternate; }
+.bat { left: -8vw; color: var(--ink); opacity: 0.55; animation: p-cross linear infinite, p-bob-y ease-in-out infinite alternate; }
+.bat > i { transform-origin: 50% 50%; animation: p-flap ease-in-out infinite alternate; }
+.cobweb { position: fixed; top: 0; left: 0; z-index: 0; color: var(--ink); opacity: 0.22; pointer-events: none; }
+
+/* winter: pixel snow */
+.flake { background: #fff; box-shadow: 0 0 2px rgba(120, 160, 220, 0.5); animation: p-fall linear infinite, p-sway ease-in-out infinite alternate; }
+:root[data-theme="light"] .flake { background: #fff; box-shadow: 0 0 0 1px rgba(120, 160, 220, 0.35); }
+
+@keyframes p-fall { to { transform: translateY(120vh); } }
+@keyframes p-rise { to { transform: translateY(-120vh); } }
+@keyframes p-sway { from { margin-left: -20px; } to { margin-left: 20px; } }
+@keyframes p-spin { to { transform: rotate(360deg) scaleX(0.75); } }
+@keyframes p-tumble { 0% { transform: rotate(0) scaleX(1); } 50% { transform: rotate(180deg) scaleX(0.4); } 100% { transform: rotate(360deg) scaleX(1); } }
+@keyframes p-blink { from { opacity: 0.1; } to { opacity: 1; } }
+@keyframes p-bob { from { transform: translateY(0) rotate(-6deg); } to { transform: translateY(-8px) rotate(6deg); } }
+@keyframes p-bob-y { from { margin-top: -18px; } to { margin-top: 18px; } }
+@keyframes p-cross { to { transform: translateX(120vw); } }
+@keyframes p-flap { from { transform: scaleY(0.5); } to { transform: scaleY(1); } }
+
+/* ---------- seasonal frame ---------- */
+.win { position: relative; }
+/* winter: snow caps on every window */
+:root[data-season="winter"] .win::before {
+  content: ""; position: absolute; left: -1.5px; right: -1.5px; top: -5px; height: 5px; pointer-events: none;
+  background:
+    linear-gradient(#fff, #fff) bottom / 100% 2px no-repeat,
+    repeating-linear-gradient(90deg, #fff 0 5px, transparent 5px 8px) top / 100% 3px no-repeat;
 }
-@keyframes fall { to { transform: translateY(110vh) rotate(540deg) scaleX(0.75); } }
-@keyframes sway { from { margin-left: -20px; } to { margin-left: 20px; } }
+/* in light mode the caps need an edge to show against the paper */
+:root[data-season="winter"]:not([data-theme="dark"]) .win::before { filter: drop-shadow(0 1px 0 rgba(120, 160, 220, 0.7)); }
+@media (prefers-color-scheme: dark) { :root[data-season="winter"]:not([data-theme="light"]) .win::before { filter: none; } }
+/* autumn: a warm band on the title bars */
+:root[data-season="autumn"] .win-title { background: linear-gradient(90deg, var(--accent-soft), var(--paper-2)); }
+/* summer: a sunny stripe above each window */
+:root[data-season="summer"] .win::before { content: ""; position: absolute; left: 6px; right: 6px; top: -4px; height: 2px; background: repeating-linear-gradient(90deg, #ffd166 0 6px, transparent 6px 10px); pointer-events: none; }
+/* halloween: orange title dots and a dashed purple glow */
+:root[data-season="halloween"] .win-title .dots i:nth-child(2) { background: var(--accent-2); }
+:root[data-season="halloween"] .win { box-shadow: 4px 4px 0 var(--line), 0 0 0 1px rgba(169, 133, 255, 0.12); }
+
 @media (prefers-reduced-motion: reduce) {
-  .petal, .marquee-track { animation: none !important; }
-  .petals { display: none; }
+  .particle, .particle > i, .marquee-track { animation: none !important; }
+  .particles { display: none; }
 }
 
 /* misc */

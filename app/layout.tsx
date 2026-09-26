@@ -3,7 +3,8 @@ import { DotGothic16, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { site } from "@/data/site";
 import { Shell } from "@/components/layout/Shell";
-import { Petals } from "@/components/decor/Petals";
+import { Seasonal } from "@/components/decor/Seasonal";
+import { currentSeason } from "@/lib/season";
 import { cookies } from "next/headers";
 
 const dotGothic = DotGothic16({ weight: "400", subsets: ["latin"], variable: "--font-dot-gothic", display: "swap" });
@@ -34,10 +35,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   // the chosen theme lives in a cookie so the server can render it straight into <html>; without one, css follows the system setting
   const saved = (await cookies()).get("theme")?.value;
   const theme = saved === "light" || saved === "dark" ? saved : undefined;
+  const season = currentSeason();
   return (
-    <html lang="en" className={`${dotGothic.variable} ${plexMono.variable} h-full`} data-theme={theme}>
+    <html lang="en" className={`${dotGothic.variable} ${plexMono.variable} h-full`} data-theme={theme} data-season={season}>
       <body className="min-h-full">
-        <Petals />
+        <Seasonal season={season} />
         <Shell>{children}</Shell>
       </body>
     </html>

@@ -15,7 +15,7 @@ const links = [
   { href: "/admin/neighbors", label: "neighbors" },
   { href: "/admin/spotify", label: "spotify" },
   { href: "/admin/updates", label: "update log" },
-  { href: "/admin/site", label: "marquee" },
+  { href: "/admin/site", label: "marquee & season" },
   { href: "/admin/maintenance", label: "maintenance" },
 ];
 

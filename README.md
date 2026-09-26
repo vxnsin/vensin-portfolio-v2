@@ -86,6 +86,10 @@ Two sources, both optional:
 - **Spotify API** (top tracks/artists per time range, recently played, public playlists): create an app on developer.spotify.com, set `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`, add the redirect URIs `http://127.0.0.1:3000/api/spotify/callback` and `https://vensin.dev/api/spotify/callback`, then click "connect spotify" in `/admin/spotify`. Only the refresh token is stored (SQLite); a job refreshes the data hourly.
 - **History import** (real yearly stats): request your data export in Spotify's privacy settings, unzip it and upload the `StreamingHistory_music_*.json` / `Streaming_History_Audio_*.json` files in `/admin/spotify`. Plays under 30 s are ignored, overlaps with the live import are skipped.
 
+## Seasons
+
+The palette, the window frames and the particles follow the calendar (`lib/season.ts`): spring (sakura petals), summer (fireflies, sunny stripes), autumn (tumbling leaves), halloween from Oct 15 to Nov 2 (ghosts, bats, a cobweb), winter (pixel snow with snow caps on every window). Light and dark mode each have their own set. `/admin/site` can pin a season for previews or because it just looks nice.
+
 ## Guestbook & Discord buttons
 
 Entries that pass the screening (`lib/guestbook.ts`: no links, no spam words, not all caps, not a repeat, honeypot empty, rate limit per hashed IP) go straight to the wall. Anything flagged is stored as `pending` and only shows up after approval; slurs and keyboard mashing are dropped silently.

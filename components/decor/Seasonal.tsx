@@ -1,0 +1,148 @@
+import type { Season } from "@/lib/season-data";
+
+// Deterministic values so server and client render the same markup.
+const seq = (i: number, a: number, b: number) => ((i * a + b) % 100) / 100; // pseudo-random 0..1 per index
+
+const LEAF_COLORS = ["#d9702e", "#b8462f", "#e0a63a", "#8f5a2b"];
+const GHOST_COUNT = 5;
+const BAT_COUNT = 6;
+
+function Ghost() {
+  return (
+    <svg viewBox="0 0 16 18" width="26" height="30" aria-hidden shapeRendering="crispEdges">
+      <path d="M2 10 Q2 2 8 2 Q14 2 14 10 V17 L12 15 L10 17 L8 15 L6 17 L4 15 L2 17 Z" fill="currentColor" />
+      <rect x="5" y="7" width="2" height="3" fill="var(--bg)" />
+      <rect x="9" y="7" width="2" height="3" fill="var(--bg)" />
+    </svg>
+  );
+}
+
+function Bat() {
+  return (
+    <svg viewBox="0 0 16 12" width="28" height="21" aria-hidden>
+      <path d="M0 6 Q3 1 6 5 Q7 3 8 5 Q9 3 10 5 Q13 1 16 6 Q13 6 12 10 Q10 7 8 9 Q6 7 4 10 Q3 6 0 6 Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function Cobweb() {
+  const rays = [0, 15, 30, 45, 60, 75, 90];
+  const rings = [22, 44, 66, 88];
+  return (
+    <svg viewBox="0 0 100 100" width="150" height="150" className="cobweb" aria-hidden>
+      <g fill="none" stroke="currentColor" strokeWidth="1">
+        {rays.map((a) => (
+          <line key={a} x1="0" y1="0" x2={Math.cos((a * Math.PI) / 180) * 100} y2={Math.sin((a * Math.PI) / 180) * 100} />
+        ))}
+        {rings.map((r) => (
+          <path key={r} d={rays.slice(0, -1).map((a, i) => {
+            const n = rays[i + 1];
+            const x1 = Math.cos((a * Math.PI) / 180) * r, y1 = Math.sin((a * Math.PI) / 180) * r;
+            const x2 = Math.cos((n * Math.PI) / 180) * r, y2 = Math.sin((n * Math.PI) / 180) * r;
+            const mx = (x1 + x2) / 2 * 0.92, my = (y1 + y2) / 2 * 0.92;
+            return `${i === 0 ? `M${x1} ${y1}` : ""} Q${mx} ${my} ${x2} ${y2}`;
+          }).join(" ")} />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+/** what drifts across the page this season */
+export function Seasonal({ season }: { season: Season }) {
+  if (season === "spring") {
+    return (
+      <div className="particles" aria-hidden>
+        {Array.from({ length: 14 }, (_, i) => (
+          <span
+            key={i}
+            className="particle petal"
+            style={{ left: `${(i * 37 + 11) % 100}%`, width: 8 + ((i * 5) % 7), height: 8 + ((i * 5) % 7), opacity: 0.25 + ((i * 3) % 5) * 0.06, animationDuration: `${14 + ((i * 7) % 12)}s, ${3 + (i % 4)}s`, animationDelay: `${-((i * 5.3) % 20)}s, ${-((i * 2.6) % 10)}s` }}
+          >
+            <i style={{ animationDuration: `${4 + (i % 5)}s` }} />
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  if (season === "summer") {
+    return (
+      <div className="particles" aria-hidden>
+        {Array.from({ length: 18 }, (_, i) => (
+          <span
+            key={i}
+            className="particle firefly"
+            style={{ left: `${(i * 29 + 7) % 100}%`, animationDuration: `${18 + ((i * 5) % 14)}s, ${2 + (i % 3)}s`, animationDelay: `${-((i * 4.7) % 24)}s, ${-((i * 1.3) % 4)}s` }}
+          >
+            <i style={{ animationDuration: `${1.6 + seq(i, 13, 5) * 2.2}s`, animationDelay: `${-seq(i, 7, 3) * 3}s` }} />
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  if (season === "autumn") {
+    return (
+      <div className="particles" aria-hidden>
+        {Array.from({ length: 16 }, (_, i) => (
+          <span
+            key={i}
+            className="particle leaf"
+            style={{ left: `${(i * 31 + 5) % 100}%`, animationDuration: `${12 + ((i * 7) % 10)}s, ${3 + (i % 4)}s`, animationDelay: `${-((i * 5.1) % 18)}s, ${-((i * 2.2) % 8)}s` }}
+          >
+            <i style={{ background: LEAF_COLORS[i % LEAF_COLORS.length], width: 10 + ((i * 3) % 6), height: 10 + ((i * 3) % 6), animationDuration: `${3 + (i % 4)}s` }} />
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  if (season === "halloween") {
+    return (
+      <>
+        <Cobweb />
+        <div className="particles" aria-hidden>
+          {Array.from({ length: GHOST_COUNT }, (_, i) => (
+            <span
+              key={`g${i}`}
+              className="particle ghost"
+              style={{ left: `${(i * 23 + 9) % 90}%`, animationDuration: `${26 + ((i * 7) % 12)}s, ${4 + (i % 3)}s`, animationDelay: `${-((i * 9.3) % 30)}s, ${-((i * 1.7) % 5)}s` }}
+            >
+              <i>
+                <Ghost />
+              </i>
+            </span>
+          ))}
+          {Array.from({ length: BAT_COUNT }, (_, i) => (
+            <span
+              key={`b${i}`}
+              className="particle bat"
+              style={{ top: `${18 + ((i * 17) % 55)}%`, animationDuration: `${22 + ((i * 5) % 14)}s, ${3 + (i % 3)}s`, animationDelay: `${-((i * 7.9) % 26)}s, ${-((i * 1.1) % 3)}s` }}
+            >
+              <i style={{ animationDuration: `${0.35 + seq(i, 11, 3) * 0.25}s` }}>
+                <Bat />
+              </i>
+            </span>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  // winter
+  return (
+    <div className="particles" aria-hidden>
+      {Array.from({ length: 40 }, (_, i) => {
+        const size = 3 + ((i * 5) % 3) * 2;
+        return (
+          <span
+            key={i}
+            className="particle flake"
+            style={{ left: `${(i * 23 + 3) % 100}%`, width: size, height: size, opacity: 0.35 + ((i * 3) % 5) * 0.12, animationDuration: `${10 + ((i * 7) % 16)}s, ${3 + (i % 5)}s`, animationDelay: `${-((i * 3.7) % 24)}s, ${-((i * 1.9) % 6)}s` }}
+          />
+        );
+      })}
+    </div>
+  );
+}

@@ -28,6 +28,7 @@ import {
 } from "@/lib/store";
 import { jobs, runJob } from "@/lib/scheduler";
 import { deleteGuestbookEntry, setGuestbookStatus } from "@/lib/guestbook";
+import { isSeason, setSeasonSetting } from "@/lib/season";
 import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
 
 export type ActionState = { ok: boolean; error?: string } | null;
@@ -299,8 +300,10 @@ export async function saveSiteAction(_prev: ActionState, formData: FormData): Pr
     .map((l) => l.trim())
     .filter(Boolean)
     .slice(0, 40);
+  const season = String(formData.get("season") ?? "auto");
   try {
     await saveMarquee(marquee);
+    setSeasonSetting(isSeason(season) ? season : "auto");
     revalidatePath("/admin/site");
     revalidatePath("/", "layout");
     return { ok: true };
