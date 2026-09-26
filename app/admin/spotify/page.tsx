@@ -26,6 +26,7 @@ export default async function AdminSpotify({ searchParams }: { searchParams: Pro
   const runs = [
     { id: "spotify", label: "top tracks / artists / playlists", run: getJobRun("spotify") },
     { id: "spotify-now", label: "now playing", run: getJobRun("spotify-now") },
+    { id: "spotify-history", label: "import plays into the log", run: getJobRun("spotify-history") },
   ];
 
   return (

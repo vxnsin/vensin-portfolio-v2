@@ -115,6 +115,26 @@ export async function fetchSpotifyData(): Promise<SpotifyData | null> {
   return { topTracks, topArtists, recent, playlists, fetchedAt: new Date().toISOString() };
 }
 
+/* ---------- recently played (feeds the listening log) ---------- */
+
+export async function fetchRecentPlays(): Promise<Array<{ track: Track; playedAt: string }> | null> {
+  const token = await accessToken();
+  if (!token) return null;
+  const j = await api<{ items: Array<{ track: RawTrack; played_at: string }> }>("/me/player/recently-played?limit=50", token);
+  return (j?.items ?? []).map((i) => ({ track: track(i.track), playedAt: i.played_at }));
+}
+
+/** artist picture by name (for the log-based artist list). Cached a week. */
+export function artistImage(name: string): Promise<string | null> {
+  return cached(`spotify:artist:${name.toLowerCase()}`, 7 * 24 * HOUR, async () => {
+    const token = await accessToken();
+    if (!token) return null;
+    const j = await api<{ artists: { items: RawArtist[] } }>(`/search?type=artist&limit=1&q=${encodeURIComponent(name)}`, token);
+    const a = j?.artists?.items?.[0];
+    return a ? (a.images?.[1]?.url ?? a.images?.[0]?.url ?? null) : null;
+  });
+}
+
 /* ---------- currently playing ---------- */
 
 export type NowPlaying = { playing: boolean; track: Track | null; progressMs: number; fetchedAt: string; device: string | null };

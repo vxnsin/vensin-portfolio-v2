@@ -30,7 +30,7 @@ function Row({ n, art, title, sub, right, href }: { n: number; art: string | nul
   );
 }
 
-export function TopTracks({ spotify, log }: { spotify: Record<Range, Track[]> | null; log: LogTrack[] }) {
+export function TopTracks({ spotify, log, limit = 5 }: { spotify: Record<Range, Track[]> | null; log: LogTrack[]; limit?: number }) {
   const [range, setRange] = useState<Range>("short");
   const tabs: Array<{ key: Range | "log"; label: string }> = [
     ...(spotify ? (Object.keys(RANGE_LABEL) as Range[]).map((k) => ({ key: k, label: RANGE_LABEL[k] })) : []),
@@ -38,7 +38,7 @@ export function TopTracks({ spotify, log }: { spotify: Record<Range, Track[]> | 
   ];
   const [tab, setTab] = useState<Range | "log">(spotify ? "short" : "log");
 
-  const list = tab === "log" ? null : spotify?.[tab] ?? null;
+  const list = tab === "log" ? null : (spotify?.[tab]?.slice(0, limit) ?? null);
 
   return (
     <div className="grid gap-2 text-xs">
@@ -63,7 +63,7 @@ export function TopTracks({ spotify, log }: { spotify: Record<Range, Track[]> | 
           <p className="text-ink-soft">nothing logged yet.</p>
         ) : (
           <div>
-            {log.map((t, i) => (
+            {log.slice(0, limit).map((t, i) => (
               <Row key={`${t.trackId}-${i}`} n={i + 1} art={t.art} title={t.song} sub={t.artist} right={`${t.minutes} min`} href={t.trackId ? `https://open.spotify.com/track/${t.trackId}` : null} />
             ))}
           </div>

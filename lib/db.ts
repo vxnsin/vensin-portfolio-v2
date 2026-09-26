@@ -34,9 +34,20 @@ export function getDb(): Database.Database {
   db.pragma("journal_mode = WAL");
   db.pragma("synchronous = NORMAL");
   db.exec(SCHEMA);
+  migrate(db);
   migrateFromJson(db);
   globalThis.__vensinDb = db;
   return db;
+}
+
+/* ---------- schema upgrades for existing files ---------- */
+
+function migrate(db: Database.Database) {
+  const cols = (db.prepare("pragma table_info(listens)").all() as Array<{ name: string }>).map((c) => c.name);
+  if (!cols.includes("minutes")) db.exec("alter table listens add column minutes real not null default 1");
+  if (!cols.includes("played_at")) db.exec("alter table listens add column played_at text");
+  if (!cols.includes("source")) db.exec("alter table listens add column source text not null default 'poll'");
+  db.exec("create unique index if not exists listens_played_at on listens (played_at) where played_at is not null");
 }
 
 /* ---------- tiny kv helpers ---------- */
