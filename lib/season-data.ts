@@ -1,9 +1,9 @@
 // pure helpers, safe to import from client components
 
 /** the seasons a visitor can pick */
-export const SEASONS = ["spring", "summer", "autumn", "halloween", "winter"] as const;
+export const SEASONS = ["spring", "summer", "autumn", "winter"] as const;
 /** specials only the calendar (or the admin) can switch on */
-export const SPECIALS = ["christmas", "newyear", "birthday", "valentine", "aprilfools"] as const;
+export const SPECIALS = ["halloween", "christmas", "newyear", "birthday", "valentine", "aprilfools"] as const;
 export const ALL_SEASONS = [...SEASONS, ...SPECIALS] as const;
 export type Season = (typeof ALL_SEASONS)[number];
 export type SeasonSetting = Season | "auto";
@@ -12,7 +12,7 @@ export const SEASON_LABEL: Record<Season, string> = {
   spring: "spring · sakura petals",
   summer: "summer · fireflies",
   autumn: "autumn · falling leaves",
-  halloween: "halloween · ghosts and bats",
+  halloween: "halloween · ghosts and bats (oct 15 – nov 2, not in the visitor picker)",
   winter: "winter · snow",
   christmas: "christmas · santa's sleigh and presents (dec 18–27, not in the visitor picker)",
   newyear: "new year · fireworks (dec 31 – jan 1, not in the visitor picker)",
@@ -38,6 +38,7 @@ export const SEASON_WHEN: Record<Season, string> = {
 
 /** the line under the site title on special days */
 export function seasonGreeting(season: Season, d = new Date()): string | null {
+  if (season === "halloween") return "happy halloween!";
   if (season === "christmas") return "merry christmas!";
   if (season === "newyear") return `happy new year ${d.getMonth() === 11 ? d.getFullYear() + 1 : d.getFullYear()}!`;
   if (season === "birthday") return "it's my birthday today!";
