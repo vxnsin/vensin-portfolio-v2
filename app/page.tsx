@@ -6,14 +6,11 @@ import { Window } from "@/components/layout/Window";
 import { GithubBox } from "@/components/github/GithubBox";
 import { Wordmark } from "@/components/layout/Wordmark";
 import { SpecialNote } from "@/components/home/SpecialNote";
-import { cookies } from "next/headers";
-import { currentSeason } from "@/lib/season";
-import { isSeason } from "@/lib/season-data";
+import { resolveSeason } from "@/lib/season";
 
 export default async function Home() {
   const [settings, gh, contributions] = await Promise.all([getSettings(), getLatestGithubActivity(), getContributionYears()]);
-  const picked = (await cookies()).get("season")?.value;
-  const season = isSeason(picked) ? picked : currentSeason();
+  const { season } = await resolveSeason();
 
   return (
     <div className="grid gap-5">

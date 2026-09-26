@@ -12,7 +12,7 @@ export function SiteForm({ marquee, season, calendar }: { marquee: string[]; sea
       <Window title="marquee (one line per entry)" dashed>
         <textarea name="marquee" rows={12} defaultValue={marquee.join("\n")} className="input font-mono" />
       </Window>
-      <Window title="season" dashed>
+      <Window title="season (the showcase with previews lives under seasons)" dashed>
         <div className="grid gap-2">
           <p className="text-ink-soft">
             the site&apos;s default season. visitors can pick their own in the footer, this is what everyone else gets. &quot;auto&quot; follows the calendar: spring mar–may, summer jun–aug, autumn sep–nov with halloween from oct 15 to nov 2, winter dec–feb, plus the specials visitors can&apos;t pick: christmas dec 18–27 (santa flies, presents fall), new year dec 31 – jan 1 (fireworks), birthday apr 10 (confetti, balloons), valentine feb 14 (hearts), april fools apr 1 (a small troll). right now the calendar says <b>{calendar}</b>.

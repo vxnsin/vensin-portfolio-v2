@@ -4,8 +4,7 @@ import "./globals.css";
 import { site } from "@/data/site";
 import { Shell } from "@/components/layout/Shell";
 import { Seasonal } from "@/components/decor/Seasonal";
-import { currentSeason } from "@/lib/season";
-import { isSeason } from "@/lib/season-data";
+import { resolveSeason } from "@/lib/season";
 import { cookies } from "next/headers";
 
 const dotGothic = DotGothic16({ weight: "400", subsets: ["latin"], variable: "--font-dot-gothic", display: "swap" });
@@ -37,10 +36,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const jar = await cookies();
   const saved = jar.get("theme")?.value;
   const theme = saved === "light" || saved === "dark" ? saved : undefined;
-  // same idea for the season: a visitor's pick wins, otherwise the admin's pick or the calendar
-  const picked = jar.get("season")?.value;
-  const choice = isSeason(picked) ? picked : "auto";
-  const season = choice === "auto" ? currentSeason() : choice;
+  // same idea for the season: a visitor's pick wins, otherwise the admin's pick or the calendar (see resolveSeason)
+  const { season, choice } = await resolveSeason();
   return (
     <html lang="en" className={`${dotGothic.variable} ${plexMono.variable} h-full`} data-theme={theme} data-season={season} data-season-choice={choice}>
       <body className="min-h-full">

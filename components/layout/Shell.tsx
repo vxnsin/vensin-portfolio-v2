@@ -10,10 +10,8 @@ import { NavTabs } from "./NavTabs";
 import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
 import { SeasonPicker } from "./SeasonPicker";
-import { currentSeason } from "@/lib/season";
-import { isSeason } from "@/lib/season-data";
+import { resolveSeason } from "@/lib/season";
 import { SeasonGreeting } from "./SeasonGreeting";
-import { cookies } from "next/headers";
 import { Window } from "./Window";
 import { LanyardProvider } from "@/components/discord/LanyardProvider";
 import { DiscordPresence } from "@/components/discord/DiscordPresence";
@@ -33,9 +31,7 @@ export async function Shell({ children }: { children: ReactNode }) {
     getNowPlaying(),
   ]);
   const lastPlayed = spotify ? listenStats().lastPlayed : null;
-  const fallbackSeason = currentSeason();
-  const pickedSeason = (await cookies()).get("season")?.value;
-  const season = isSeason(pickedSeason) ? pickedSeason : fallbackSeason;
+  const { season, fallback: fallbackSeason } = await resolveSeason();
 
   return (
     <LanyardProvider>

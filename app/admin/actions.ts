@@ -33,6 +33,17 @@ import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/
 
 export type ActionState = { ok: boolean; error?: string } | null;
 
+/* ---------- seasons ---------- */
+
+export async function pinSeasonAction(formData: FormData) {
+  await requireAdmin();
+  const season = String(formData.get("season") ?? "auto");
+  setSeasonSetting(isSeason(season) ? season : "auto");
+  revalidatePath("/", "layout");
+  revalidatePath("/admin/seasons");
+  revalidatePath("/admin/site");
+}
+
 /* ---------- guestbook ---------- */
 
 export async function setGuestbookStatusAction(formData: FormData) {

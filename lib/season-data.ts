@@ -23,6 +23,19 @@ export const SEASON_LABEL: Record<Season, string> = {
 
 export const SEASON_ICON: Record<Season, string> = { spring: "✿", summer: "☀", autumn: "🍂", halloween: "👻", winter: "❄", christmas: "🎄", newyear: "🎆", birthday: "🎂", valentine: "💌", aprilfools: "🃏" };
 
+export const SEASON_WHEN: Record<Season, string> = {
+  spring: "mar 1 – may 31",
+  summer: "jun 1 – aug 31",
+  autumn: "sep 1 – nov 30 (halloween takes over in between)",
+  halloween: "oct 15 – nov 2",
+  winter: "dec 1 – feb 28/29 (christmas and new year take over in between)",
+  christmas: "dec 18 – 27",
+  newyear: "dec 31 – jan 1",
+  birthday: "apr 10 (luis' birthday)",
+  valentine: "feb 14",
+  aprilfools: "apr 1",
+};
+
 /** the line under the site title on special days */
 export function seasonGreeting(season: Season, d = new Date()): string | null {
   if (season === "christmas") return "merry christmas!";
