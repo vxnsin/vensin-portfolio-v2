@@ -17,7 +17,10 @@ const clientSecret = () => process.env.SPOTIFY_CLIENT_SECRET ?? "";
 export const spotifyConfigured = () => Boolean(clientId() && clientSecret());
 export const spotifyConnected = () => Boolean(kvGet<string | null>("spotify:refresh", null));
 /** the host the spotify app knows: SPOTIFY_REDIRECT_BASE, else the production url in production, else 127.0.0.1 (spotify rejects "localhost") */
-export const spotifyRedirectBase = () => (process.env.SPOTIFY_REDIRECT_BASE ?? (process.env.NODE_ENV === "production" ? "https://vensin.dev" : "http://127.0.0.1:3000")).replace(//$/, "");
+export const spotifyRedirectBase = () => {
+  const base = process.env.SPOTIFY_REDIRECT_BASE ?? (process.env.NODE_ENV === "production" ? "https://vensin.dev" : "http://127.0.0.1:3000");
+  return base.endsWith("/") ? base.slice(0, -1) : base;
+};
 export const spotifyRedirectUri = () => `${spotifyRedirectBase()}/api/spotify/callback`;
 
 export function spotifyAuthUrl(state: string) {
