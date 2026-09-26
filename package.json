@@ -9,8 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@upstash/redis": "^1.39.0",
     "@vercel/blob": "^2.8.0",
+    "better-sqlite3": "^13.0.3",
     "heic-convert": "^2.1.0",
     "lucide-react": "^1.48.0",
     "motion": "^13.4.4",
@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/heic-convert": "^2.1.1",
     "@types/node": "^20",
     "@types/react": "^19",

@@ -1,4 +1,6 @@
 // Kitsu API (https://kitsu.docs.apiary.io) — public, no key, high-res posters (550x780).
+import { cached, DAY } from "./cache";
+
 const API = "https://kitsu.app/api/edge";
 const HEADERS = { accept: "application/vnd.api+json" };
 const FIELDS = "fields[anime]=canonicalTitle,posterImage,averageRating,slug";
@@ -38,19 +40,25 @@ function map(raw?: Raw): KitsuAnime | null {
   };
 }
 
-/** Exact lookup via MyAnimeList id. Cached 24h. */
-export async function kitsuByMalId(malId: number): Promise<KitsuAnime | null> {
-  try {
-    const res = await fetch(
-      `${API}/mappings?filter[externalSite]=myanimelist/anime&filter[externalId]=${malId}&include=item&${FIELDS}`,
-      { headers: HEADERS, next: { revalidate: 86400 } },
-    );
+/** Exact lookup via MyAnimeList id. Cached 7 days. */
+export function kitsuByMalId(malId: number): Promise<KitsuAnime | null> {
+  return cached(`kitsu:mal:${malId}`, 7 * DAY, async () => {
+    const res = await fetch(`${API}/mappings?filter[externalSite]=myanimelist/anime&filter[externalId]=${malId}&include=item&${FIELDS}`, {
+      headers: HEADERS,
+      cache: "no-store",
+    });
     if (!res.ok) return null;
-    const json = await res.json();
-    return map(json?.included?.[0]);
-  } catch {
-    return null;
-  }
+    return map((await res.json())?.included?.[0]);
+  });
+}
+
+/** Fuzzy lookup by title (used for aniworld entries that only give us a name). Cached 7 days. */
+export function kitsuSearch(title: string): Promise<KitsuAnime | null> {
+  return cached(`kitsu:q:${title.toLowerCase()}`, 7 * DAY, async () => {
+    const res = await fetch(`${API}/anime?filter[text]=${encodeURIComponent(title)}&page[limit]=1&${FIELDS}`, { headers: HEADERS, cache: "no-store" });
+    if (!res.ok) return null;
+    return map((await res.json())?.data?.[0]);
+  });
 }
 
 export type KitsuHit = KitsuAnime & { id: string; year: string | null; synopsis: string | null };
@@ -78,20 +86,5 @@ export async function kitsuSearchMany(query: string, limit = 8): Promise<KitsuHi
     return out;
   } catch {
     return [];
-  }
-}
-
-/** Fuzzy lookup by title (used for aniworld entries that only give us a name). Cached 24h. */
-export async function kitsuSearch(title: string): Promise<KitsuAnime | null> {
-  try {
-    const res = await fetch(`${API}/anime?filter[text]=${encodeURIComponent(title)}&page[limit]=1&${FIELDS}`, {
-      headers: HEADERS,
-      next: { revalidate: 86400 },
-    });
-    if (!res.ok) return null;
-    const json = await res.json();
-    return map(json?.data?.[0]);
-  } catch {
-    return null;
   }
 }

@@ -6,7 +6,7 @@ import type {
   Contributions,
   LatestActivity,
 } from "@/lib/github";
-import { relativeTime } from "@/lib/github";
+import { relativeTime } from "@/lib/time";
 
 const LEVEL_ALPHA = [0.12, 0.35, 0.55, 0.78, 1];
 const CELL = 10;
@@ -135,7 +135,7 @@ function Heatmap({ c }: { c: Contributions }) {
   );
 }
 
-function Latest({ gh }: { gh: LatestActivity }) {
+function Latest({ gh }: { gh: LatestActivity | null }) {
   if (!gh)
     return <p className="text-ink-soft">github is being shy right now.</p>;
   return (
@@ -175,7 +175,7 @@ export function GithubBox({
   gh,
   contributions,
 }: {
-  gh: LatestActivity;
+  gh: LatestActivity | null;
   contributions: ContributionYears | null;
 }) {
   const [page, setPage] = useState(0);

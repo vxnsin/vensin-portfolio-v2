@@ -1,0 +1,117 @@
+import Database from "better-sqlite3";
+import { existsSync, mkdirSync, readFileSync } from "fs";
+import path from "path";
+
+// One SQLite file holds everything: content, settings, health data, and a cache for external APIs.
+export const DATA_DIR = process.env.DATA_DIR ?? (process.env.VERCEL ? "/tmp/vensin-data" : path.join(process.cwd(), ".data"));
+export const DB_FILE = path.join(DATA_DIR, "vensin.sqlite");
+
+const SCHEMA = `
+  create table if not exists kv (key text primary key, value text not null, updated_at text not null);
+  create table if not exists cache (key text primary key, value text not null, fetched_at integer not null, expires_at integer not null);
+  create table if not exists messages (id text primary key, name text not null, email text not null, message text not null, created_at text not null, read integer not null default 0);
+  create table if not exists gallery (id text primary key, url text not null, kind text not null, caption text not null default '', tag text not null default 'misc', pathname text, created_at text not null);
+  create table if not exists updates (id text primary key, date text not null, text text not null, created_at text not null);
+  create table if not exists favorites (id text primary key, kitsu_id text not null unique, slug text not null default '', title text not null, poster text, note text not null default '', rating integer not null default 8, position integer not null, created_at text not null);
+  create table if not exists seen_activities (key text primary key, first_seen text not null);
+  create index if not exists messages_created on messages (created_at desc);
+  create index if not exists gallery_created on gallery (created_at desc);
+  create index if not exists favorites_position on favorites (position);
+`;
+
+declare global {
+  var __vensinDb: Database.Database | undefined;
+}
+
+export function getDb(): Database.Database {
+  if (globalThis.__vensinDb) return globalThis.__vensinDb;
+  mkdirSync(DATA_DIR, { recursive: true });
+  const db = new Database(DB_FILE);
+  db.pragma("journal_mode = WAL");
+  db.pragma("synchronous = NORMAL");
+  db.exec(SCHEMA);
+  migrateFromJson(db);
+  globalThis.__vensinDb = db;
+  return db;
+}
+
+/* ---------- tiny kv helpers ---------- */
+
+export function kvGet<T>(key: string, fallback: T): T {
+  const row = getDb().prepare("select value from kv where key = ?").get(key) as { value: string } | undefined;
+  if (!row) return fallback;
+  try {
+    return JSON.parse(row.value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+export function kvSet(key: string, value: unknown) {
+  getDb()
+    .prepare("insert into kv (key, value, updated_at) values (?, ?, ?) on conflict(key) do update set value = excluded.value, updated_at = excluded.updated_at")
+    .run(key, JSON.stringify(value), new Date().toISOString());
+}
+
+export const uid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+
+/* ---------- one-time import of the old json store ---------- */
+
+function migrateFromJson(db: Database.Database) {
+  const file = path.join(DATA_DIR, "store.json");
+  if (!existsSync(file)) return;
+  const done = db.prepare("select 1 from kv where key = 'migrated_json'").get();
+  if (done) return;
+  try {
+    const j = JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>;
+    const now = new Date().toISOString();
+    const tx = db.transaction(() => {
+      for (const m of (j.messages as Array<Record<string, unknown>>) ?? []) {
+        db.prepare("insert or ignore into messages (id, name, email, message, created_at, read) values (?, ?, ?, ?, ?, ?)").run(
+          m.id,
+          m.name,
+          m.email,
+          m.message,
+          m.createdAt ?? now,
+          m.read ? 1 : 0,
+        );
+      }
+      for (const g of (j.gallery as Array<Record<string, unknown>>) ?? []) {
+        db.prepare("insert or ignore into gallery (id, url, kind, caption, tag, pathname, created_at) values (?, ?, ?, ?, ?, ?, ?)").run(
+          g.id,
+          g.url,
+          g.kind ?? "image",
+          g.caption ?? "",
+          g.tag ?? "misc",
+          g.pathname ?? null,
+          g.createdAt ?? now,
+        );
+      }
+      let pos = 0;
+      for (const f of (j.favorites as Array<Record<string, unknown>>) ?? []) {
+        db.prepare(
+          "insert or ignore into favorites (id, kitsu_id, slug, title, poster, note, rating, position, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        ).run(f.id, f.kitsuId, f.slug ?? "", f.title, f.poster ?? null, f.note ?? "", f.rating ?? 8, pos++, f.createdAt ?? now);
+      }
+      const settings = (j.settings as { updateLog?: Array<Record<string, unknown>>; marquee?: string[] }) ?? {};
+      for (const u of settings.updateLog ?? []) {
+        db.prepare("insert or ignore into updates (id, date, text, created_at) values (?, ?, ?, ?)").run(u.id, u.date, u.text, now);
+      }
+      if (settings.marquee) kvSetWith(db, "marquee", settings.marquee);
+      if (j.health) kvSetWith(db, "health", j.health);
+      if (j.latest) kvSetWith(db, "latest", j.latest);
+      kvSetWith(db, "migrated_json", true);
+    });
+    tx();
+  } catch {
+    // a broken json file is not worth crashing over
+  }
+}
+
+function kvSetWith(db: Database.Database, key: string, value: unknown) {
+  db.prepare("insert into kv (key, value, updated_at) values (?, ?, ?) on conflict(key) do update set value = excluded.value, updated_at = excluded.updated_at").run(
+    key,
+    JSON.stringify(value),
+    new Date().toISOString(),
+  );
+}

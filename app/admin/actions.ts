@@ -9,16 +9,18 @@ import { login, logout, requireAdmin } from "@/lib/auth";
 import {
   addFavorite,
   addGalleryItem,
+  addUpdate,
   deleteMessage,
-  getSettingsFresh,
+  deleteUpdate,
   moveFavorite,
   removeFavorite,
   removeGalleryItem,
-  saveSettings,
+  saveMarquee,
   uid,
   updateFavorite,
   updateMessage,
 } from "@/lib/store";
+import { jobs, runJob } from "@/lib/scheduler";
 import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
 
 export type ActionState = { ok: boolean; error?: string } | null;
@@ -87,6 +89,7 @@ export async function uploadAction(_prev: ActionState, formData: FormData): Prom
 
     await addGalleryItem({ url, kind: processed.kind, caption, tag, pathname });
     revalidatePath("/admin/gallery");
+    revalidatePath("/gallery");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "upload failed" };
@@ -103,6 +106,7 @@ export async function deleteGalleryAction(formData: FormData) {
     } catch {}
   }
   revalidatePath("/admin/gallery");
+    revalidatePath("/gallery");
 }
 
 /* ---------- update log ---------- */
@@ -112,17 +116,26 @@ export async function addUpdateAction(formData: FormData) {
   const date = String(formData.get("date") ?? "").slice(0, 10) || new Date().toISOString().slice(0, 10);
   const text = String(formData.get("text") ?? "").trim().slice(0, 300);
   if (!text) return;
-  const s = await getSettingsFresh();
-  await saveSettings({ updateLog: [{ id: uid(), date, text }, ...s.updateLog].slice(0, 100) });
+  await addUpdate(date, text);
   revalidatePath("/admin/updates");
+  revalidatePath("/");
 }
 
 export async function deleteUpdateAction(formData: FormData) {
   await requireAdmin();
-  const id = String(formData.get("id"));
-  const s = await getSettingsFresh();
-  await saveSettings({ updateLog: s.updateLog.filter((u) => u.id !== id) });
+  await deleteUpdate(String(formData.get("id")));
   revalidatePath("/admin/updates");
+  revalidatePath("/");
+}
+
+/* ---------- scheduler ---------- */
+
+export async function runJobAction(formData: FormData) {
+  await requireAdmin();
+  const job = jobs.find((j) => j.id === String(formData.get("id")));
+  if (job) await runJob(job);
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
 }
 
 /* ---------- favorite anime ---------- */
@@ -144,6 +157,7 @@ export async function addFavoriteAction(_prev: ActionState, formData: FormData):
   });
   if (!fav) return { ok: false, error: "already on the list" };
   revalidatePath("/admin/anime");
+  revalidatePath("/anime");
   return { ok: true };
 }
 
@@ -154,18 +168,21 @@ export async function updateFavoriteAction(formData: FormData) {
     rating: clampRating(formData.get("rating")),
   });
   revalidatePath("/admin/anime");
+  revalidatePath("/anime");
 }
 
 export async function deleteFavoriteAction(formData: FormData) {
   await requireAdmin();
   await removeFavorite(String(formData.get("id")));
   revalidatePath("/admin/anime");
+  revalidatePath("/anime");
 }
 
 export async function moveFavoriteAction(formData: FormData) {
   await requireAdmin();
   await moveFavorite(String(formData.get("id")), formData.get("dir") === "up" ? -1 : 1);
   revalidatePath("/admin/anime");
+  revalidatePath("/anime");
 }
 
 /* ---------- marquee ---------- */
@@ -178,8 +195,9 @@ export async function saveSiteAction(_prev: ActionState, formData: FormData): Pr
     .filter(Boolean)
     .slice(0, 40);
   try {
-    await saveSettings({ marquee });
+    await saveMarquee(marquee);
     revalidatePath("/admin/site");
+    revalidatePath("/", "layout");
     return { ok: true };
   } catch {
     return { ok: false, error: "could not save" };

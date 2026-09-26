@@ -1,24 +1,15 @@
-import { Redis } from "@upstash/redis";
-import { promises as fs } from "fs";
-import path from "path";
-import { unstable_cache, revalidateTag, revalidatePath } from "next/cache";
 import { site } from "@/data/site";
+import { DB_FILE, getDb, kvGet, kvSet, uid } from "./db";
+
+export { uid, DATA_DIR } from "./db";
 
 /* ---------- types ---------- */
 
 export type Message = { id: string; name: string; email: string; message: string; createdAt: string; read: boolean };
-export type GalleryItem = {
-  id: string;
-  url: string;
-  kind: "image" | "video";
-  caption: string;
-  tag: string;
-  createdAt: string;
-  pathname?: string;
-};
+export type GalleryItem = { id: string; url: string; kind: "image" | "video"; caption: string; tag: string; createdAt: string; pathname?: string };
 export type UpdateEntry = { id: string; date: string; text: string };
 export type Settings = { updateLog: UpdateEntry[]; marquee: string[] };
-
+export type Favorite = { id: string; kitsuId: string; slug: string; title: string; poster: string | null; note: string; rating: number; createdAt: string };
 export type Health = {
   move: number;
   moveGoal: number;
@@ -30,207 +21,149 @@ export type Health = {
   date?: string;
   updatedAt: string;
 };
-
 export type LatestItem = { value: string; href?: string | null; at: string };
-export type Latest = {
-  /** keyed by activity kind: listening, coding, watching, playing */
-  items?: Record<string, LatestItem>;
-  checkedAt?: string;
-};
+export type Latest = { items?: Record<string, LatestItem>; checkedAt?: string };
 
-const DEFAULT_SETTINGS: Settings = {
-  updateLog: site.updateLog.map((u, i) => ({ id: `seed-${i}`, ...u })),
-  marquee: site.marquee,
-};
+export const storage = { kind: "sqlite" as const, file: DB_FILE, persistent: !process.env.VERCEL };
 
-/* ---------- backend: Upstash Redis, or a JSON file when not configured ---------- */
+/* ---------- settings: update log + marquee ---------- */
 
-const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
-const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
-const redis = REDIS_URL && REDIS_TOKEN ? new Redis({ url: REDIS_URL, token: REDIS_TOKEN }) : null;
-
-// file fallback: DATA_DIR (default ./.data). On Vercel without Redis this is /tmp and not persistent.
-export const DATA_DIR = process.env.DATA_DIR ?? (process.env.VERCEL ? "/tmp/vensin-data" : path.join(process.cwd(), ".data"));
-const FILE = path.join(DATA_DIR, "store.json");
-
-export const storage = {
-  kind: redis ? ("redis" as const) : ("file" as const),
-  persistent: Boolean(redis) || !process.env.VERCEL,
-};
-
-async function readFile(): Promise<Record<string, unknown>> {
-  try {
-    return JSON.parse(await fs.readFile(FILE, "utf8"));
-  } catch {
-    return {};
-  }
-}
-async function writeFile(data: Record<string, unknown>) {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(data, null, 2), "utf8");
-}
-
-async function get<T>(key: string, fallback: T): Promise<T> {
-  if (redis) return ((await redis.get<T>(key)) ?? fallback) as T;
-  const all = await readFile();
-  return (all[key] as T) ?? fallback;
-}
-async function set<T>(key: string, value: T) {
-  if (redis) {
-    await redis.set(key, value);
-    return;
-  }
-  const all = await readFile();
-  all[key] = value;
-  await writeFile(all);
-}
-
-export const uid = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-
-/* ---------- settings (update log, marquee) ---------- */
-
-const settingsCached = unstable_cache(() => get<Settings>("settings", DEFAULT_SETTINGS), ["settings"], { tags: ["settings"], revalidate: 300 });
+type UpdateRow = { id: string; date: string; text: string };
 
 export async function getSettings(): Promise<Settings> {
-  return { ...DEFAULT_SETTINGS, ...(await settingsCached()) };
+  const rows = getDb().prepare("select id, date, text from updates order by date desc, created_at desc limit 100").all() as UpdateRow[];
+  const updateLog = rows.length ? rows : site.updateLog.map((u, i) => ({ id: `seed-${i}`, ...u }));
+  return { updateLog, marquee: kvGet<string[]>("marquee", site.marquee) };
 }
-export async function getSettingsFresh(): Promise<Settings> {
-  return { ...DEFAULT_SETTINGS, ...(await get<Settings>("settings", DEFAULT_SETTINGS)) };
+export const getSettingsFresh = getSettings;
+
+export async function saveMarquee(lines: string[]) {
+  kvSet("marquee", lines);
 }
-export async function saveSettings(patch: Partial<Settings>) {
-  const current = await getSettingsFresh();
-  await set("settings", { ...current, ...patch });
-  revalidateTag("settings", "max");
-  revalidatePath("/", "layout");
+
+export async function addUpdate(date: string, text: string) {
+  getDb().prepare("insert into updates (id, date, text, created_at) values (?, ?, ?, ?)").run(uid(), date, text, new Date().toISOString());
+}
+export async function deleteUpdate(id: string) {
+  getDb().prepare("delete from updates where id = ?").run(id);
 }
 
 /* ---------- contact messages ---------- */
 
-export const listMessages = () => get<Message[]>("messages", []);
-export async function addMessage(m: Omit<Message, "id" | "createdAt" | "read">) {
-  const msgs = await listMessages();
+type MessageRow = { id: string; name: string; email: string; message: string; created_at: string; read: number };
+const toMessage = (r: MessageRow): Message => ({ id: r.id, name: r.name, email: r.email, message: r.message, createdAt: r.created_at, read: r.read === 1 });
+
+export async function listMessages(): Promise<Message[]> {
+  return (getDb().prepare("select * from messages order by created_at desc limit 500").all() as MessageRow[]).map(toMessage);
+}
+export async function addMessage(m: Omit<Message, "id" | "createdAt" | "read">): Promise<Message> {
   const msg: Message = { id: uid(), createdAt: new Date().toISOString(), read: false, ...m };
-  await set("messages", [msg, ...msgs].slice(0, 500));
+  getDb().prepare("insert into messages (id, name, email, message, created_at, read) values (?, ?, ?, ?, ?, 0)").run(msg.id, msg.name, msg.email, msg.message, msg.createdAt);
   return msg;
 }
 export async function updateMessage(id: string, patch: Partial<Message>) {
-  const msgs = await listMessages();
-  await set(
-    "messages",
-    msgs.map((m) => (m.id === id ? { ...m, ...patch } : m)),
-  );
+  if (typeof patch.read === "boolean") getDb().prepare("update messages set read = ? where id = ?").run(patch.read ? 1 : 0, id);
 }
 export async function deleteMessage(id: string) {
-  const msgs = await listMessages();
-  await set(
-    "messages",
-    msgs.filter((m) => m.id !== id),
-  );
+  getDb().prepare("delete from messages where id = ?").run(id);
 }
 
 /* ---------- gallery ---------- */
 
-const galleryCached = unstable_cache(() => get<GalleryItem[]>("gallery", []), ["gallery"], { tags: ["gallery"], revalidate: 300 });
-export const listGallery = () => galleryCached();
-export const listGalleryFresh = () => get<GalleryItem[]>("gallery", []);
-export async function addGalleryItem(item: Omit<GalleryItem, "id" | "createdAt">) {
-  const items = await listGalleryFresh();
+type GalleryRow = { id: string; url: string; kind: "image" | "video"; caption: string; tag: string; pathname: string | null; created_at: string };
+const toGallery = (r: GalleryRow): GalleryItem => ({ id: r.id, url: r.url, kind: r.kind, caption: r.caption, tag: r.tag, pathname: r.pathname ?? undefined, createdAt: r.created_at });
+
+export async function listGallery(): Promise<GalleryItem[]> {
+  return (getDb().prepare("select * from gallery order by created_at desc").all() as GalleryRow[]).map(toGallery);
+}
+export const listGalleryFresh = listGallery;
+export async function addGalleryItem(item: Omit<GalleryItem, "id" | "createdAt">): Promise<GalleryItem> {
   const it: GalleryItem = { id: uid(), createdAt: new Date().toISOString(), ...item };
-  await set("gallery", [it, ...items]);
-  revalidateTag("gallery", "max");
-  revalidatePath("/gallery");
+  getDb().prepare("insert into gallery (id, url, kind, caption, tag, pathname, created_at) values (?, ?, ?, ?, ?, ?, ?)").run(it.id, it.url, it.kind, it.caption, it.tag, it.pathname ?? null, it.createdAt);
   return it;
 }
-export async function removeGalleryItem(id: string) {
-  const items = await listGalleryFresh();
-  const item = items.find((i) => i.id === id);
-  await set(
-    "gallery",
-    items.filter((i) => i.id !== id),
-  );
-  revalidateTag("gallery", "max");
-  revalidatePath("/gallery");
-  return item;
+export async function removeGalleryItem(id: string): Promise<GalleryItem | undefined> {
+  const row = getDb().prepare("select * from gallery where id = ?").get(id) as GalleryRow | undefined;
+  getDb().prepare("delete from gallery where id = ?").run(id);
+  return row ? toGallery(row) : undefined;
 }
 
-/* ---------- favorite anime (managed in /admin/anime) ---------- */
+/* ---------- favorite anime ---------- */
 
-export type Favorite = {
-  id: string;
-  kitsuId: string;
-  slug: string;
-  title: string;
-  poster: string | null;
-  note: string;
-  rating: number; // own rating 1-10
-  createdAt: string;
-};
+type FavRow = { id: string; kitsu_id: string; slug: string; title: string; poster: string | null; note: string; rating: number; created_at: string };
+const toFav = (r: FavRow): Favorite => ({ id: r.id, kitsuId: r.kitsu_id, slug: r.slug, title: r.title, poster: r.poster, note: r.note, rating: r.rating, createdAt: r.created_at });
 
-const favoritesCached = unstable_cache(() => get<Favorite[]>("favorites", []), ["favorites"], { tags: ["favorites"], revalidate: 3600 });
-export const listFavorites = () => favoritesCached();
-export const listFavoritesFresh = () => get<Favorite[]>("favorites", []);
-export async function addFavorite(f: Omit<Favorite, "id" | "createdAt">) {
-  const items = await listFavoritesFresh();
-  if (items.some((i) => i.kitsuId === f.kitsuId)) return null;
+export async function listFavorites(): Promise<Favorite[]> {
+  return (getDb().prepare("select * from favorites order by position asc").all() as FavRow[]).map(toFav);
+}
+export const listFavoritesFresh = listFavorites;
+export async function addFavorite(f: Omit<Favorite, "id" | "createdAt">): Promise<Favorite | null> {
+  const db = getDb();
+  if (db.prepare("select 1 from favorites where kitsu_id = ?").get(f.kitsuId)) return null;
+  const pos = ((db.prepare("select max(position) m from favorites").get() as { m: number | null }).m ?? -1) + 1;
   const fav: Favorite = { id: uid(), createdAt: new Date().toISOString(), ...f };
-  await set("favorites", [...items, fav]);
-  revalidateTag("favorites", "max");
-  revalidatePath("/anime");
+  db.prepare("insert into favorites (id, kitsu_id, slug, title, poster, note, rating, position, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(
+    fav.id,
+    fav.kitsuId,
+    fav.slug,
+    fav.title,
+    fav.poster,
+    fav.note,
+    fav.rating,
+    pos,
+    fav.createdAt,
+  );
   return fav;
 }
 export async function updateFavorite(id: string, patch: Partial<Pick<Favorite, "note" | "rating">>) {
-  const items = await listFavoritesFresh();
-  await set(
-    "favorites",
-    items.map((i) => (i.id === id ? { ...i, ...patch } : i)),
-  );
-  revalidateTag("favorites", "max");
-  revalidatePath("/anime");
+  getDb().prepare("update favorites set note = coalesce(?, note), rating = coalesce(?, rating) where id = ?").run(patch.note ?? null, patch.rating ?? null, id);
 }
 export async function removeFavorite(id: string) {
-  const items = await listFavoritesFresh();
-  await set(
-    "favorites",
-    items.filter((i) => i.id !== id),
-  );
-  revalidateTag("favorites", "max");
-  revalidatePath("/anime");
+  getDb().prepare("delete from favorites where id = ?").run(id);
 }
 export async function moveFavorite(id: string, dir: -1 | 1) {
-  const items = await listFavoritesFresh();
-  const i = items.findIndex((f) => f.id === id);
+  const db = getDb();
+  const rows = db.prepare("select id, position from favorites order by position asc").all() as Array<{ id: string; position: number }>;
+  const i = rows.findIndex((r) => r.id === id);
   const j = i + dir;
-  if (i < 0 || j < 0 || j >= items.length) return;
-  [items[i], items[j]] = [items[j], items[i]];
-  await set("favorites", items);
-  revalidateTag("favorites", "max");
-  revalidatePath("/anime");
+  if (i < 0 || j < 0 || j >= rows.length) return;
+  const swap = db.transaction(() => {
+    db.prepare("update favorites set position = ? where id = ?").run(rows[j].position, rows[i].id);
+    db.prepare("update favorites set position = ? where id = ?").run(rows[i].position, rows[j].id);
+  });
+  swap();
 }
 
 /* ---------- apple watch rings ---------- */
 
-const healthCached = unstable_cache(() => get<Health | null>("health", null), ["health"], { tags: ["health"], revalidate: 300 });
-export const getHealth = () => healthCached();
+export async function getHealth(): Promise<Health | null> {
+  return kvGet<Health | null>("health", null);
+}
 export async function saveHealth(h: Health) {
-  await set("health", h);
-  revalidateTag("health", "max");
-  revalidatePath("/", "layout");
+  kvSet("health", h);
 }
 
 /* ---------- latest discord activity ---------- */
 
-const latestCached = unstable_cache(() => get<Latest>("latest", {}), ["latest"], { tags: ["latest"], revalidate: 60 });
-export const getLatest = () => latestCached();
-export const getLatestFresh = () => get<Latest>("latest", {});
+export async function getLatest(): Promise<Latest> {
+  return kvGet<Latest>("latest", {});
+}
+export const getLatestFresh = getLatest;
 export async function saveLatest(l: Latest) {
-  await set("latest", l);
-  revalidateTag("latest", "max");
+  kvSet("latest", l);
 }
 
 /* ---------- activities we already told the owner about ---------- */
 
-export const listSeenActivities = () => get<string[]>("seenActivities", []);
-export async function markActivitySeen(key: string) {
-  const seen = await listSeenActivities();
-  if (!seen.includes(key)) await set("seenActivities", [...seen, key].slice(-200));
+export async function listSeenActivities(): Promise<string[]> {
+  return (getDb().prepare("select key from seen_activities").all() as Array<{ key: string }>).map((r) => r.key);
 }
+export async function markActivitySeen(key: string) {
+  getDb().prepare("insert or ignore into seen_activities (key, first_seen) values (?, ?)").run(key, new Date().toISOString());
+}
+
+/* ---------- scheduler bookkeeping ---------- */
+
+export type JobRun = { at: string; ok: boolean; ms: number; error?: string };
+export const getJobRun = (id: string) => kvGet<JobRun | null>(`job:${id}`, null);
+export const setJobRun = (id: string, run: JobRun) => kvSet(`job:${id}`, run);

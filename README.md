@@ -9,7 +9,8 @@ My personal site, rebuilt from scratch. A cozy old-web layout with anime energy,
 - Lanyard (WebSocket + REST fallback) for the Discord widget and the "latest" box
 - Kitsu for anime posters, aniworld.to profile for recently watched
 - Open-Meteo for the weather page (coords server-side only)
-- Upstash Redis **or** a JSON file for content, Vercel Blob **or** a local folder for uploads
+- SQLite (better-sqlite3) for all content plus a cache of external data; a local folder (or Vercel Blob) for uploads
+- In-process scheduler that keeps the cache warm (GitHub, Discord, weather, anime)
 - sharp + heic-convert for image processing (HEIC → JPEG → WebP)
 - Fonts: DotGothic16 (pixel / headings) + IBM Plex Mono (body)
 
@@ -21,7 +22,24 @@ cp .env.example .env.local   # fill in what you need
 npm run dev
 ```
 
-Without any env vars the site still runs: content falls back to `.data/store.json`, uploads go to `public/uploads`, the admin panel and weather page stay disabled.
+Without any env vars the site still runs: everything is stored in `.data/vensin.sqlite`, uploads go to `public/uploads`, the admin panel and weather page stay disabled.
+
+## Data & background jobs
+
+One SQLite file (`DATA_DIR/vensin.sqlite`) holds messages, gallery, favorites, update log, marquee, ring data, the "latest" box, and a `cache` table for everything fetched from outside. Pages only read from SQLite, so nothing is fetched from GitHub or Kitsu on a page view.
+
+The scheduler (`lib/jobs.ts`, started from `instrumentation.ts`) refreshes:
+
+| job | schedule |
+| --- | --- |
+| discord latest activity | every minute |
+| weather | every 10 min |
+| github latest commit | every hour |
+| anime recently watched | every hour |
+| github followers & repos | daily 00:00 |
+| github contribution graph | daily 00:05 |
+
+Every job can be triggered from the admin dashboard ("run now"). On a serverless host the scheduler is off and the cache is refreshed on demand when a value expires. Set `SCHEDULER=off` to disable it.
 
 ## Pages
 
@@ -86,13 +104,13 @@ Photos are rotated by EXIF, resized to max 2200px and saved as WebP. HEIC/HEIF f
 
 ## Deploy
 
-**Vercel:** import the repo, add Upstash Redis + Blob from Storage, set the env vars from `.env.example`. Note: Vercel limits request bodies to ~4.5 MB, so big uploads only work self-hosted.
-
-**Raspberry Pi (planned):**
+**Raspberry Pi (the plan):**
 
 ```bash
 npm ci && npm run build
 DATA_DIR=/var/lib/vensin UPLOAD_DIR=/var/lib/vensin/uploads npm start
 ```
 
-Put it behind a Cloudflare Tunnel; the JSON store and the upload folder are persistent on disk, no Redis or Blob needed. Serve `UPLOAD_DIR` at `/uploads` (symlink into `public/uploads` or a reverse-proxy rule).
+Put it behind a Cloudflare Tunnel. The SQLite file and the upload folder are persistent on disk, the scheduler runs inside the Node process. Serve `UPLOAD_DIR` at `/uploads` (symlink into `public/uploads` or a reverse-proxy rule).
+
+**Vercel** works too, but the SQLite file lives in `/tmp` there (not persistent) and the scheduler does not run. Fine for previews, not for the real thing.

@@ -1,5 +1,7 @@
 import { parse } from "node-html-parser";
 import { aniworldProfile, favoriteAnime } from "@/data/anime";
+import { cached } from "./cache";
+import { CACHE_KEYS, TTL } from "./jobs";
 import { kitsuByMalId, kitsuSearch } from "./kitsu";
 import { listFavorites } from "./store";
 
@@ -14,47 +16,44 @@ export type WatchedAnime = {
 
 const ANIWORLD = "https://aniworld.to";
 
-/** Recently watched episodes from a public aniworld.to profile, covers upgraded via Kitsu. Cached 1h. Returns [] on failure. */
-export async function getRecentlyWatched(): Promise<WatchedAnime[]> {
-  try {
-    const res = await fetch(`${ANIWORLD}/user/profil/${aniworldProfile}/watched`, {
-      headers: { "user-agent": "Mozilla/5.0 (compatible; vensin.dev)" },
-      next: { revalidate: 3600 },
+/** Recently watched episodes from the public aniworld.to profile, covers + links upgraded via Kitsu. */
+export async function fetchRecentlyWatched(): Promise<WatchedAnime[] | null> {
+  const res = await fetch(`${ANIWORLD}/user/profil/${aniworldProfile}/watched`, {
+    headers: { "user-agent": "Mozilla/5.0 (compatible; vensin.dev)" },
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  const root = parse(await res.text());
+  const items = root.querySelectorAll(".coverListItem").slice(0, 12);
+
+  const out: WatchedAnime[] = [];
+  for (const el of items) {
+    const link = el.querySelector("a")?.getAttribute("href") ?? "";
+    const img = el.querySelector("img");
+    const raw = img?.getAttribute("data-src") ?? img?.getAttribute("src") ?? "";
+    out.push({
+      title: el.querySelector("h3")?.text.trim() || "Unknown",
+      genre: el.querySelector("small")?.text.trim() || "",
+      cover: raw ? (raw.startsWith("http") ? raw : ANIWORLD + raw) : null,
+      url: link ? ANIWORLD + link : ANIWORLD,
+      season: link.match(/staffel-(\d+)/)?.[1] ?? null,
+      episode: link.match(/episode-(\d+)/)?.[1] ?? null,
     });
-    if (!res.ok) return [];
-    const root = parse(await res.text());
-    const items = root.querySelectorAll(".coverListItem").slice(0, 12);
-
-    const out: WatchedAnime[] = [];
-    for (const el of items) {
-      const link = el.querySelector("a")?.getAttribute("href") ?? "";
-      const img = el.querySelector("img");
-      const raw = img?.getAttribute("data-src") ?? img?.getAttribute("src") ?? "";
-      const title = el.querySelector("h3")?.text.trim() || "Unknown";
-      out.push({
-        title,
-        genre: el.querySelector("small")?.text.trim() || "",
-        cover: raw ? (raw.startsWith("http") ? raw : ANIWORLD + raw) : null,
-        url: link ? ANIWORLD + link : ANIWORLD,
-        season: link.match(/staffel-(\d+)/)?.[1] ?? null,
-        episode: link.match(/episode-(\d+)/)?.[1] ?? null,
-      });
-    }
-
-    // de-dupe by title (several episodes of the same show), keep newest
-    const seen = new Set<string>();
-    const unique = out.filter((a) => (seen.has(a.title) ? false : (seen.add(a.title), true))).slice(0, 8);
-
-    // upgrade covers to Kitsu posters and link to Kitsu (sequential to be polite)
-    for (const a of unique) {
-      const k = await kitsuSearch(a.title);
-      if (k?.poster) a.cover = k.poster;
-      if (k?.url) a.url = k.url;
-    }
-    return unique;
-  } catch {
-    return [];
   }
+
+  // de-dupe by title (several episodes of the same show), keep newest
+  const seen = new Set<string>();
+  const unique = out.filter((a) => (seen.has(a.title) ? false : (seen.add(a.title), true))).slice(0, 8);
+
+  for (const a of unique) {
+    const k = await kitsuSearch(a.title);
+    if (k?.poster) a.cover = k.poster;
+    if (k?.url) a.url = k.url;
+  }
+  return unique;
+}
+export async function getRecentlyWatched(): Promise<WatchedAnime[]> {
+  return (await cached(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched)) ?? [];
 }
 
 export type FavoriteWithCover = {

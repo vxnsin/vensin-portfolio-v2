@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getHealth, saveHealth } from "@/lib/store";
 
@@ -42,5 +43,6 @@ export async function POST(req: Request) {
 
   const health = { ...parsed.data, updatedAt: new Date().toISOString() };
   await saveHealth(health);
+  revalidatePath("/", "layout");
   return NextResponse.json({ ok: true, health });
 }

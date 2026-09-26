@@ -1,15 +1,8 @@
 import type { Metadata } from "next";
 import { socials } from "@/data/site";
+import { PixelIcon } from "@/components/icons/PixelIcon";
 
 export const metadata: Metadata = { title: "links" };
-
-const ICON: Record<string, string> = {
-  github: "⌥",
-  tiktok: "♪",
-  youtube: "▶",
-  steam: "♨",
-  discord: "◉",
-};
 
 export default function LinksPage() {
   return (
@@ -26,9 +19,11 @@ export default function LinksPage() {
               href={s.url}
               target="_blank"
               rel="noreferrer"
-              className="win win-dashed flex items-center gap-3 px-3 py-2 no-underline hover:bg-accent-soft transition-colors"
+              className="win win-dashed flex items-center gap-3 px-3 py-2 no-underline hover:bg-accent-soft transition-colors group"
             >
-              <span className="pixel text-xl text-accent-2 w-7 text-center">{ICON[s.id] ?? "↗"}</span>
+              <span className="w-8 grid place-items-center text-accent-2 group-hover:text-accent transition-colors">
+                <PixelIcon name={s.id} size={26} />
+              </span>
               <span className="min-w-0">
                 <span className="block pixel text-ink">{s.label}</span>
                 <span className="block text-xs text-ink-soft truncate">{s.handle}</span>

@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: "220mb" }, // gallery uploads (videos)
   },
-  serverExternalPackages: ["sharp", "heic-convert"],
+  serverExternalPackages: ["sharp", "heic-convert", "better-sqlite3"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.discordapp.com" },

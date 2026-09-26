@@ -23,6 +23,9 @@ export const metadata: Metadata = {
   },
 };
 
+// pages re-render at most once a minute from the sqlite cache the scheduler keeps warm
+export const revalidate = 60;
+
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f4ecf2" },
