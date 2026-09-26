@@ -93,6 +93,27 @@ function Gift({ color }: { color: string }) {
   );
 }
 
+const FIREWORK_COLORS = ["#ffd54a", "#ff6b6b", "#6fd3ea", "#ff8fb4", "#9a8cff", "#8fe36b"];
+// a burst is one dot with its sparks drawn as box-shadows, so a single element scales out into a ring
+function sparks(r: number, n: number, color: string) {
+  return Array.from({ length: n }, (_, i) => {
+    const a = (i / n) * Math.PI * 2;
+    return `${(Math.cos(a) * r).toFixed(1)}px ${(Math.sin(a) * r).toFixed(1)}px 0 0 ${color}`;
+  }).join(", ");
+}
+
+const CONFETTI_COLORS = ["#ff5fa2", "#ffb347", "#2ab7a9", "#9a8cff", "#ffd54a", "#6fd3ea"];
+function Balloon({ color }: { color: string }) {
+  return (
+    <svg viewBox="0 0 16 30" width="22" height="42" aria-hidden>
+      <ellipse cx="8" cy="9" rx="7" ry="9" fill={color} />
+      <ellipse cx="5.5" cy="6" rx="1.6" ry="2.4" fill="#fff" opacity="0.45" />
+      <path d="M6.5 18 L8 20 L9.5 18 Z" fill={color} />
+      <path d="M8 20 Q6 24 8 26 Q10 28 8 30" stroke="var(--ink)" strokeWidth="0.8" fill="none" opacity="0.6" />
+    </svg>
+  );
+}
+
 function Cobweb() {
   const rays = [0, 15, 30, 45, 60, 75, 90];
   const rings = [22, 44, 66, 88];
@@ -230,6 +251,44 @@ function Particles({ season }: { season: Season }) {
           ))}
         </div>
       </>
+    );
+  }
+
+  if (season === "newyear") {
+    return (
+      <div className="particles sky" aria-hidden>
+        {Array.from({ length: 9 }, (_, i) => {
+          const color = FIREWORK_COLORS[i % FIREWORK_COLORS.length];
+          const r = 22 + ((i * 7) % 4) * 6;
+          return (
+            <span key={i} className="firework" style={{ left: `${(i * 37 + 9) % 88 + 4}%`, top: `${(i * 23 + 8) % 36 + 8}%` }}>
+              <i style={{ background: color, boxShadow: `${sparks(r, 12, color)}, ${sparks(r * 0.55, 8, color)}`, animationDuration: `${3 + (i % 3) * 0.6}s`, animationDelay: `${-((i * 1.3) % 4)}s` }} />
+            </span>
+          );
+        })}
+        {Array.from({ length: 14 }, (_, i) => (
+          <span key={`s${i}`} className="particle flake" style={{ left: `${(i * 29 + 5) % 100}%`, width: 3, height: 3, background: "#ffd54a", opacity: 0.6, animationDuration: `${12 + ((i * 7) % 10)}s, ${3 + (i % 4)}s`, animationDelay: `${-((i * 4.1) % 20)}s, ${-((i * 1.7) % 6)}s` }} />
+        ))}
+      </div>
+    );
+  }
+
+  if (season === "birthday") {
+    return (
+      <div className="particles" aria-hidden>
+        {Array.from({ length: 30 }, (_, i) => (
+          <span key={`c${i}`} className="particle confetti" style={{ left: `${(i * 31 + 7) % 100}%`, animationDuration: `${9 + ((i * 5) % 8)}s, ${2 + (i % 4)}s`, animationDelay: `${-((i * 3.3) % 16)}s, ${-((i * 1.1) % 5)}s` }}>
+            <i style={{ background: CONFETTI_COLORS[i % CONFETTI_COLORS.length], animationDuration: `${1.5 + (i % 4) * 0.5}s` }} />
+          </span>
+        ))}
+        {Array.from({ length: 6 }, (_, i) => (
+          <span key={`b${i}`} className="particle balloon" style={{ left: `${(i * 53 + 11) % 92}%`, animationDuration: `${22 + ((i * 7) % 12)}s, ${4 + (i % 3)}s`, animationDelay: `${-((i * 7.7) % 28)}s, ${-((i * 1.9) % 6)}s` }}>
+            <i style={{ animationDuration: `${2.5 + (i % 3) * 0.7}s` }}>
+              <Balloon color={CONFETTI_COLORS[(i * 2) % CONFETTI_COLORS.length]} />
+            </i>
+          </span>
+        ))}
+      </div>
     );
   }
 
