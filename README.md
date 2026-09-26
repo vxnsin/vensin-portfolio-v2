@@ -13,7 +13,7 @@ My personal site, rebuilt from scratch. A cozy old-web layout with anime energy,
 - In-process scheduler that keeps the cache warm (GitHub, Discord, weather, anime)
 - sharp + heic-convert for image processing (HEIC → JPEG → WebP)
 - Fonts: DotGothic16 (pixel / headings) + IBM Plex Mono (body)
-- Weather glyphs based on [pixelarticons](https://pixelarticons.com) (MIT)
+- Icons: [pixelarticons](https://pixelarticons.com) (MIT) for weather and platform logos, Steam mark from [Pixel Art Icons by YukiPixels](https://github.com/YukiPixels/Pixel-Art-Icons) (CC BY-SA 4.0)
 
 ## Run
 

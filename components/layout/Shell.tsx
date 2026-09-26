@@ -82,6 +82,10 @@ export async function Shell({ children }: { children: ReactNode }) {
                 , pixel icons by{" "}
                 <a href="https://pixelarticons.com" target="_blank" rel="noreferrer">
                   pixelarticons
+                </a>{" "}
+                and{" "}
+                <a href="https://github.com/YukiPixels/Pixel-Art-Icons" target="_blank" rel="noreferrer">
+                  yukipixels
                 </a>
                 . no cookies, no tracking.
               </div>
