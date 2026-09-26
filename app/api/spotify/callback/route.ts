@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   if (err) return back(`error=${encodeURIComponent(err)}`);
   if (!code || !state || state !== expected) return back("error=state");
   try {
-    await exchangeCode(code, req.nextUrl.origin);
+    await exchangeCode(code);
     await refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData);
     const res = back("ok=1");
     res.cookies.delete("spotify_state");

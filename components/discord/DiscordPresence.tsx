@@ -138,7 +138,7 @@ function CustomStatus({ a }: { a: Activity }) {
 
 /* ---------- widget ---------- */
 
-export function DiscordPresence() {
+export function DiscordPresence({ hideSpotify = false }: { hideSpotify?: boolean } = {}) {
   const { data, live } = useLanyardContext();
 
   if (!data) {
@@ -152,7 +152,8 @@ export function DiscordPresence() {
   const status = STATUS[data.discord_status];
   const name = data.discord_user.display_name || data.discord_user.global_name || data.discord_user.username;
   const custom = data.activities.find((a) => a.type === 4);
-  const cards = resolveAll(data.activities);
+  // when spotify is connected directly, the sidebar has its own listening window
+  const cards = resolveAll(data.activities).filter((c) => !(hideSpotify && c.handler.id === "spotify"));
 
   return (
     <div>

@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
-import { getSpotifyData } from "@/lib/spotify";
+import { getNowPlaying, getSpotifyData, spotifyConnected } from "@/lib/spotify";
+import { SpotifyNow } from "@/components/music/SpotifyNow";
 import { listenStats } from "@/lib/listens";
 import { relativeTime } from "@/lib/time";
 import { Window } from "@/components/layout/Window";
@@ -12,7 +13,9 @@ export const metadata: Metadata = { title: "music" };
 export const revalidate = 300;
 
 export default async function MusicPage() {
-  const [spotify, log] = await Promise.all([getSpotifyData(), Promise.resolve(listenStats())]);
+  const connected = spotifyConnected();
+  const [spotify, log, now] = await Promise.all([getSpotifyData(), Promise.resolve(listenStats()), getNowPlaying()]);
+  const last = log.lastPlayed ? { song: log.lastPlayed.song, artist: log.lastPlayed.artist, art: log.lastPlayed.art, trackId: log.lastPlayed.trackId, at: log.lastPlayed.at } : null;
   const year = new Date().getFullYear();
   const hours = log.minutesThisYear / 60;
   const topArtist = log.topArtists[0] ?? null;
@@ -23,11 +26,11 @@ export default async function MusicPage() {
     <div className="grid gap-5">
       <div>
         <h2 className="pixel text-lg text-accent mb-2">music.</h2>
-        <p className="text-xs text-ink-soft">what&apos;s in my ears. live from spotify via discord, counted by this site since {since ?? "today"}.</p>
+        <p className="text-xs text-ink-soft">what&apos;s in my ears. live from spotify{connected ? "" : " via discord"}, counted by this site since {since ?? "today"}.</p>
       </div>
 
       <Window title="now playing">
-        <NowPlaying last={log.lastPlayed ? { song: log.lastPlayed.song, artist: log.lastPlayed.artist, art: log.lastPlayed.art, trackId: log.lastPlayed.trackId, at: log.lastPlayed.at } : null} />
+        {connected ? <SpotifyNow initial={now} last={last} variant="hero" /> : <NowPlaying last={last} />}
       </Window>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">

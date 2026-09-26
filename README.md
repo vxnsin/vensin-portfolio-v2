@@ -34,6 +34,7 @@ The scheduler (`lib/jobs.ts`, started from `instrumentation.ts`) refreshes:
 | job | schedule |
 | --- | --- |
 | discord latest activity | every minute |
+| spotify now playing (feeds the sidebar, the log and the latest box) | every 30 s |
 | weather | every 10 min |
 | github latest commit | every hour |
 | anime recently watched | every hour |
@@ -80,7 +81,7 @@ Managed in `/admin/anime`: type a title, pick a suggestion from Kitsu, add a sho
 
 Two sources, both optional:
 
-- **Listening log** (no setup): the minute-by-minute Discord poll writes one row per minute while Spotify is playing. That gives hours per year, most played tracks/artists, and the listening clock. Starts counting the moment the scheduler runs.
+- **Listening log**: while Spotify is connected, a 30-second poll of the Spotify API ("currently playing") writes one row per minute; without it, the Discord poll does the same whenever Spotify shows up there. That gives hours per year, most played tracks/artists, and the listening clock. Starts counting the moment the scheduler runs.
 - **Spotify API** (top tracks/artists per time range, recently played, public playlists): create an app on developer.spotify.com, set `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`, add the redirect URIs `http://127.0.0.1:3000/api/spotify/callback` and `https://vensin.dev/api/spotify/callback`, then click "connect spotify" in `/admin/spotify`. Only the refresh token is stored (SQLite); a job refreshes the data hourly.
 
 ## Neighbors & link back

@@ -4,6 +4,7 @@ import { resolveAll } from "@/components/discord/activities";
 import { getLatest, listSeenActivities, markActivitySeen, saveLatest, type Latest } from "./store";
 import { notifyUnknownActivity } from "./discord-notify";
 import { recordListen } from "./listens";
+import { spotifyConnected } from "./spotify";
 
 /**
  * Ask Lanyard what's running, remember the last activity per kind for the "latest" box,
@@ -27,7 +28,7 @@ export async function refreshLatest(): Promise<boolean> {
   await saveLatest(next);
 
   // one row per minute while spotify is playing feeds the music page (hours, top tracks, listening clock)
-  if (parsed.data.spotify) recordListen(parsed.data.spotify, at);
+  if (parsed.data.spotify && !spotifyConnected()) recordListen(parsed.data.spotify, at);
 
   const unknown = resolved.filter((r) => r.handler.id === "browsing");
   if (unknown.length) {

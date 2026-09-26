@@ -3,6 +3,9 @@ import type { ReactNode } from "react";
 import { site } from "@/data/site";
 import { build } from "@/lib/build";
 import { getHealth, getLatest, getSettings } from "@/lib/store";
+import { getNowPlaying, spotifyConnected } from "@/lib/spotify";
+import { listenStats } from "@/lib/listens";
+import { SpotifyNow } from "@/components/music/SpotifyNow";
 import { NavTabs } from "./NavTabs";
 import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
@@ -16,7 +19,9 @@ import { Kaomoji } from "@/components/widgets/Kaomoji";
 
 export async function Shell({ children }: { children: ReactNode }) {
   const year = new Date().getFullYear();
-  const [settings, health, latest] = await Promise.all([getSettings(), getHealth(), getLatest()]);
+  const spotify = spotifyConnected();
+  const [settings, health, latest, now] = await Promise.all([getSettings(), getHealth(), getLatest(), getNowPlaying()]);
+  const lastPlayed = spotify ? listenStats().lastPlayed : null;
 
   return (
     <LanyardProvider>
@@ -43,11 +48,16 @@ export async function Shell({ children }: { children: ReactNode }) {
           {/* sidebar */}
           <aside className="grid gap-5 min-w-0 md:sticky md:top-6">
             <Window title="discord" right={<Kaomoji className="text-[11px] text-ink-soft" />}>
-              <DiscordPresence />
+              <DiscordPresence hideSpotify={spotify} />
             </Window>
+            {spotify && (
+              <Window title="listening" right={<Link href="/music" className="text-[10px] no-underline text-ink-soft hover:text-accent">music →</Link>}>
+                <SpotifyNow initial={now} last={lastPlayed ? { song: lastPlayed.song, artist: lastPlayed.artist, art: lastPlayed.art, trackId: lastPlayed.trackId, at: lastPlayed.at } : null} />
+              </Window>
+            )}
             <TodayCycle health={health} />
             <Window title="latest">
-              <LatestBox latest={latest} />
+              <LatestBox latest={latest} apiListening={now?.playing && now.track ? { value: `${now.track.name} – ${now.track.artists.join(", ")}`, href: now.track.url } : null} />
             </Window>
           </aside>
         </div>

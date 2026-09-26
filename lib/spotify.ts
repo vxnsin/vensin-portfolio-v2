@@ -6,7 +6,9 @@ import { cached, HOUR } from "./cache";
 
 const ACCOUNTS = "https://accounts.spotify.com";
 const API = "https://api.spotify.com/v1";
-export const SPOTIFY_SCOPES = "user-top-read user-read-recently-played playlist-read-private";
+export const SPOTIFY_SCOPES = "user-top-read user-read-recently-played playlist-read-private user-read-currently-playing user-read-playback-state";
+export const SPOTIFY_NOW_KEY = "spotify:now";
+export const SPOTIFY_NOW_TTL = 25_000;
 export const SPOTIFY_CACHE_KEY = "spotify:data";
 export const SPOTIFY_TTL = HOUR;
 
@@ -14,10 +16,12 @@ const clientId = () => process.env.SPOTIFY_CLIENT_ID ?? "";
 const clientSecret = () => process.env.SPOTIFY_CLIENT_SECRET ?? "";
 export const spotifyConfigured = () => Boolean(clientId() && clientSecret());
 export const spotifyConnected = () => Boolean(kvGet<string | null>("spotify:refresh", null));
-export const spotifyRedirectUri = (origin: string) => `${origin}/api/spotify/callback`;
+/** the host the spotify app knows: SPOTIFY_REDIRECT_BASE, else the production url in production, else 127.0.0.1 (spotify rejects "localhost") */
+export const spotifyRedirectBase = () => (process.env.SPOTIFY_REDIRECT_BASE ?? (process.env.NODE_ENV === "production" ? "https://vensin.dev" : "http://127.0.0.1:3000")).replace(//$/, "");
+export const spotifyRedirectUri = () => `${spotifyRedirectBase()}/api/spotify/callback`;
 
-export function spotifyAuthUrl(origin: string, state: string) {
-  const p = new URLSearchParams({ client_id: clientId(), response_type: "code", redirect_uri: spotifyRedirectUri(origin), scope: SPOTIFY_SCOPES, state, show_dialog: "true" });
+export function spotifyAuthUrl(state: string) {
+  const p = new URLSearchParams({ client_id: clientId(), response_type: "code", redirect_uri: spotifyRedirectUri(), scope: SPOTIFY_SCOPES, state, show_dialog: "true" });
   return `${ACCOUNTS}/authorize?${p}`;
 }
 
@@ -32,8 +36,8 @@ async function tokenRequest(body: Record<string, string>) {
   return (await res.json()) as { access_token: string; refresh_token?: string; expires_in: number };
 }
 
-export async function exchangeCode(code: string, origin: string) {
-  const t = await tokenRequest({ grant_type: "authorization_code", code, redirect_uri: spotifyRedirectUri(origin) });
+export async function exchangeCode(code: string) {
+  const t = await tokenRequest({ grant_type: "authorization_code", code, redirect_uri: spotifyRedirectUri() });
   if (!t.refresh_token) throw new Error("no refresh token returned");
   kvSet("spotify:refresh", t.refresh_token);
   kvSet("spotify:connected_at", new Date().toISOString());
@@ -104,5 +108,22 @@ export async function fetchSpotifyData(): Promise<SpotifyData | null> {
 
   return { topTracks, topArtists, recent, playlists, fetchedAt: new Date().toISOString() };
 }
+
+/* ---------- currently playing ---------- */
+
+export type NowPlaying = { playing: boolean; track: Track | null; progressMs: number; fetchedAt: string; device: string | null };
+
+export async function fetchNowPlaying(): Promise<NowPlaying | null> {
+  const token = await accessToken();
+  if (!token) return null;
+  const res = await fetch(`${API}/me/player/currently-playing?additional_types=track`, { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
+  const fetchedAt = new Date().toISOString();
+  if (res.status === 204 || res.status === 202) return { playing: false, track: null, progressMs: 0, fetchedAt, device: null };
+  if (!res.ok) return null;
+  const j = (await res.json()) as { is_playing: boolean; progress_ms: number; item: RawTrack | null; currently_playing_type: string; device?: { name?: string } };
+  if (!j.item || j.currently_playing_type !== "track") return { playing: false, track: null, progressMs: 0, fetchedAt, device: null };
+  return { playing: j.is_playing, track: track(j.item), progressMs: j.progress_ms ?? 0, fetchedAt, device: j.device?.name ?? null };
+}
+export const getNowPlaying = () => (spotifyConnected() ? cached(SPOTIFY_NOW_KEY, SPOTIFY_NOW_TTL, fetchNowPlaying) : Promise.resolve(null));
 
 export const getSpotifyData = () => (spotifyConnected() ? cached(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData) : Promise.resolve(null));

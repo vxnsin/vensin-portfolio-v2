@@ -17,13 +17,17 @@ function ago(iso: string) {
 type Row = { kind: Kind; label: string; value: string; live: boolean; at?: string; href?: string | null };
 
 /** what's running right now, otherwise the last thing that was. */
-export function LatestBox({ latest }: { latest: Latest }) {
+export function LatestBox({ latest, apiListening }: { latest: Latest; apiListening?: { value: string; href: string | null } | null }) {
   const { data } = useLanyardContext();
   const live = data ? resolveAll(data.activities) : [];
 
   const rows: Row[] = [];
   for (const kind of KIND_ORDER) {
     if (kind === "browsing") continue; // not worth remembering
+    if (kind === "listening" && apiListening) {
+      rows.push({ kind, label: KIND_LABEL[kind].live, value: apiListening.value, href: apiListening.href, live: true });
+      continue;
+    }
     const now = live.find((r) => r.info.kind === kind && r.info.latest);
     if (now) {
       rows.push({ kind, label: KIND_LABEL[kind].live, value: now.info.latest!.value, href: now.info.latest!.href, live: true });
