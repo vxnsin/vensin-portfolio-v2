@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/auth";
-import { exchangeCode, fetchSpotifyData, SPOTIFY_CACHE_KEY, SPOTIFY_TTL } from "@/lib/spotify";
+import { exchangeCode, fetchSpotifyData, SPOTIFY_CACHE_KEY, SPOTIFY_TTL, spotifyRedirectBase } from "@/lib/spotify";
 import { refresh } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const state = req.nextUrl.searchParams.get("state");
   const err = req.nextUrl.searchParams.get("error");
   const expected = req.cookies.get("spotify_state")?.value;
-  const back = (q: string) => NextResponse.redirect(new URL(`/admin/spotify?${q}`, req.nextUrl.origin));
+  const back = (q: string) => NextResponse.redirect(`${spotifyRedirectBase()}/admin/spotify?${q}`);
 
   if (err) return back(`error=${encodeURIComponent(err)}`);
   if (!code || !state || state !== expected) return back("error=state");
