@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { site } from "@/data/site";
 import { LanyardDataSchema } from "@/components/discord/schemas";
-import { isGame, watchingInfo } from "@/components/discord/detect";
+import { codingInfo, isCoding, isGame, watchingInfo } from "@/components/discord/detect";
 import { getLatestFresh, saveLatest, type Latest } from "@/lib/store";
 
 // Visitors' browsers ping this route while they watch the Discord widget.
@@ -30,6 +30,12 @@ export async function POST() {
     const d = parsed.data;
     const at = new Date(now).toISOString();
     const next: Latest = { ...current, checkedAt: at };
+
+    const coding = d.activities.find(isCoding);
+    if (coding) {
+      const c = codingInfo(coding);
+      next.coding = { workspace: c.workspace ?? c.editor, at };
+    }
 
     const game = d.activities.find(isGame);
     if (game) next.playing = { name: game.name, at };

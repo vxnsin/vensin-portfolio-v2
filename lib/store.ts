@@ -32,6 +32,7 @@ export type Health = {
 };
 
 export type Latest = {
+  coding?: { workspace: string; at: string };
   playing?: { name: string; at: string };
   watching?: { title: string; service: string; at: string };
   listening?: { song: string; artist: string; trackId?: string | null; at: string };

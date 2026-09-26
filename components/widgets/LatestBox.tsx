@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanyardContext } from "@/components/discord/LanyardProvider";
-import { isGame, watchingInfo } from "@/components/discord/detect";
+import { codingInfo, isCoding, isGame, watchingInfo } from "@/components/discord/detect";
 import type { Latest } from "@/lib/store";
 
 // Minecraft clients show up under their own name in Discord
@@ -27,11 +27,17 @@ type Row = { label: string; value: string; live: boolean; at?: string; href?: st
 export function LatestBox({ latest }: { latest: Latest }) {
   const { data } = useLanyardContext();
 
+  const coding = data?.activities.find(isCoding);
   const game = data?.activities.find(isGame);
   const watching = data?.activities.find((a) => a.type === 3);
   const spotify = data?.spotify;
 
   const rows: Row[] = [];
+
+  if (coding) {
+    const c = codingInfo(coding);
+    rows.push({ label: "coding", value: `${c.workspace ?? c.editor}${c.file ? ` · ${c.file.split(":")[0]}` : ""}`, live: true });
+  } else if (latest.coding) rows.push({ label: "coded", value: latest.coding.workspace, live: false, at: latest.coding.at });
 
   if (game) rows.push({ label: "playing", value: gameLabel(game.name), live: true });
   else if (latest.playing) rows.push({ label: "played", value: gameLabel(latest.playing.name), live: false, at: latest.playing.at });

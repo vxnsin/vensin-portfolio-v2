@@ -3,7 +3,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useLanyardContext } from "./LanyardProvider";
-import { isBrowsing, watchingInfo } from "./detect";
+import { codingInfo, isBrowsing, isCoding, watchingInfo } from "./detect";
 import type { Activity, LanyardData } from "./schemas";
 
 const STATUS: Record<LanyardData["discord_status"], { label: string; color: string }> = {
@@ -91,6 +91,7 @@ function Row({
   icon,
   smallIcon,
   title,
+  href,
   sub,
   sub2,
   footer,
@@ -98,6 +99,7 @@ function Row({
   icon?: string | null;
   smallIcon?: string | null;
   title: string;
+  href?: string | null;
   sub?: string | null;
   sub2?: string | null;
   footer?: ReactNode;
@@ -118,7 +120,13 @@ function Row({
       </div>
       <div className="min-w-0 flex-1 text-xs leading-snug">
         <div className="font-semibold truncate text-ink" title={title}>
-          {title}
+          {href ? (
+            <a href={href} target="_blank" rel="noreferrer" className="text-ink no-underline hover:text-accent hover:underline">
+              {title}
+            </a>
+          ) : (
+            title
+          )}
         </div>
         {sub && (
           <div className="truncate text-ink-soft" title={sub}>
@@ -171,15 +179,11 @@ function Spotify({ s }: { s: NonNullable<LanyardData["spotify"]> }) {
       <Row
         icon={s.album_art_url ?? null}
         title={s.song}
+        href={s.track_id ? `https://open.spotify.com/track/${s.track_id}` : null}
         sub={`by ${s.artist}`}
         sub2={s.album ? `on ${s.album}` : null}
         footer={end > start ? <Progress start={start} end={end} /> : null}
       />
-      {s.track_id && (
-        <a href={`https://open.spotify.com/track/${s.track_id}`} target="_blank" rel="noreferrer" className="text-[10px]">
-          open in spotify ↗
-        </a>
-      )}
     </div>
   );
 }
@@ -211,6 +215,26 @@ function Watching({ a }: { a: Activity }) {
             <Elapsed start={start} />
           ) : null
         }
+      />
+    </div>
+  );
+}
+
+/** editor presence (vscord & co.) */
+function Coding({ a }: { a: Activity }) {
+  const start = a.timestamps?.start;
+  const c = codingInfo(a);
+  const meta = [c.language, c.problems].filter(Boolean).join(" · ");
+  return (
+    <div>
+      <Heading icon="💻">coding in {c.editor}</Heading>
+      <Row
+        icon={assetUrl(a.assets?.large_image, a.application_id)}
+        smallIcon={assetUrl(a.assets?.small_image, a.application_id)}
+        title={c.workspace ?? c.editor}
+        sub={c.file}
+        sub2={meta || null}
+        footer={start ? <Elapsed start={start} /> : null}
       />
     </div>
   );
@@ -269,8 +293,9 @@ export function DiscordPresence() {
   const name = data.discord_user.display_name || data.discord_user.global_name || data.discord_user.username;
   const custom = data.activities.find((a) => a.type === 4);
   const watching = data.activities.filter((a) => a.type === 3);
-  const others = data.activities.filter((a) => a.type !== 4 && a.type !== 3 && a.name !== "Spotify");
-  const hasActivity = Boolean(data.spotify) || watching.length > 0 || others.length > 0;
+  const coding = data.activities.filter(isCoding);
+  const others = data.activities.filter((a) => a.type !== 4 && a.type !== 3 && a.name !== "Spotify" && !isCoding(a));
+  const hasActivity = Boolean(data.spotify) || watching.length > 0 || coding.length > 0 || others.length > 0;
 
   return (
     <div>
@@ -293,6 +318,9 @@ export function DiscordPresence() {
       {hasActivity && <hr className="dotted-hr" />}
 
       {data.spotify && <Spotify s={data.spotify} />}
+      {coding.map((a) => (
+        <Coding key={a.id ?? a.name} a={a} />
+      ))}
       {watching.map((a) => (
         <Watching key={a.id ?? a.name} a={a} />
       ))}

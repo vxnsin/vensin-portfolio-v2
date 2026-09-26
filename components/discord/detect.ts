@@ -23,8 +23,34 @@ export function isBrowsing(a: Activity) {
   return a.type === 0 && (isPreMiD(a) || NOT_A_GAME.test(a.name));
 }
 
+// editors with rich presence (vscord, jetbrains, neovim, …)
+const EDITOR = /visual studio code|vs code|vscode|code - insiders|cursor|windsurf|intellij|webstorm|pycharm|jetbrains|neovim|nvim|zed|sublime/i;
+
+export function isCoding(a: Activity) {
+  return a.type === 0 && EDITOR.test(a.name);
+}
+
 export function isGame(a: Activity) {
-  return a.type === 0 && !isBrowsing(a);
+  return a.type === 0 && !isBrowsing(a) && !isCoding(a);
+}
+
+// vscord puts emoji + "ᕁ" in front of every field
+const strip = (s: string | null | undefined) =>
+  (s ?? "")
+    .replace(/[\p{Extended_Pictographic}️]/gu, "")
+    .replace(/ᕁ/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+/** vscord: details = "workspace | - N problems found", state = "file:line:col", large_text = "TSX" */
+export function codingInfo(a: Activity) {
+  const [workspaceRaw, problemsRaw] = (a.details ?? "").split("|");
+  const workspace = strip(workspaceRaw) || null;
+  const problems = strip(problemsRaw).replace(/^-\s*/, "") || null;
+  const file = strip(a.state) || null;
+  const language = strip(a.assets?.large_text) || null;
+  const editor = a.name.replace(/^Visual Studio Code$/i, "vs code");
+  return { editor, workspace, file, language, problems };
 }
 
 /** AniWorld-style: name = anime, state = episode title, large_text = "Season 3, Episode 9" */
