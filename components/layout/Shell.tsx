@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { site } from "@/data/site";
+import { build } from "@/lib/build";
 import { NavTabs } from "./NavTabs";
 import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
@@ -11,8 +12,10 @@ import { Typewriter } from "@/components/widgets/Typewriter";
 import { Kaomoji } from "@/components/widgets/Kaomoji";
 
 export function Shell({ children }: { children: ReactNode }) {
+  const year = new Date().getFullYear();
+
   return (
-    <div className="relative z-10 mx-auto w-full max-w-[1040px] px-4 py-6 md:py-10">
+    <div id="top" className="relative z-10 mx-auto w-full max-w-[1040px] px-4 py-6 md:py-10">
       {/* header */}
       <header className="text-center mb-6">
         <Link href="/" className="no-underline hover:no-underline inline-block">
@@ -60,18 +63,48 @@ export function Shell({ children }: { children: ReactNode }) {
         </aside>
       </div>
 
-      {/* marquee + footer */}
+      {/* marquee */}
       <div className="win mt-6">
         <Marquee items={site.marquee} />
       </div>
-      <footer className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-ink-soft">
-        <span>
-          {site.version.tag} &quot;{site.version.codename}&quot; · {site.version.since} to forever · {site.name} @ {site.domain}
-        </span>
-        <span className="flex items-center gap-3">
-          <Link href="/impressum">impressum</Link>
-          <ThemeToggle />
-        </span>
+
+      {/* footer */}
+      <footer className="mt-5 win win-dashed">
+        <div className="win-body grid gap-3 sm:grid-cols-[1fr_auto] items-center text-xs">
+          <div className="grid gap-1">
+            <div>
+              <span className="pixel text-ink">{site.domain}</span>
+              <span className="text-ink-soft"> · © {year} luis. all the bugs are mine.</span>
+            </div>
+            <div className="text-ink-soft">
+              hand-built with next.js, coffee and anime osts.{" "}
+              <a href={build.repo} target="_blank" rel="noreferrer" title="source code">
+                build {build.sha}
+              </a>{" "}
+              · {build.date}
+            </div>
+            <div className="text-ink-soft">
+              status widget by{" "}
+              <a href="https://github.com/Phineas/lanyard" target="_blank" rel="noreferrer">
+                lanyard
+              </a>
+              , posters by{" "}
+              <a href="https://kitsu.app" target="_blank" rel="noreferrer">
+                kitsu
+              </a>
+              . no cookies, no tracking.
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <Link href="/impressum" className="btn text-xs no-underline">
+              impressum
+            </Link>
+            <ThemeToggle />
+            <a href="#top" className="btn text-xs no-underline" aria-label="back to top">
+              ↑ top
+            </a>
+          </div>
+        </div>
       </footer>
     </div>
   );

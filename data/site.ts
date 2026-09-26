@@ -28,18 +28,19 @@ export const site = {
     mood: "building this site",
   },
   updateLog: [
-    { date: "2026-09-26", text: "v2 'sakura' is live! rebuilt from scratch with a cozy old-web layout." },
-    { date: "2026-09-26", text: "discord presence, projects, anime and links pages added." },
+    { date: "2026-09-26", text: "new site is live! rebuilt from scratch, old-web vibes, actually works on phones now." },
+    { date: "2026-09-26", text: "anime posters now come from kitsu, projects page got filters and highlights." },
   ],
   marquee: [
     "welcome to vensin.dev",
-    "version 2 'sakura' is out",
+    "the new site is finally here",
     "(๑˃ᴗ˂)ﻭ",
-    "check my discord status in the sidebar",
-    "built with next.js + love",
-    "ctrl + shift + r if something looks weird",
-    "watch more anime",
+    "my discord status in the sidebar is live, say hi",
+    "hand-built with next.js, no template",
+    "if something looks weird, hard refresh and blame me",
+    "go watch more anime",
     "ヽ(>∀<☆)ノ",
+    "minecraft servers are my love language",
   ],
 };
 
