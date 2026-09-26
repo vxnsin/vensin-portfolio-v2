@@ -4,6 +4,7 @@ import { getSettings } from "@/lib/store";
 import { getContributionYears, getLatestGithubActivity } from "@/lib/github";
 import { Window } from "@/components/layout/Window";
 import { GithubBox } from "@/components/github/GithubBox";
+import { Wordmark } from "@/components/layout/Wordmark";
 
 export default async function Home() {
   const [settings, gh, contributions] = await Promise.all([getSettings(), getLatestGithubActivity(), getContributionYears()]);
@@ -11,7 +12,7 @@ export default async function Home() {
   return (
     <div className="grid gap-5">
       <div>
-        <h2 className="pixel text-lg text-accent mb-2">welcome to {site.domain} _(:з)∠)_</h2>
+        <h2 className="pixel text-lg text-accent mb-2">welcome to <Wordmark /> _(:з)∠)_</h2>
         {site.intro.map((p) => (
           <p key={p} className="mb-3">
             {p}

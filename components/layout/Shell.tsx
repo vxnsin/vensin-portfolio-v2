@@ -16,6 +16,7 @@ import { TodayCycle } from "@/components/widgets/TodayCycle";
 import { LatestBox } from "@/components/widgets/LatestBox";
 import { Typewriter } from "@/components/widgets/Typewriter";
 import { Kaomoji } from "@/components/widgets/Kaomoji";
+import { Wordmark } from "@/components/layout/Wordmark";
 
 export async function Shell({ children }: { children: ReactNode }) {
   const year = new Date().getFullYear();
@@ -41,7 +42,7 @@ export async function Shell({ children }: { children: ReactNode }) {
             className="no-underline hover:no-underline inline-block text-ink hover:text-accent transition-colors"
           >
             <h1 className="pixel text-3xl md:text-4xl tracking-wide">
-              {site.domain}
+              <Wordmark />
             </h1>
           </Link>
           <div className="text-xs text-ink-soft mt-1">
@@ -102,7 +103,7 @@ export async function Shell({ children }: { children: ReactNode }) {
         <footer className="mt-5 win win-dashed">
           <div className="win-body grid gap-3 sm:grid-cols-[1fr_auto] items-center text-xs">
             <div className="grid gap-1">
-              <div className="pixel text-ink text-sm">{site.domain}</div>
+              <div className="pixel text-ink text-sm"><Wordmark /></div>
               <div className="text-ink-soft">
                 © {year} luis. all the bugs are mine.
               </div>
