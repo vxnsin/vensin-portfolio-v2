@@ -35,7 +35,7 @@ export function NowPlaying({ last }: { last: Last }) {
       <div className="flex gap-4 items-center">
         <div className="relative shrink-0">
           {live.image ? <img src={live.image} alt="" className="w-24 h-24 sm:w-28 sm:h-28 object-cover border-2 border-line" /> : <div className="w-24 h-24 border border-dashed border-line" />}
-          <span className="absolute -bottom-2 -right-2 eq" aria-hidden>
+          <span className="absolute bottom-1 right-1 eq" aria-hidden>
             <i />
             <i />
             <i />

@@ -18,9 +18,11 @@ export function LinkBack() {
   return (
     <div className="grid gap-3 text-xs">
       <div className="flex items-center gap-4 flex-wrap">
-        <img src="/button.png" alt={site.domain} width={88} height={31} className="border border-line" style={{ imageRendering: "pixelated" }} />
-        <img src="/button.png" alt="" width={176} height={62} className="border border-line hidden sm:block" style={{ imageRendering: "pixelated" }} aria-hidden />
-        <span className="text-ink-soft">88x31, hotlinking is fine.</span>
+        <img src="/button.png" alt={site.domain} width={264} height={93} className="border border-line" style={{ imageRendering: "pixelated" }} />
+        <div className="grid gap-1">
+          <img src="/button.png" alt="" width={88} height={31} className="border border-line" style={{ imageRendering: "pixelated" }} aria-hidden />
+          <span className="text-ink-soft">actual size: 88x31 · hotlinking is fine</span>
+        </div>
       </div>
       <pre className="border border-dashed border-line bg-paper-2 p-2 overflow-x-auto text-[11px] whitespace-pre-wrap break-all">{SNIPPET}</pre>
       <button type="button" onClick={copy} className="btn w-fit">

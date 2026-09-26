@@ -28,8 +28,14 @@ export function ListeningClock({ byHour, byWeekday }: { byHour: number[]; byWeek
           })}
         </svg>
         <div>
-          most listening around <b className="text-ink">{String(peak).padStart(2, "0")}:00</b>
-          {peak >= 22 || peak < 5 ? " · night owl confirmed" : peak < 11 ? " · morning person?!" : ""}
+          {byHour.some((m) => m > 0) ? (
+            <>
+              most listening around <b className="text-ink">{String(peak).padStart(2, "0")}:00</b>
+              {peak >= 22 || peak < 5 ? " · night owl confirmed" : peak < 11 ? " · morning person?!" : ""}
+            </>
+          ) : (
+            "no data yet, the clock fills up as you listen."
+          )}
         </div>
       </div>
       <div className="flex items-end gap-1.5">

@@ -34,7 +34,7 @@ export default async function MusicPage() {
         <Stat value={hours >= 10 ? `${Math.round(hours)}h` : `${hours.toFixed(1)}h`} label={`listened in ${year}`} />
         <Stat value={String(log.tracksThisYear)} label="different tracks" />
         <Stat value={topArtist ? topArtist.artist : "—"} label="most played artist" small />
-        <Stat value={`${String(log.byHour.indexOf(Math.max(...log.byHour))).padStart(2, "0")}:00`} label="favorite hour" />
+        <Stat value={log.minutesThisYear ? `${String(log.byHour.indexOf(Math.max(...log.byHour))).padStart(2, "0")}:00` : "—"} label="favorite hour" />
       </div>
 
       <div className="grid gap-4 md:grid-cols-[3fr_2fr]">

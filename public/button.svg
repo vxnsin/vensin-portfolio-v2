@@ -1,8 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="88" height="31" viewBox="0 0 88 31" shape-rendering="crispEdges">
 <rect width="88" height="31" fill="#1f1826"/>
 <rect x="0.5" y="0.5" width="87" height="30" fill="none" stroke="#5c4a62" stroke-dasharray="2 2"/>
-<rect x="2" y="2" width="84" height="27" fill="none" stroke="#2a2130"/>
-<rect x="10" y="10" width="2" height="2" fill="#ff8fb4"/><rect x="6" y="12" width="2" height="2" fill="#ff8fb4"/><rect x="8" y="12" width="2" height="2" fill="#ff8fb4"/><rect x="10" y="12" width="2" height="2" fill="#ff8fb4"/><rect x="12" y="12" width="2" height="2" fill="#ff8fb4"/><rect x="6" y="14" width="2" height="2" fill="#ff8fb4"/><rect x="8" y="14" width="2" height="2" fill="#ff8fb4"/><rect x="10" y="14" width="2" height="2" fill="#ff8fb4"/><rect x="12" y="14" width="2" height="2" fill="#ff8fb4"/><rect x="14" y="14" width="2" height="2" fill="#ff8fb4"/><rect x="8" y="16" width="2" height="2" fill="#ff8fb4"/><rect x="10" y="16" width="2" height="2" fill="#ff8fb4"/><rect x="12" y="16" width="2" height="2" fill="#ff8fb4"/><rect x="6" y="18" width="2" height="2" fill="#ff8fb4"/><rect x="14" y="18" width="2" height="2" fill="#ff8fb4"/>
-<text x="21" y="16" font-family="Consolas, DejaVu Sans Mono, monospace" font-size="11" font-weight="bold" fill="#ff8fb4">vensin.dev</text>
-<text x="21" y="25" font-family="Consolas, DejaVu Sans Mono, monospace" font-size="6" fill="#b0a4ff">anime &amp; code &amp; moto</text>
+<text x="31" y="15" font-family="Consolas, DejaVu Sans Mono, monospace" font-size="9" font-weight="bold" fill="#ff8fb4">vensin.dev</text>
+<text x="31" y="24" font-family="Consolas, DejaVu Sans Mono, monospace" font-size="6" fill="#b0a4ff">anime &amp; code</text>
 </svg>
