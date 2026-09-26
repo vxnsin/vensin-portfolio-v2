@@ -24,6 +24,7 @@ export async function runJob(job: Job): Promise<void> {
 function due(job: Job, now: Date): boolean {
   const last = getJobRun(job.id);
   const lastAt = last ? new Date(last.at).getTime() : 0;
+  if (job.since && lastAt < job.since()) return true;
   if (job.every) return now.getTime() - lastAt >= job.every;
   if (job.daily) {
     const [h, m] = job.daily.split(":").map(Number);

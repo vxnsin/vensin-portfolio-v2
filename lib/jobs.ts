@@ -6,6 +6,10 @@ import { refreshLatest } from "./latest";
 import { fetchNowPlaying, fetchRecentPlays, fetchSpotifyData, spotifyConnected, SPOTIFY_CACHE_KEY, SPOTIFY_NOW_KEY, SPOTIFY_NOW_TTL, SPOTIFY_TTL } from "./spotify";
 import { importPlays } from "./listens";
 import { getLatest, saveLatest } from "./store";
+import { kvGet } from "./db";
+
+// a fresh spotify connection makes every spotify job due right away
+const spotifySince = () => { const at = kvGet<string | null>("spotify:connected_at", null); return at ? new Date(at).getTime() : 0; };
 
 /** every finished play with its real length, straight from spotify history (last 50 plays, so 10 minutes is plenty) */
 async function importSpotifyHistory() {
@@ -32,7 +36,7 @@ async function pollSpotifyNow() {
  * `every` runs on an interval, `daily` runs once a day at that local time (HH:MM).
  * Each job writes into the sqlite cache; pages only ever read from there.
  */
-export type Job = { id: string; label: string; every?: number; daily?: string; run: () => Promise<unknown> };
+export type Job = { id: string; label: string; every?: number; daily?: string; run: () => Promise<unknown>; /** timestamp after which the job is due regardless of its schedule (e.g. a fresh spotify login) */ since?: () => number };
 
 export const CACHE_KEYS = {
   githubStats: "github:stats",
@@ -55,9 +59,9 @@ export const jobs: Job[] = [
   { id: "weather", label: "weather", every: 10 * MIN, run: () => refresh(CACHE_KEYS.weather, TTL.weather, fetchWeather) },
   { id: "github-activity", label: "github: latest commit", every: HOUR, run: () => refresh(CACHE_KEYS.githubActivity, TTL.githubActivity, fetchLatestGithubActivity) },
   { id: "anime-recent", label: "anime: recently watched", every: HOUR, run: () => refresh(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched) },
-  { id: "spotify-now", label: "spotify: now playing", every: 30_000, run: pollSpotifyNow },
-  { id: "spotify-history", label: "spotify: import plays into the log", every: 10 * MIN, run: importSpotifyHistory },
-  { id: "spotify", label: "spotify: top tracks, artists, playlists", every: HOUR, run: () => (spotifyConnected() ? refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData) : Promise.resolve(null)) },
+  { id: "spotify-now", label: "spotify: now playing", every: 30_000, run: pollSpotifyNow, since: spotifySince },
+  { id: "spotify-history", label: "spotify: import plays into the log", every: 10 * MIN, run: importSpotifyHistory, since: spotifySince },
+  { id: "spotify", label: "spotify: top tracks, artists, playlists", every: HOUR, run: () => (spotifyConnected() ? refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData) : Promise.resolve(null)), since: spotifySince },
   { id: "github-stats", label: "github: followers & repos", daily: "00:00", run: () => refresh(CACHE_KEYS.githubStats, TTL.githubStats, fetchGithubStats) },
   { id: "github-contributions", label: "github: contribution graph", daily: "00:05", run: () => refresh(CACHE_KEYS.githubContributions, TTL.githubContributions, fetchContributionYears) },
 ];
