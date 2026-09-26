@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { guestbookCounts, listGuestbook, type GuestbookStatus } from "@/lib/guestbook";
-import { discordButtonsConfigured } from "@/lib/discord-notify";
+import { discordButtonsConfigured, guestbookChannelConfigured } from "@/lib/discord-notify";
 import { deleteGuestbookAction, setGuestbookStatusAction } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export default async function AdminGuestbook({ searchParams }: { searchParams: P
     <div className="grid gap-3">
       <h2 className="pixel text-accent">guestbook</h2>
       <p className="text-xs text-ink-soft">
-        entries that pass every filter go straight to the wall. anything with links or spam words waits here and in your discord dms
+        entries that pass every filter go straight to the wall{guestbookChannelConfigured() ? " and to your guestbook channel" : " (set DISCORD_GUESTBOOK_CHANNEL_ID to get those in a channel instead of your dms)"}. anything with links or spam words waits here and in your discord dms
         {discordButtonsConfigured() ? " (buttons are live)." : " (set DISCORD_PUBLIC_KEY and the interactions url to get buttons)."}
       </p>
       <div className="flex gap-2 flex-wrap text-xs">

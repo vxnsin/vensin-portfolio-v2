@@ -11,6 +11,8 @@ const COLORS = { pink: 0xe2789b, lavender: 0x8b7fd6, green: 0x4fc47f, red: 0xf23
 
 export const discordNotifyConfigured = () => Boolean(process.env.DISCORD_BOT_TOKEN || process.env.DISCORD_WEBHOOK_URL);
 export const discordButtonsConfigured = () => Boolean(process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_PUBLIC_KEY);
+/** quiet guestbook traffic (entries that passed every filter) goes to a channel instead of your dms */
+export const guestbookChannelConfigured = () => Boolean(process.env.DISCORD_GUESTBOOK_WEBHOOK_URL || (process.env.DISCORD_BOT_TOKEN && process.env.DISCORD_GUESTBOOK_CHANNEL_ID));
 
 export type Button = { id: string; label: string; style: "primary" | "secondary" | "success" | "danger" } | { url: string; label: string };
 /** a card: text blocks (markdown), "---" for a separator, optional buttons in one row */
@@ -70,8 +72,10 @@ export async function notifyNewMessage(m: Message): Promise<boolean> {
   return send(messageCard(m, "new"));
 }
 
+/** flagged entries need a decision, so they go to your dms; clean ones only need a glance and go to the guestbook channel (dm if none is set) */
 export async function notifyGuestbook(e: GuestbookEntry): Promise<boolean> {
-  return send(guestbookCard(e));
+  const quiet = e.status === "approved" && guestbookChannelConfigured();
+  return send(guestbookCard(e), quiet ? "channel" : "dm");
 }
 
 /** an activity the widget has no dedicated handler for — includes the raw payload so a handler can be written */
@@ -90,9 +94,28 @@ export async function notifyUnknownActivity(activity: unknown, name: string): Pr
 
 let dmChannel: string | null = null;
 
-async function send(card: Card): Promise<boolean> {
+async function send(card: Card, to: "dm" | "channel" = "dm"): Promise<boolean> {
   const token = process.env.DISCORD_BOT_TOKEN;
   const owner = process.env.DISCORD_OWNER_ID ?? site.discordUserId;
+
+  if (to === "channel") {
+    const channel = process.env.DISCORD_GUESTBOOK_CHANNEL_ID;
+    if (token && channel) {
+      try {
+        const res = await fetch(`${API}/channels/${channel}/messages`, { method: "POST", headers: { authorization: `Bot ${token}`, "content-type": "application/json" }, body: JSON.stringify(cardPayload(card)) });
+        if (res.ok) return true;
+      } catch {}
+    }
+    const hook = process.env.DISCORD_GUESTBOOK_WEBHOOK_URL;
+    if (hook) {
+      try {
+        const url = hook + (hook.includes("?") ? "&" : "?") + "with_components=true";
+        const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(cardPayload(card, { interactive: false })) });
+        if (res.ok) return true;
+      } catch {}
+    }
+    // channel not reachable: fall through to the dm so nothing gets lost
+  }
 
   if (token) {
     try {

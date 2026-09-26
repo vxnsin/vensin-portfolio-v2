@@ -100,7 +100,7 @@ Every night at 03:30 the scheduler takes a consistent copy of the sqlite file (s
 
 Entries that pass the screening (`lib/guestbook.ts`: no links, no spam words, not all caps, not a repeat, honeypot empty, rate limit per hashed IP) go straight to the wall. Anything flagged is stored as `pending` and only shows up after approval; slurs and keyboard mashing are dropped silently.
 
-Every entry and every contact message is sent to your Discord DMs as a components-v2 card with buttons (approve / reject / take down / delete, mark read). For the buttons to work Discord has to reach the site:
+Flagged entries and every contact message are sent to your Discord DMs as a components-v2 card with buttons; entries that passed every filter go to `DISCORD_GUESTBOOK_CHANNEL_ID` (or `DISCORD_GUESTBOOK_WEBHOOK_URL`) instead, so your DMs only hold what needs a decision (approve / reject / take down / delete, mark read). For the buttons to work Discord has to reach the site:
 
 1. In the [developer portal](https://discord.com/developers/applications) copy the app's **Public Key** into `DISCORD_PUBLIC_KEY`.
 2. Set **Interactions Endpoint URL** to `https://vensin.dev/api/discord/interactions` (Discord sends a signed ping and only saves the url when it answers).
