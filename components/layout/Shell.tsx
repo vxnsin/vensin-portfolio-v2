@@ -7,7 +7,7 @@ import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
 import { Window } from "./Window";
 import { DiscordPresence } from "@/components/discord/DiscordPresence";
-import { DateBlock } from "@/components/widgets/DateBlock";
+import { TodayCycle } from "@/components/widgets/TodayCycle";
 import { Typewriter } from "@/components/widgets/Typewriter";
 import { Kaomoji } from "@/components/widgets/Kaomoji";
 
@@ -40,9 +40,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <Window title="discord" right={<Kaomoji className="text-[11px] text-ink-soft" />}>
             <DiscordPresence />
           </Window>
-          <Window title="today" dashed>
-            <DateBlock />
-          </Window>
+          <TodayCycle />
           <Window title="now">
             <dl className="text-xs grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
               <dt className="text-ink-soft">watching:</dt>

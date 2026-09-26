@@ -199,7 +199,15 @@ function Watching({ a }: { a: Activity }) {
         title={a.details || a.name}
         sub={a.state ?? null}
         sub2={a.assets?.large_text && a.assets.large_text !== a.details ? a.assets.large_text : null}
-        footer={start && end && end > start ? <Progress start={start} end={end} paused={paused} /> : start ? <Elapsed start={start} /> : null}
+        footer={
+          start && end && end > start ? (
+            <Progress start={start} end={end} paused={paused} />
+          ) : paused ? (
+            <div className="text-[10px] text-ink-soft mt-0.5">⏸ paused</div>
+          ) : start ? (
+            <Elapsed start={start} />
+          ) : null
+        }
       />
     </div>
   );

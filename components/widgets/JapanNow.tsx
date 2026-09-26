@@ -1,0 +1,62 @@
+"use client";
+
+import { useSyncExternalStore } from "react";
+
+const TICK_MS = 30_000;
+const subscribe = (cb: () => void) => {
+  const id = setInterval(cb, TICK_MS);
+  return () => clearInterval(id);
+};
+const getTick = () => Math.floor(Date.now() / TICK_MS);
+
+function animeSeason(month: number, year: number) {
+  if (month <= 3) return { name: "winter", jp: "冬", year };
+  if (month <= 6) return { name: "spring", jp: "春", year };
+  if (month <= 9) return { name: "summer", jp: "夏", year };
+  return { name: "fall", jp: "秋", year };
+}
+
+function timeOfDay(hour: number) {
+  if (hour >= 5 && hour < 11) return { label: "morning", jp: "おはよう", icon: "🌅" };
+  if (hour >= 11 && hour < 17) return { label: "afternoon", jp: "こんにちは", icon: "☀" };
+  if (hour >= 17 && hour < 22) return { label: "evening", jp: "こんばんは", icon: "🌆" };
+  return { label: "late night", jp: "おやすみ", icon: "🌙" };
+}
+
+/** Tokyo clock + current anime season. Because why not. */
+export function JapanNow() {
+  const tick = useSyncExternalStore(subscribe, getTick, () => null);
+  if (tick === null) return <div className="h-[132px]" />;
+
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Tokyo",
+    hour: "2-digit",
+    minute: "2-digit",
+    weekday: "long",
+    hour12: false,
+  }).formatToParts(now);
+  const get = (t: string) => parts.find((p) => p.type === t)?.value ?? "";
+  const hour = parseInt(get("hour"), 10);
+  const tod = timeOfDay(hour);
+  const season = animeSeason(now.getMonth() + 1, now.getFullYear());
+  const ahead = 9 - (-now.getTimezoneOffset() / 60);
+
+  return (
+    <div className="text-center">
+      <div className="text-2xl leading-none" aria-hidden>
+        {tod.icon}
+      </div>
+      <div className="pixel text-accent-2 leading-none mt-1" style={{ fontSize: 44 }}>
+        {get("hour")}:{get("minute")}
+      </div>
+      <div className="pixel text-sm mt-1">
+        {tod.jp} · {tod.label} in tokyo
+      </div>
+      <div className="text-[11px] text-ink-soft">{get("weekday").toLowerCase()} · {ahead > 0 ? `${ahead}h ahead of you` : "same time as you"}</div>
+      <div className="text-[11px] text-ink-soft mt-1">
+        anime season: <span className="text-accent">{season.jp} {season.name} {season.year}</span>
+      </div>
+    </div>
+  );
+}
