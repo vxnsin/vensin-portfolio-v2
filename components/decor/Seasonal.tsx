@@ -114,6 +114,17 @@ function Balloon({ color }: { color: string }) {
   );
 }
 
+function Heart({ color }: { color: string }) {
+  return (
+    <svg viewBox="0 0 12 11" width="16" height="15" aria-hidden shapeRendering="crispEdges">
+      <path d="M1 3h1V2h1V1h2v1h1V1h2v1h1v1h1v3h-1v1H9v1H8v1H7v1H5V9H4V8H3V7H2V6H1z" fill={color} />
+    </svg>
+  );
+}
+
+const FOOL_GLYPHS = ["?", "!", "¿", "wat", "?!", "lol"];
+const FOOL_COLORS = ["#c7f000", "#ff2fb3", "#00d5ff", "#ff8a00"];
+
 function Cobweb() {
   const rays = [0, 15, 30, 45, 60, 75, 90];
   const rings = [22, 44, 66, 88];
@@ -286,6 +297,33 @@ function Particles({ season }: { season: Season }) {
             <i style={{ animationDuration: `${2.5 + (i % 3) * 0.7}s` }}>
               <Balloon color={CONFETTI_COLORS[(i * 2) % CONFETTI_COLORS.length]} />
             </i>
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  if (season === "valentine") {
+    const colors = ["#ff5f8a", "#ff8fb4", "#d9453d", "#ffb3c6"];
+    return (
+      <div className="particles" aria-hidden>
+        {Array.from({ length: 18 }, (_, i) => (
+          <span key={i} className="particle heart" style={{ left: `${(i * 37 + 5) % 100}%`, animationDuration: `${16 + ((i * 7) % 12)}s, ${3 + (i % 4)}s`, animationDelay: `${-((i * 5.3) % 24)}s, ${-((i * 1.7) % 6)}s`, opacity: 0.45 + ((i * 3) % 4) * 0.12 }}>
+            <i style={{ animationDuration: `${1.2 + (i % 3) * 0.4}s` }}>
+              <Heart color={colors[i % colors.length]} />
+            </i>
+          </span>
+        ))}
+      </div>
+    );
+  }
+
+  if (season === "aprilfools") {
+    return (
+      <div className="particles" aria-hidden>
+        {Array.from({ length: 20 }, (_, i) => (
+          <span key={i} className="particle glyph" style={{ left: `${(i * 43 + 3) % 100}%`, color: FOOL_COLORS[i % FOOL_COLORS.length], fontSize: 12 + ((i * 5) % 10), animationDuration: `${9 + ((i * 7) % 9)}s, ${2 + (i % 3)}s`, animationDelay: `${-((i * 3.9) % 18)}s, ${-((i * 1.3) % 4)}s` }}>
+            <i style={{ animationDuration: `${2 + (i % 4) * 0.7}s` }}>{FOOL_GLYPHS[i % FOOL_GLYPHS.length]}</i>
           </span>
         ))}
       </div>

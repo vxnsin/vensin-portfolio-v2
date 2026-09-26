@@ -5,9 +5,15 @@ import { getContributionYears, getLatestGithubActivity } from "@/lib/github";
 import { Window } from "@/components/layout/Window";
 import { GithubBox } from "@/components/github/GithubBox";
 import { Wordmark } from "@/components/layout/Wordmark";
+import { SpecialNote } from "@/components/home/SpecialNote";
+import { cookies } from "next/headers";
+import { currentSeason } from "@/lib/season";
+import { isSeason } from "@/lib/season-data";
 
 export default async function Home() {
   const [settings, gh, contributions] = await Promise.all([getSettings(), getLatestGithubActivity(), getContributionYears()]);
+  const picked = (await cookies()).get("season")?.value;
+  const season = isSeason(picked) ? picked : currentSeason();
 
   return (
     <div className="grid gap-5">
@@ -22,6 +28,8 @@ export default async function Home() {
           love, luis. <span className="text-accent-2">☆*: .｡. o(≧▽≦)o .｡.:*☆</span>
         </p>
       </div>
+
+      <SpecialNote initial={season} />
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Window title="update log" dashed bodyClassName="scroll-y max-h-52 text-xs">

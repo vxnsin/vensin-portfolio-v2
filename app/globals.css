@@ -307,6 +307,77 @@
   }
 }
 
+:root[data-season="valentine"] {
+  --bg: #fbeaf0;
+  --paper: #fffafc;
+  --paper-2: #fdeef3;
+  --line: #e0a3b8;
+  --accent: #e0426f;
+  --accent-2: #b04a8a;
+  --accent-soft: #ffdbe6;
+  --glow-1: rgba(224, 66, 111, 0.26);
+  --glow-2: rgba(255, 143, 180, 0.30);
+}
+:root[data-season="valentine"][data-theme="dark"] {
+  --bg: #1c0f16;
+  --paper: #27151f;
+  --paper-2: #331c29;
+  --line: #6e4256;
+  --accent: #ff6b95;
+  --accent-2: #e59ac8;
+  --accent-soft: #42212f;
+  --glow-1: rgba(255, 107, 149, 0.18);
+  --glow-2: rgba(229, 154, 200, 0.16);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-season="valentine"]:not([data-theme="light"]) {
+    --bg: #1c0f16;
+    --paper: #27151f;
+    --paper-2: #331c29;
+    --line: #6e4256;
+    --accent: #ff6b95;
+    --accent-2: #e59ac8;
+    --accent-soft: #42212f;
+    --glow-1: rgba(255, 107, 149, 0.18);
+    --glow-2: rgba(229, 154, 200, 0.16);
+  }
+}
+:root[data-season="aprilfools"] {
+  --bg: #f2f7e6;
+  --paper: #fdfff5;
+  --paper-2: #eef7dc;
+  --line: #b6c98a;
+  --accent: #e0189a;
+  --accent-2: #0f9bd6;
+  --accent-soft: #e6ff9c;
+  --glow-1: rgba(199, 240, 0, 0.34);
+  --glow-2: rgba(255, 47, 179, 0.24);
+}
+:root[data-season="aprilfools"][data-theme="dark"] {
+  --bg: #101a12;
+  --paper: #17241a;
+  --paper-2: #1f3023;
+  --line: #3f6a48;
+  --accent: #ff2fb3;
+  --accent-2: #c7f000;
+  --accent-soft: #2c3b1c;
+  --glow-1: rgba(199, 240, 0, 0.16);
+  --glow-2: rgba(255, 47, 179, 0.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-season="aprilfools"]:not([data-theme="light"]) {
+    --bg: #101a12;
+    --paper: #17241a;
+    --paper-2: #1f3023;
+    --line: #3f6a48;
+    --accent: #ff2fb3;
+    --accent-2: #c7f000;
+    --accent-soft: #2c3b1c;
+    --glow-1: rgba(199, 240, 0, 0.16);
+    --glow-2: rgba(255, 47, 179, 0.18);
+  }
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-paper: var(--paper);
@@ -478,6 +549,23 @@ body::before {
 /* birthday: bunting-coloured dots on the title bars */
 :root[data-season="birthday"] .win-title { background-image: repeating-linear-gradient(90deg, #ff5fa2 0 3px, transparent 3px 10px, #ffb347 10px 13px, transparent 13px 20px, #2ab7a9 20px 23px, transparent 23px 30px, #9a8cff 30px 33px, transparent 33px 40px); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 0; }
 
+/* valentine: pixel hearts drift down, beating a little */
+.heart { animation: p-fall linear infinite, p-sway ease-in-out infinite alternate; }
+.heart > i { animation: p-beat ease-in-out infinite; }
+@keyframes p-beat { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.25); } 45% { transform: scale(1); } }
+:root[data-season="valentine"] .win-title { background-image: repeating-linear-gradient(90deg, #ff6b95 0 3px, transparent 3px 9px, #ffb3c6 9px 12px, transparent 12px 18px); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 0; }
+
+/* april fools: question marks rain down, the title is upside down until you hover it, the tabs wobble, the marquee runs backwards */
+.glyph { font-family: var(--font-pixel); font-weight: 700; line-height: 1; opacity: 0.8; animation: p-fall linear infinite, p-sway ease-in-out infinite alternate; }
+.glyph > i { font-style: normal; animation: p-tumble linear infinite; }
+:root[data-season="aprilfools"] h1.pixel { transform: rotate(180deg); transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+:root[data-season="aprilfools"] h1.pixel:hover { transform: rotate(0deg); }
+:root[data-season="aprilfools"] .tab { animation: p-wobble 2.4s ease-in-out infinite alternate; }
+:root[data-season="aprilfools"] .tab:nth-child(2n) { animation-delay: -1.2s; }
+@keyframes p-wobble { from { transform: rotate(-1.5deg); } to { transform: rotate(1.5deg); } }
+:root[data-season="aprilfools"] .marquee-track { animation-direction: reverse; }
+:root[data-season="aprilfools"] .win-title .dots i { animation: p-blink 0.8s ease-in-out infinite alternate; }
+
 /* winter: pixel snow */
 .flake { background: #fff; box-shadow: 0 0 2px rgba(120, 160, 220, 0.5); animation: p-fall linear infinite, p-sway ease-in-out infinite alternate; }
 :root[data-theme="light"] .flake { background: #fff; box-shadow: 0 0 0 1px rgba(120, 160, 220, 0.35); }
@@ -526,7 +614,7 @@ body::before {
 :root[data-season="halloween"] .win { box-shadow: 4px 4px 0 var(--line), 0 0 0 1px rgba(169, 133, 255, 0.12); }
 
 @media (prefers-reduced-motion: reduce) {
-  .particle, .particle > i, .marquee-track, .sleigh-track, .sleigh-track > i, .firework > i { animation: none !important; }
+  .particle, .particle > i, .marquee-track, .sleigh-track, .sleigh-track > i, .firework > i, .tab, .win-title .dots i { animation: none !important; }
   .particles, .sleigh-track { display: none; }
 }
 
