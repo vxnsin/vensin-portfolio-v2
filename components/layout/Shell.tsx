@@ -18,11 +18,8 @@ export function Shell({ children }: { children: ReactNode }) {
     <div id="top" className="relative z-10 mx-auto w-full max-w-[1040px] px-4 py-6 md:py-10">
       {/* header */}
       <header className="text-center mb-6">
-        <Link href="/" className="no-underline hover:no-underline inline-block">
-          <h1 className="pixel text-3xl md:text-4xl text-ink tracking-wide">
-            {site.domain}
-            <span className="text-accent">.</span>
-          </h1>
+        <Link href="/" className="no-underline hover:no-underline inline-block text-ink hover:text-accent transition-colors">
+          <h1 className="pixel text-3xl md:text-4xl text-ink tracking-wide">{site.domain}</h1>
         </Link>
         <div className="text-xs text-ink-soft mt-1">
           <span className="text-accent-2">{site.jpName}</span> · <Typewriter words={site.typewriter} />
@@ -72,10 +69,8 @@ export function Shell({ children }: { children: ReactNode }) {
       <footer className="mt-5 win win-dashed">
         <div className="win-body grid gap-3 sm:grid-cols-[1fr_auto] items-center text-xs">
           <div className="grid gap-1">
-            <div>
-              <span className="pixel text-ink">{site.domain}</span>
-              <span className="text-ink-soft"> · © {year} luis. all the bugs are mine.</span>
-            </div>
+            <div className="pixel text-ink text-sm">{site.domain}</div>
+            <div className="text-ink-soft">© {year} luis. all the bugs are mine.</div>
             <div className="text-ink-soft">
               hand-built with next.js, coffee and anime osts.{" "}
               <a href={build.repo} target="_blank" rel="noreferrer" title="source code">

@@ -63,13 +63,16 @@ body {
 
 ::selection { background: var(--accent); color: #fff; }
 
-a {
-  color: var(--accent-2);
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-underline-offset: 3px;
+/* in the base layer so utilities like `no-underline` / `text-ink` can override it */
+@layer base {
+  a {
+    color: var(--accent-2);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 3px;
+  }
+  a:hover { color: var(--accent); text-decoration-style: solid; }
 }
-a:hover { color: var(--accent); text-decoration-style: solid; }
 
 /* ---------- old-web "window" boxes ---------- */
 .win {
