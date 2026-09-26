@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { Project, ProjectStatus } from "@/data/projects";
+import { PixelIcon } from "@/components/icons/PixelIcon";
 
 const STATUS: Record<ProjectStatus, { color: string; label: string }> = {
   active: { color: "var(--ok)", label: "active" },
@@ -17,7 +18,6 @@ const FILTERS: Array<{ key: "all" | ProjectStatus; label: string }> = [
   { key: "shut down", label: "shut down" },
 ];
 
-const LINK_ICON: Record<Project["links"][number]["type"], string> = { github: "⌥", discord: "◉", website: "↗" };
 
 function years(p: Project) {
   if (!p.end) return `${p.start} – now`;
@@ -106,7 +106,7 @@ export function ProjectGrid({ projects }: { projects: Project[] }) {
                 <div className="flex flex-wrap gap-2 mt-auto pt-1">
                   {p.links.map((l) => (
                     <a key={l.url} href={l.url} target="_blank" rel="noreferrer" className="btn text-[11px] no-underline">
-                      {LINK_ICON[l.type]} {l.label ?? l.type}
+                      {l.type === "website" ? <span>↗</span> : <PixelIcon name={l.type} size={14} />} {l.label ?? l.type}
                       {l.archived && <span className="text-ink-soft">(archived)</span>}
                     </a>
                   ))}
