@@ -63,7 +63,7 @@ export function seasonNote(season: Season, d = new Date()): SeasonNote | null {
     case "valentine":
       return { title: "happy valentine's day!", text: "you are loved. yes, even by a website. go tell someone you like them." };
     case "aprilfools":
-      return { title: "happy april fools!", text: "nothing on this site is broken today. probably. if the title looks odd, you are holding your screen wrong. the marquee is also fine." };
+      return { title: "happy april fools!", text: "nothing on this site is broken today. probably. the title is fine, the buttons are just shy, the calendar is correct and the cookies are real. do not close the update." };
     default:
       return null;
   }

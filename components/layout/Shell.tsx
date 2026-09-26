@@ -12,6 +12,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { SeasonPicker } from "./SeasonPicker";
 import { resolveSeason } from "@/lib/season";
 import { SeasonGreeting } from "./SeasonGreeting";
+import { AprilFools } from "@/components/decor/AprilFools";
 import { Window } from "./Window";
 import { LanyardProvider } from "@/components/discord/LanyardProvider";
 import { DiscordPresence } from "@/components/discord/DiscordPresence";
@@ -20,6 +21,8 @@ import { LatestBox } from "@/components/widgets/LatestBox";
 import { Typewriter } from "@/components/widgets/Typewriter";
 import { Kaomoji } from "@/components/widgets/Kaomoji";
 import { Wordmark } from "@/components/layout/Wordmark";
+
+const FOOL_WORDS = ["a professional procrastinator", "definitely not three cats in a coat", "still loading…", "a certified nap enjoyer", "404: developer not found", "your new favourite website (allegedly)"];
 
 export async function Shell({ children }: { children: ReactNode }) {
   const year = new Date().getFullYear();
@@ -35,6 +38,7 @@ export async function Shell({ children }: { children: ReactNode }) {
 
   return (
     <LanyardProvider>
+      <AprilFools />
       <div
         id="top"
         className="relative z-10 mx-auto w-full max-w-[1040px] px-4 py-6 md:py-10"
@@ -51,7 +55,7 @@ export async function Shell({ children }: { children: ReactNode }) {
           </Link>
           <div className="text-xs text-ink-soft mt-1">
             <span className="text-accent-2">{site.jpName}</span> ·{" "}
-            <Typewriter words={site.typewriter} />
+            <Typewriter words={season === "aprilfools" ? FOOL_WORDS : site.typewriter} />
           </div>
           <SeasonGreeting initial={season} />
         </header>

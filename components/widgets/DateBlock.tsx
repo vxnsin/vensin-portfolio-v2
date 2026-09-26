@@ -19,6 +19,19 @@ export function DateBlock() {
 
   const now = new Date();
   const time = now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  const fools = document.documentElement.getAttribute("data-season") === "aprilfools";
+  if (fools) {
+    return (
+      <div className="text-center leading-tight">
+        <div className="pixel text-accent-2 leading-none" style={{ fontSize: 72 }}>
+          32
+        </div>
+        <div className="pixel text-sm mt-1">someday</div>
+        <div className="text-xs text-ink-soft">march {now.getFullYear()}</div>
+        <div className="text-xs text-ink-soft mt-1">{time} (probably)</div>
+      </div>
+    );
+  }
 
   return (
     <div className="text-center leading-tight">
