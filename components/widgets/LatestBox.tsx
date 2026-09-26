@@ -44,7 +44,7 @@ export function LatestBox({ latest }: { latest: Latest }) {
 
   if (watching) {
     const info = watchingInfo(watching);
-    rows.push({ label: "watching", value: `${info.title} · ${info.service}`, live: true });
+    rows.push({ label: "watching", value: `${info.title} · ${info.service}`, live: true, href: info.href ?? undefined });
   }
   else if (latest.watching) rows.push({ label: "watched", value: `${latest.watching.title} · ${latest.watching.service}`, live: false, at: latest.watching.at });
 

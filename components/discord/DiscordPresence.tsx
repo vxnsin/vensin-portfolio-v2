@@ -122,7 +122,7 @@ function Row({
         <div className="font-semibold truncate text-ink" title={title}>
           {href ? (
             <a href={href} target="_blank" rel="noreferrer" className="text-ink no-underline hover:text-accent hover:underline">
-              {title}
+              {title} <span className="text-[10px] text-accent-2">↗</span>
             </a>
           ) : (
             title
@@ -204,6 +204,7 @@ function Watching({ a }: { a: Activity }) {
         icon={assetUrl(a.assets?.large_image, a.application_id)}
         smallIcon={assetUrl(a.assets?.small_image, a.application_id)}
         title={info.title}
+        href={info.href}
         sub={info.sub}
         sub2={info.sub2}
         footer={

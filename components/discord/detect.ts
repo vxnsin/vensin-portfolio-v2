@@ -63,16 +63,23 @@ export function shortEpisode(text: string) {
   return text.replace(/(?:season|staffel)\s*(\d+),?\s*(?:episode|folge)\s*(\d+)/i, "S$1 E$2");
 }
 
+/** the aniworld presence uses kitsu posters, so the kitsu id is right there in the image url */
+export function kitsuUrl(a: Activity) {
+  const id = a.assets?.large_image?.match(/media\.kitsu\.app\/anime\/(\d+)\//)?.[1];
+  return id ? `https://kitsu.app/anime/${id}` : null;
+}
+
 /** what to show for a "watching" activity */
 export function watchingInfo(a: Activity) {
   if (isAnime(a)) {
     const episode = EPISODE.test(a.assets?.large_text ?? "") ? a.assets!.large_text! : EPISODE.test(a.state ?? "") ? a.state! : "";
     const episodeTitle = a.state && a.state !== episode && a.state !== a.name ? a.state : a.details && a.details !== a.name ? a.details : null;
-    return { anime: true, title: a.name, sub: episodeTitle, sub2: episode || null, service: episode ? shortEpisode(episode) : "anime" };
+    return { anime: true, title: a.name, href: kitsuUrl(a), sub: episodeTitle, sub2: episode || null, service: episode ? shortEpisode(episode) : "anime" };
   }
   return {
     anime: false,
     title: a.details || a.name,
+    href: null as string | null,
     sub: a.state ?? null,
     sub2: a.assets?.large_text && a.assets.large_text !== a.details ? a.assets.large_text : null,
     service: a.name,
