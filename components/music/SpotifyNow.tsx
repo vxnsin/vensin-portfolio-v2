@@ -16,7 +16,8 @@ const fmt = (ms: number) => {
 /** Now playing straight from the Spotify API. Polls /api/spotify/now and interpolates the progress bar in between. */
 export function SpotifyNow({ initial, last, variant = "sidebar" }: { initial: NowPlaying | null; last?: Last; variant?: "sidebar" | "hero" }) {
   const [now, setNow] = useState<NowPlaying | null>(initial);
-  const [tick, setTick] = useState(() => Date.now());
+  // starts at the snapshot time so server and client render the same elapsed value; the clock takes over after mount
+  const [tick, setTick] = useState(() => (initial ? new Date(initial.fetchedAt).getTime() : 0));
 
   useEffect(() => {
     let alive = true;

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
 import { listGallery, listMessages, getSettings, getHealth, getLatest, getJobRun, storage, listFavorites } from "@/lib/store";
-import { discordNotifyConfigured } from "@/lib/discord-notify";
+import { discordButtonsConfigured, discordNotifyConfigured } from "@/lib/discord-notify";
+import { guestbookCounts } from "@/lib/guestbook";
 import { jobs, CACHE_KEYS } from "@/lib/jobs";
 import { peek } from "@/lib/cache";
 import { getMaintenance } from "@/lib/maintenance";
@@ -25,6 +26,7 @@ export default async function AdminHome() {
   await requireAdmin();
   const [messages, gallery, settings, health, latest, favorites] = await Promise.all([listMessages(), listGallery(), getSettings(), getHealth(), getLatest(), listFavorites()]);
   const unread = messages.filter((m) => !m.read).length;
+  const guestbook = guestbookCounts();
   const schedulerOn = process.env.SCHEDULER !== "off" && !process.env.VERCEL;
 
   const maintenance = getMaintenance();
@@ -34,6 +36,7 @@ export default async function AdminHome() {
     { label: "scheduler", ok: schedulerOn, note: schedulerOn ? "running in-process" : "off (serverless) — data refreshes on demand" },
     { label: "uploads", ok: true, note: process.env.BLOB_READ_WRITE_TOKEN ? "vercel blob" : "local folder (public/uploads)" },
     { label: "discord notify", ok: discordNotifyConfigured(), note: process.env.DISCORD_BOT_TOKEN ? "bot dm" : process.env.DISCORD_WEBHOOK_URL ? "webhook" : "not configured" },
+    { label: "discord buttons", ok: discordButtonsConfigured(), note: discordButtonsConfigured() ? "interactions endpoint ready (/api/discord/interactions)" : "set DISCORD_PUBLIC_KEY + interactions url in the developer portal" },
     { label: "weather", ok: Boolean(process.env.WEATHER_LAT && process.env.WEATHER_LON), note: "env coords" },
     {
       label: "ios shortcut",
@@ -47,6 +50,7 @@ export default async function AdminHome() {
     <div className="grid gap-4">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center text-xs">
         <Stat href="/admin/messages" value={unread} label="unread messages" />
+        <Stat href="/admin/guestbook" value={guestbook.pending} label={`guestbook to review · ${guestbook.approved} live`} />
         <Stat href="/admin/gallery" value={gallery.length} label="photos & videos" />
         <Stat href="/admin/anime" value={favorites.length} label="favorite anime" />
         <Stat href="/admin/updates" value={settings.updateLog.length} label="update entries" />

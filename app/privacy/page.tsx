@@ -62,6 +62,16 @@ export default function PrivacyPage() {
         gespeichert. Nachrichten werden nach Bearbeitung gelöscht und nicht an weitere Dritte weitergegeben.
       </p>
 
+      <H>5a. Gästebuch</H>
+      <p>
+        Einträge im Gästebuch (Name, Nachricht, optional eine Website und der Zeitpunkt) werden auf dem Server gespeichert und öffentlich
+        auf dieser Seite angezeigt (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;a DSGVO, deine Einwilligung durch das Absenden). Zum Schutz vor
+        Spam wird ein gekürzter, nicht rückrechenbarer Hash der IP-Adresse zusammen mit dem Eintrag gespeichert; die IP-Adresse selbst
+        wird nicht gespeichert. Einträge, die von einem automatischen Filter markiert werden, erscheinen erst nach Freigabe. Der Betreiber
+        wird über neue Einträge per Discord benachrichtigt; dabei werden Name, Nachricht und Website an Discord Inc. übermittelt. Du kannst
+        die Löschung deines Eintrags jederzeit über das Kontaktformular verlangen.
+      </p>
+
       <H>6. Inhalte von Drittanbietern</H>
       <p>
         Einige Elemente der Seite lädt dein Browser direkt bei Drittanbietern. Dabei erhält der jeweilige Anbieter deine IP-Adresse und

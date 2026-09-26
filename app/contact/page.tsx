@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { Window } from "@/components/layout/Window";
 
@@ -17,7 +18,7 @@ export default function ContactPage() {
         <ContactForm />
       </Window>
       <p className="text-[10px] text-ink-soft">
-        prefer discord? my handle is <span className="chip">vxnsin</span>.
+        prefer discord? my handle is <span className="chip">vxnsin</span>. just want to say hi in public? <Link href="/guestbook">sign the guestbook</Link>.
       </p>
     </div>
   );

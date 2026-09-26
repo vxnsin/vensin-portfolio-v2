@@ -38,7 +38,7 @@ export default async function Home() {
         <Window title="say hi" dashed bodyClassName="text-xs">
           <ul className="grid gap-1.5">
             <li>
-              dm me on discord: <span className="chip">vensin</span>
+              dm me on discord: <span className="chip">vxnsin</span>
             </li>
             {socials.map((s) => (
               <li key={s.id}>

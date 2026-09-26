@@ -16,6 +16,9 @@ const SCHEMA = `
   create table if not exists seen_activities (key text primary key, first_seen text not null);
   create table if not exists neighbors (id text primary key, name text not null, url text not null, button_url text not null, position integer not null, created_at text not null);
   create table if not exists listens (id integer primary key autoincrement, track_id text, song text not null, artist text not null, album text, art text, at text not null);
+  create table if not exists guestbook (id text primary key, name text not null, message text not null, website text, created_at text not null, status text not null default 'approved', reasons text not null default '[]', ip_hash text not null default '');
+  create index if not exists guestbook_status on guestbook (status, created_at desc);
+  create index if not exists guestbook_ip on guestbook (ip_hash, created_at);
   create index if not exists listens_at on listens (at);
   create index if not exists listens_track on listens (track_id);
   create index if not exists messages_created on messages (created_at desc);

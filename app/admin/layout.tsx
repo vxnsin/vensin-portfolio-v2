@@ -9,6 +9,7 @@ export const metadata: Metadata = { title: "admin", robots: { index: false, foll
 const links = [
   { href: "/admin", label: "dashboard" },
   { href: "/admin/messages", label: "messages" },
+  { href: "/admin/guestbook", label: "guestbook" },
   { href: "/admin/gallery", label: "gallery" },
   { href: "/admin/anime", label: "anime" },
   { href: "/admin/neighbors", label: "neighbors" },

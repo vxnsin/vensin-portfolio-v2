@@ -27,9 +27,28 @@ import {
   updateMessage,
 } from "@/lib/store";
 import { jobs, runJob } from "@/lib/scheduler";
+import { deleteGuestbookEntry, setGuestbookStatus } from "@/lib/guestbook";
 import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
 
 export type ActionState = { ok: boolean; error?: string } | null;
+
+/* ---------- guestbook ---------- */
+
+export async function setGuestbookStatusAction(formData: FormData) {
+  await requireAdmin();
+  const status = String(formData.get("status"));
+  if (status !== "approved" && status !== "rejected" && status !== "pending") return;
+  setGuestbookStatus(String(formData.get("id")), status);
+  revalidatePath("/guestbook");
+  revalidatePath("/admin/guestbook");
+}
+
+export async function deleteGuestbookAction(formData: FormData) {
+  await requireAdmin();
+  deleteGuestbookEntry(String(formData.get("id")));
+  revalidatePath("/guestbook");
+  revalidatePath("/admin/guestbook");
+}
 
 /* ---------- auth ---------- */
 

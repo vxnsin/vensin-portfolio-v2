@@ -58,4 +58,5 @@ export const nav = [
   { href: "/music", label: "music" },
   { href: "/gallery", label: "gallery" },
   { href: "/links", label: "links" },
+  { href: "/guestbook", label: "guestbook" },
 ] as const;
