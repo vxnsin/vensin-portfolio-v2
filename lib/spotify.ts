@@ -118,9 +118,14 @@ export async function fetchSpotifyData(): Promise<SpotifyData | null> {
     topArtists[r] = ((await api<{ items: RawArtist[] }>(`/me/top/artists?time_range=${RANGES[r]}&limit=10`, token))?.items ?? []).map(artist);
   }
   const recent = ((await api<{ items: Array<{ track: RawTrack | null; played_at: string }> }>("/me/player/recently-played?limit=20", token))?.items ?? []).filter((i) => isTrack(i.track)).map((i) => ({ track: track(i.track as RawTrack), playedAt: i.played_at }));
-  const playlists = ((await api<{ items: RawPlaylist[] }>("/me/playlists?limit=50", token))?.items ?? [])
-    .filter((p) => p.public && (!me || p.owner.id === me.id))
-    .map((p) => ({ id: p.id, name: p.name, description: p.description ?? "", image: p.images?.[0]?.url ?? null, tracks: p.tracks?.total ?? 0, url: p.external_urls?.spotify ?? `https://open.spotify.com/playlist/${p.id}` }));
+  const rawPlaylists = ((await api<{ items: RawPlaylist[] }>("/me/playlists?limit=50", token))?.items ?? []).filter((p) => p.public && (!me || p.owner.id === me.id));
+  const playlists: Playlist[] = [];
+  for (const p of rawPlaylists) {
+    // the list endpoint no longer carries the track count reliably; ask each playlist for it
+    let total = p.tracks?.total ?? 0;
+    if (!total) total = (await api<{ tracks?: { total?: number } }>(`/playlists/${p.id}?fields=tracks.total`, token))?.tracks?.total ?? 0;
+    playlists.push({ id: p.id, name: p.name, description: p.description ?? "", image: p.images?.[0]?.url ?? null, tracks: total, url: p.external_urls?.spotify ?? `https://open.spotify.com/playlist/${p.id}` });
+  }
 
   return { topTracks, topArtists, recent, playlists, fetchedAt: new Date().toISOString() };
 }
