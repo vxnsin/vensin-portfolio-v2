@@ -11,7 +11,7 @@ import { kvGet } from "./db";
 // a fresh spotify connection makes every spotify job due right away
 const spotifySince = () => { const at = kvGet<string | null>("spotify:connected_at", null); return at ? new Date(at).getTime() : 0; };
 
-/** every finished play with its real length, straight from spotify history (last 50 plays, so 10 minutes is plenty) */
+/** every finished play with its real length, straight from spotify history (last 50 plays, so 5 minutes is plenty) */
 async function importSpotifyHistory() {
   if (!spotifyConnected()) return null;
   const plays = await fetchRecentPlays();
@@ -60,7 +60,7 @@ export const jobs: Job[] = [
   { id: "github-activity", label: "github: latest commit", every: HOUR, run: () => refresh(CACHE_KEYS.githubActivity, TTL.githubActivity, fetchLatestGithubActivity, { throwOnError: true }) },
   { id: "anime-recent", label: "anime: recently watched", every: HOUR, run: () => refresh(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched, { throwOnError: true }) },
   { id: "spotify-now", label: "spotify: now playing", every: 30_000, run: pollSpotifyNow, since: spotifySince },
-  { id: "spotify-history", label: "spotify: import plays into the log", every: 10 * MIN, run: importSpotifyHistory, since: spotifySince },
+  { id: "spotify-history", label: "spotify: import plays into the log", every: 5 * MIN, run: importSpotifyHistory, since: spotifySince },
   { id: "spotify", label: "spotify: top tracks, artists, playlists", every: HOUR, run: () => (spotifyConnected() ? refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData, { throwOnError: true }) : Promise.resolve(null)), since: spotifySince },
   { id: "github-stats", label: "github: followers & repos", daily: "00:00", run: () => refresh(CACHE_KEYS.githubStats, TTL.githubStats, fetchGithubStats, { throwOnError: true }) },
   { id: "github-contributions", label: "github: contribution graph", daily: "00:05", run: () => refresh(CACHE_KEYS.githubContributions, TTL.githubContributions, fetchContributionYears, { throwOnError: true }) },

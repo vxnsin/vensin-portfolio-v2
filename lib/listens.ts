@@ -29,6 +29,16 @@ export function importPlays(plays: Play[]): number {
   return n;
 }
 
+export type RecentPlay = { trackId: string | null; song: string; artist: string; art: string | null; playedAt: string };
+
+/** the last finished plays as spotify reported them, newest first */
+export function recentPlays(limit = 10): RecentPlay[] {
+  const rows = getDb()
+    .prepare("select track_id, song, artist, art, played_at from listens where source = 'spotify' and played_at is not null order by played_at desc limit ?")
+    .all(limit) as Array<{ track_id: string | null; song: string; artist: string; art: string | null; played_at: string }>;
+  return rows.map((r) => ({ trackId: r.track_id, song: r.song, artist: r.artist, art: r.art, playedAt: r.played_at }));
+}
+
 export type LogTrack = { trackId: string | null; song: string; artist: string; art: string | null; minutes: number };
 export type LogArtist = { artist: string; minutes: number; art: string | null };
 export type ListenStats = {

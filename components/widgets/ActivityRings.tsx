@@ -6,23 +6,31 @@ const RINGS = [
   { key: "stand", goal: "standGoal", color: "#5ad7ff", label: "stand", unit: "h" },
 ] as const;
 
-const SIZE = 124;
-const PX = 6; // pixel size
+const GRID = 31; // cells per side
+const CELL = 3; // screen pixels per cell
+const SIZE = GRID * CELL;
+const CENTER = (GRID - 1) / 2;
 
-/** one ring drawn as a chain of little squares, filled clockwise from the top */
-function PixelRing({ r, pct, color }: { r: number; pct: number; color: string }) {
-  const n = Math.round((2 * Math.PI * r) / (PX + 1.5));
-  const filled = Math.round(Math.min(pct, 1) * n);
-  const c = SIZE / 2;
+/** one ring rasterised onto the pixel grid: every cell whose distance to the centre falls inside [inner, outer), filled clockwise from the top */
+function PixelRing({ inner, outer, pct, color }: { inner: number; outer: number; pct: number; color: string }) {
+  const fill = Math.max(0, Math.min(pct, 1));
+  const cells: Array<{ x: number; y: number; on: boolean }> = [];
+  for (let y = 0; y < GRID; y++) {
+    for (let x = 0; x < GRID; x++) {
+      const dx = x - CENTER;
+      const dy = y - CENTER;
+      const d = Math.hypot(dx, dy);
+      if (d < inner || d >= outer) continue;
+      let a = Math.atan2(dx, -dy); // 0 at the top, growing clockwise
+      if (a < 0) a += Math.PI * 2;
+      cells.push({ x, y, on: fill >= 1 || a / (Math.PI * 2) < fill });
+    }
+  }
   return (
     <>
-      {Array.from({ length: n }, (_, i) => {
-        const a = -Math.PI / 2 + (i / n) * 2 * Math.PI;
-        const x = Math.round((c + r * Math.cos(a) - PX / 2) / 2) * 2;
-        const y = Math.round((c + r * Math.sin(a) - PX / 2) / 2) * 2;
-        const on = i < filled;
-        return <rect key={i} x={x} y={y} width={PX} height={PX} fill={color} opacity={on ? 1 : 0.18} shapeRendering="crispEdges" />;
-      })}
+      {cells.map((c) => (
+        <rect key={`${c.x}-${c.y}`} x={c.x} y={c.y} width={1} height={1} fill={color} opacity={c.on ? 1 : 0.18} />
+      ))}
     </>
   );
 }
@@ -40,20 +48,19 @@ export function ActivityRings({ health }: { health: Health }) {
   const closed = RINGS.filter((r) => health[r.key] >= health[r.goal]).length;
   return (
     <div className="flex items-center gap-3 justify-center">
-      <svg width={SIZE} height={SIZE} viewBox={`0 0 ${SIZE} ${SIZE}`} aria-label="activity rings" className="shrink-0">
-        <PixelRing r={54} pct={health.move / health.moveGoal} color={RINGS[0].color} />
-        <PixelRing r={41} pct={health.exercise / health.exerciseGoal} color={RINGS[1].color} />
-        <PixelRing r={28} pct={health.stand / health.standGoal} color={RINGS[2].color} />
-        <text x={SIZE / 2} y={SIZE / 2 + 5} textAnchor="middle" fontSize="13" fill="var(--ink)" fontFamily="var(--font-pixel)">
+      <svg width={SIZE} height={SIZE} viewBox={`0 0 ${GRID} ${GRID}`} shapeRendering="crispEdges" aria-label="activity rings" className="shrink-0">
+        <PixelRing inner={12} outer={15} pct={health.move / health.moveGoal} color={RINGS[0].color} />
+        <PixelRing inner={8} outer={11} pct={health.exercise / health.exerciseGoal} color={RINGS[1].color} />
+        <PixelRing inner={4} outer={7} pct={health.stand / health.standGoal} color={RINGS[2].color} />
+        <text x={CENTER + 0.5} y={CENTER + 1.6} textAnchor="middle" fontSize="3.4" fill="var(--ink)" fontFamily="var(--font-pixel)" shapeRendering="auto">
           {closed}/3
         </text>
       </svg>
-      <div className="text-[11px] grid gap-0.5 min-w-0">
+      <div className="text-[11px] grid gap-0.5 min-w-0 flex-1 max-w-[150px]">
         {RINGS.map((r) => (
-          <div key={r.key} className="flex items-center gap-1.5">
-            <span className="inline-block w-2 h-2 shrink-0" style={{ background: r.color }} />
-            <span className="text-ink-soft w-14">{r.label}</span>
-            <span className="pixel">
+          <div key={r.key} className="flex items-center justify-between gap-2">
+            <span style={{ color: r.color }}>{r.label}</span>
+            <span className="pixel whitespace-nowrap">
               {Math.round(health[r.key])}
               <span className="text-ink-soft">/{health[r.goal]}</span>
             </span>

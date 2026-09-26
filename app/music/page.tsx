@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
 import { artistImage, getNowPlaying, getSpotifyData, spotifyConnected } from "@/lib/spotify";
-import { listenStats } from "@/lib/listens";
+import { listenStats, recentPlays } from "@/lib/listens";
 import { relativeTime } from "@/lib/time";
 import { Window } from "@/components/layout/Window";
 import { NowPlaying } from "@/components/music/NowPlaying";
@@ -10,11 +10,17 @@ import { TopLists } from "@/components/music/TopLists";
 import { ListeningClock } from "@/components/music/ListeningClock";
 
 export const metadata: Metadata = { title: "music" };
-export const revalidate = 300;
+export const revalidate = 60;
 
 export default async function MusicPage() {
   const connected = spotifyConnected();
   const [spotify, log, now] = await Promise.all([getSpotifyData(), Promise.resolve(listenStats()), getNowPlaying()]);
+  // the log is refreshed every few minutes by the scheduler; the hourly spotify snapshot is only the fallback
+  const logRecent = connected ? recentPlays(10) : [];
+  const recent =
+    logRecent.length > 0
+      ? logRecent.map((r) => ({ id: r.trackId, name: r.song, artists: r.artist, art: r.art, url: r.trackId ? `https://open.spotify.com/track/${r.trackId}` : null, playedAt: r.playedAt }))
+      : (spotify?.recent ?? []).map((r) => ({ id: r.track.id, name: r.track.name, artists: r.track.artists.join(", "), art: r.track.art, url: r.track.url, playedAt: r.playedAt }));
   const year = new Date().getFullYear();
   const hours = log.minutesThisYear / 60;
   const since = log.since ? new Date(log.since).toLocaleDateString("de-DE") : null;
@@ -69,29 +75,27 @@ export default async function MusicPage() {
         </Window>
       )}
 
-      {spotify && spotify.recent.length > 0 && (
+      {recent.length > 0 && (
         <Window title="recently played" dashed bodyClassName="text-xs">
           <ul>
-            {spotify.recent.slice(0, 10).map((r, i) => (
-              <li key={`${r.track.id}-${i}`} className="flex items-center gap-3 py-1 border-b border-dashed border-line last:border-0">
-                {r.track.art ? <img src={r.track.art} alt="" className="w-8 h-8 object-cover border border-line" loading="lazy" /> : <span className="w-8 h-8" />}
-                <a href={r.track.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate no-underline text-ink hover:text-accent">
-                  {r.track.name} <span className="text-ink-soft">· {r.track.artists.join(", ")}</span>
-                </a>
+            {recent.slice(0, 10).map((r, i) => (
+              <li key={`${r.id}-${i}`} className="flex items-center gap-3 py-1 border-b border-dashed border-line last:border-0">
+                {r.art ? <img src={r.art} alt="" className="w-8 h-8 object-cover border border-line" loading="lazy" /> : <span className="w-8 h-8" />}
+                {r.url ? (
+                  <a href={r.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate no-underline text-ink hover:text-accent">
+                    {r.name} <span className="text-ink-soft">· {r.artists}</span>
+                  </a>
+                ) : (
+                  <span className="min-w-0 flex-1 truncate text-ink">
+                    {r.name} <span className="text-ink-soft">· {r.artists}</span>
+                  </span>
+                )}
                 <span className="text-[10px] text-ink-soft shrink-0">{relativeTime(r.playedAt)}</span>
               </li>
             ))}
           </ul>
         </Window>
       )}
-
-      <p className="text-[10px] text-ink-soft">
-        {spotify ? `top lists and playlists via spotify, refreshed ${relativeTime(spotify.fetchedAt)}. ` : ""}
-        {connected
-          ? "hours, the clock and the this-year lists come from every play spotify reports plus my imported spotify history."
-          : "hours and the clock come from this site's own minute-by-minute log, which only counts while spotify shows up on discord."}{" "}
-        covers via spotify.
-      </p>
     </div>
   );
 }
