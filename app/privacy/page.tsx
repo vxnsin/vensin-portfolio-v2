@@ -100,7 +100,7 @@ export default function PrivacyPage() {
 
       <H>8. Externe Links</H>
       <p>
-        Diese Website enthält Links zu externen Angeboten (u.&nbsp;a. GitHub, TikTok, Instagram, Steam, Discord, Kitsu, Spotify). Auf deren Inhalte
+        Diese Website enthält Links zu externen Angeboten (u.&nbsp;a. GitHub, TikTok, Instagram, Snapchat, Steam, Discord, Kitsu, Spotify). Auf deren Inhalte
         und Datenverarbeitung hat der Betreiber keinen Einfluss; es gelten die Datenschutzhinweise des jeweiligen Anbieters. Zum Zeitpunkt
         der Verlinkung waren keine Rechtsverstöße erkennbar; bei Bekanntwerden werden betroffene Links entfernt.
       </p>
