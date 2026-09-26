@@ -104,14 +104,16 @@ function Row({
 }) {
   return (
     <div className="flex gap-3 py-2">
-      <div className="relative shrink-0">
+      <div className="relative shrink-0 w-11 h-11">
         {icon ? (
-          <img src={icon} alt="" width={44} height={44} className="w-11 h-11 object-cover border border-line" />
+          <img src={icon} alt="" width={44} height={44} className="block w-11 h-11 object-cover border border-line" />
         ) : (
           <div className="w-11 h-11 border border-dashed border-line grid place-items-center text-ink-soft">?</div>
         )}
         {smallIcon && (
-          <img src={smallIcon} alt="" width={16} height={16} className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border border-line bg-paper" />
+          <span className="absolute -bottom-1.5 -right-1.5 w-5 h-5 rounded-full border-2 border-paper grid place-items-center" style={{ background: "#2a2130" }}>
+            <img src={smallIcon} alt="" width={12} height={12} className="block w-3 h-3" />
+          </span>
         )}
       </div>
       <div className="min-w-0 flex-1 text-xs leading-snug">
