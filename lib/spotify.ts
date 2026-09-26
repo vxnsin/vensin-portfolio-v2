@@ -89,7 +89,8 @@ export type SpotifyData = {
 
 type RawTrack = { id: string | null; type?: string; name: string; artists?: Array<{ name: string }>; album?: { name?: string; images?: Array<{ url: string }> } | null; external_urls?: { spotify?: string }; duration_ms?: number };
 type RawArtist = { id: string; name: string; images: Array<{ url: string }>; external_urls: { spotify: string }; genres: string[] };
-type RawPlaylist = { id: string; name: string; description: string | null; images: Array<{ url: string }> | null; tracks?: { total: number } | null; external_urls?: { spotify?: string }; public: boolean | null; owner: { id: string } };
+// spotify renamed the "tracks" paging object to "items" in 2026; accept both
+type RawPlaylist = { id: string; name: string; description: string | null; images: Array<{ url: string }> | null; tracks?: { total: number } | null; items?: { total: number } | null; external_urls?: { spotify?: string }; public: boolean | null; owner: { id: string } };
 
 // podcasts and local files come with missing fields; keep them from crashing the whole fetch
 const isTrack = (t: RawTrack | null | undefined): t is RawTrack => Boolean(t && t.name && (!t.type || t.type === "track"));
@@ -122,8 +123,11 @@ export async function fetchSpotifyData(): Promise<SpotifyData | null> {
   const playlists: Playlist[] = [];
   for (const p of rawPlaylists) {
     // the list endpoint no longer carries the track count reliably; ask each playlist for it
-    let total = p.tracks?.total ?? 0;
-    if (!total) total = (await api<{ tracks?: { total?: number } }>(`/playlists/${p.id}?fields=tracks.total`, token))?.tracks?.total ?? 0;
+    let total = p.items?.total ?? p.tracks?.total ?? 0;
+    if (!total) {
+      const d = await api<{ items?: { total?: number }; tracks?: { total?: number } }>(`/playlists/${p.id}?fields=items(total),tracks(total)`, token);
+      total = d?.items?.total ?? d?.tracks?.total ?? 0;
+    }
     playlists.push({ id: p.id, name: p.name, description: p.description ?? "", image: p.images?.[0]?.url ?? null, tracks: total, url: p.external_urls?.spotify ?? `https://open.spotify.com/playlist/${p.id}` });
   }
 
