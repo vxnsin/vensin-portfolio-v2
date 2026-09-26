@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // dev server: hosts other than localhost that may load dev assets (hmr, server actions)
+  allowedDevOrigins: ["127.0.0.1", "192.168.178.67", "*.devtunnels.ms", "*.trycloudflare.com"],
   experimental: {
     serverActions: {
       bodySizeLimit: "220mb", // gallery uploads (videos)
