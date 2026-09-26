@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createHmac, timingSafeEqual } from "crypto";
 
-const COOKIE = "vd_admin";
+export const ADMIN_COOKIE = "vd_admin";
 const TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 const secret = () => process.env.ADMIN_SECRET ?? process.env.ADMIN_PASSWORD ?? "";
@@ -16,13 +16,22 @@ const safeEqual = (a: string, b: string) => {
 
 export const adminEnabled = () => Boolean(process.env.ADMIN_PASSWORD);
 
-export async function isAdmin(): Promise<boolean> {
-  if (!adminEnabled()) return false;
-  const raw = (await cookies()).get(COOKIE)?.value;
-  if (!raw) return false;
+/** Validates a raw session cookie value. Pure, so the proxy can use it too. */
+export function verifyAdminToken(raw: string | undefined | null): boolean {
+  if (!adminEnabled() || !raw) return false;
   const [exp, sig] = raw.split(".");
   if (!exp || !sig || Number.isNaN(Number(exp)) || Date.now() > Number(exp)) return false;
   return safeEqual(sign(exp), sig);
+}
+
+/** Checks a plain password against ADMIN_PASSWORD (used for login and for confirming risky actions). */
+export function checkPassword(password: string): boolean {
+  const expected = process.env.ADMIN_PASSWORD;
+  return Boolean(expected) && safeEqual(password, expected!);
+}
+
+export async function isAdmin(): Promise<boolean> {
+  return verifyAdminToken((await cookies()).get(ADMIN_COOKIE)?.value);
 }
 
 export async function requireAdmin() {
@@ -30,10 +39,9 @@ export async function requireAdmin() {
 }
 
 export async function login(password: string): Promise<boolean> {
-  const expected = process.env.ADMIN_PASSWORD;
-  if (!expected || !safeEqual(password, expected)) return false;
+  if (!checkPassword(password)) return false;
   const exp = String(Date.now() + TTL_MS);
-  (await cookies()).set(COOKIE, `${exp}.${sign(exp)}`, {
+  (await cookies()).set(ADMIN_COOKIE, `${exp}.${sign(exp)}`, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -44,5 +52,5 @@ export async function login(password: string): Promise<boolean> {
 }
 
 export async function logout() {
-  (await cookies()).delete(COOKIE);
+  (await cookies()).delete(ADMIN_COOKIE);
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { isAdmin } from "@/lib/auth";
 import { logoutAction } from "./actions";
+import { getMaintenance } from "@/lib/maintenance";
 
 export const metadata: Metadata = { title: "admin", robots: { index: false, follow: false } };
 
@@ -11,11 +12,13 @@ const links = [
   { href: "/admin/gallery", label: "gallery" },
   { href: "/admin/anime", label: "anime" },
   { href: "/admin/updates", label: "update log" },
-  { href: "/admin/site", label: "marquee & now" },
+  { href: "/admin/site", label: "marquee" },
+  { href: "/admin/maintenance", label: "maintenance" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const admin = await isAdmin();
+  const maintenance = admin ? getMaintenance().on : false;
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-center gap-2 text-xs border-b border-dashed border-line pb-3">
@@ -34,6 +37,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </form>
         )}
       </div>
+      {maintenance && (
+        <div className="border border-dashed px-3 py-1.5 text-xs" style={{ borderColor: "var(--dnd)", color: "var(--dnd)" }}>
+          maintenance mode is on — visitors see the maintenance page, you see the real site. <Link href="/admin/maintenance">manage</Link>
+        </div>
+      )}
       {children}
     </div>
   );

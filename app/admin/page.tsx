@@ -4,6 +4,7 @@ import { listGallery, listMessages, getSettings, getHealth, getLatest, getJobRun
 import { discordNotifyConfigured } from "@/lib/discord-notify";
 import { jobs, CACHE_KEYS } from "@/lib/jobs";
 import { peek } from "@/lib/cache";
+import { getMaintenance } from "@/lib/maintenance";
 import { relativeTime } from "@/lib/time";
 import { runJobAction } from "./actions";
 import { Window } from "@/components/layout/Window";
@@ -26,7 +27,9 @@ export default async function AdminHome() {
   const unread = messages.filter((m) => !m.read).length;
   const schedulerOn = process.env.SCHEDULER !== "off" && !process.env.VERCEL;
 
+  const maintenance = getMaintenance();
   const checks = [
+    { label: "maintenance", ok: !maintenance.on, note: maintenance.on ? "ON — visitors see the maintenance page" : "off, site is live" },
     { label: "storage", ok: storage.persistent, note: storage.persistent ? `sqlite · ${storage.file}` : "sqlite in /tmp — NOT persistent on vercel" },
     { label: "scheduler", ok: schedulerOn, note: schedulerOn ? "running in-process" : "off (serverless) — data refreshes on demand" },
     { label: "uploads", ok: true, note: process.env.BLOB_READ_WRITE_TOKEN ? "vercel blob" : "local folder (public/uploads)" },

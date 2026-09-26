@@ -55,7 +55,11 @@ Every job can be triggered from the admin dashboard ("run now"). On a serverless
 | `/contact` | contact form → Discord DM + admin inbox |
 | `/impressum` | forwards to the external impressum service (`IMPRESSUM_URL`) |
 | `/privacy` | Datenschutzerklärung |
-| `/admin` | login-protected panel: messages, uploads, update log, marquee |
+| `/admin` | login-protected panel: messages, uploads, favorites, update log, marquee, maintenance mode |
+
+## Maintenance mode
+
+`/admin/maintenance` switches the whole public site to a standalone "under maintenance" page (HTTP 503, noindex). Turning it on or off asks for the admin password again. Logged-in admins keep seeing the real site. Implemented in `proxy.ts`, which runs in the Node runtime and reads the flag from SQLite.
 
 ## Sidebar widgets
 

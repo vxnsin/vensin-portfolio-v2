@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { put, del } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
-import { login, logout, requireAdmin } from "@/lib/auth";
+import { checkPassword, login, logout, requireAdmin } from "@/lib/auth";
+import { setMaintenance } from "@/lib/maintenance";
 import {
   addFavorite,
   addGalleryItem,
@@ -183,6 +184,19 @@ export async function moveFavoriteAction(formData: FormData) {
   await moveFavorite(String(formData.get("id")), formData.get("dir") === "up" ? -1 : 1);
   revalidatePath("/admin/anime");
   revalidatePath("/anime");
+}
+
+/* ---------- maintenance mode ---------- */
+
+export async function setMaintenanceAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  if (!checkPassword(String(formData.get("password") ?? ""))) return { ok: false, error: "wrong password, nothing changed." };
+  const on = formData.get("on") === "1";
+  const message = String(formData.get("message") ?? "").trim().slice(0, 200);
+  setMaintenance(on, message);
+  revalidatePath("/admin/maintenance");
+  revalidatePath("/", "layout");
+  return { ok: true };
 }
 
 /* ---------- marquee ---------- */
