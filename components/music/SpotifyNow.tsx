@@ -51,12 +51,6 @@ export function SpotifyNow({ initial, last, variant = "sidebar" }: { initial: No
           ) : (
             <div className={`${hero ? "w-24 h-24" : "w-14 h-14"} border border-dashed border-line`} />
           )}
-          <span className="absolute bottom-1 right-1 eq" aria-hidden>
-            <i />
-            <i />
-            <i />
-            <i />
-          </span>
         </div>
         <div className="min-w-0 flex-1">
           {hero && <div className="text-[11px] uppercase tracking-wide text-ink-soft">♪ playing right now{now?.device ? ` · ${now.device}` : ""}</div>}

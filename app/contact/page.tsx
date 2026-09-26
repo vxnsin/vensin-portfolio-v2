@@ -17,7 +17,7 @@ export default function ContactPage() {
         <ContactForm />
       </Window>
       <p className="text-[10px] text-ink-soft">
-        prefer discord? my handle is <span className="chip">vensin</span>.
+        prefer discord? my handle is <span className="chip">vxnsin</span>.
       </p>
     </div>
   );
