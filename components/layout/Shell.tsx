@@ -76,12 +76,6 @@ export async function Shell({ children }: { children: ReactNode }) {
                 <SpotifyNow initial={now} last={lastPlayed ? { song: lastPlayed.song, artist: lastPlayed.artist, art: lastPlayed.art, trackId: lastPlayed.trackId, at: lastPlayed.at } : null} />
               </Window>
             )}
-                        ),
-                      },
-                    ]
-                  : []),
-              ]}
-            />
             <TodayCycle health={health} />
             <Window title="latest">
               <LatestBox
