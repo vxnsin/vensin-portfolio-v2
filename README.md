@@ -83,6 +83,7 @@ Two sources, both optional:
 
 - **Listening log**: while Spotify is connected, a 30-second poll of the Spotify API ("currently playing") writes one row per minute; without it, the Discord poll does the same whenever Spotify shows up there. That gives hours per year, most played tracks/artists, and the listening clock. Starts counting the moment the scheduler runs.
 - **Spotify API** (top tracks/artists per time range, recently played, public playlists): create an app on developer.spotify.com, set `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`, add the redirect URIs `http://127.0.0.1:3000/api/spotify/callback` and `https://vensin.dev/api/spotify/callback`, then click "connect spotify" in `/admin/spotify`. Only the refresh token is stored (SQLite); a job refreshes the data hourly.
+- **History import** (real yearly stats): request your data export in Spotify's privacy settings, unzip it and upload the `StreamingHistory_music_*.json` / `Streaming_History_Audio_*.json` files in `/admin/spotify`. Plays under 30 s are ignored, overlaps with the live import are skipped.
 
 ## Neighbors & link back
 

@@ -7,6 +7,8 @@ import { relativeTime } from "@/lib/time";
 import { disconnectSpotifyAction, runJobAction } from "../actions";
 import { getJobRun } from "@/lib/store";
 import { Window } from "@/components/layout/Window";
+import { ImportForm } from "./ImportForm";
+import { exportStats } from "@/lib/spotify-export";
 import { site } from "@/data/site";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +25,7 @@ export default async function AdminSpotify({ searchParams }: { searchParams: Pro
   const connectedAt = kvGet<string | null>("spotify:connected_at", null);
   const data = connected ? await getSpotifyData() : null;
   const log = listenStats();
+  const exp = exportStats();
   const runs = [
     { id: "spotify", label: "top tracks / artists / playlists", run: getJobRun("spotify") },
     { id: "spotify-now", label: "now playing", run: getJobRun("spotify-now") },
@@ -107,6 +110,15 @@ export default async function AdminSpotify({ searchParams }: { searchParams: Pro
           </ul>
         </Window>
       )}
+
+      <Window title="import your spotify history (for real yearly stats)" dashed>
+        {exp.c > 0 && (
+          <p className="mb-2">
+            already imported: {exp.c} plays, {exp.m} minutes, {exp.f?.slice(0, 10)} → {exp.t?.slice(0, 10)}.
+          </p>
+        )}
+        <ImportForm />
+      </Window>
 
       <Window title={connected ? "listening log" : "listening log (from discord, no login needed)"} dashed>
         <p>

@@ -8,6 +8,7 @@ import path from "path";
 import { checkPassword, login, logout, requireAdmin } from "@/lib/auth";
 import { setMaintenance } from "@/lib/maintenance";
 import { disconnectSpotify } from "@/lib/spotify";
+import { importExport } from "@/lib/spotify-export";
 import {
   addFavorite,
   addGalleryItem,
@@ -251,6 +252,23 @@ export async function disconnectSpotifyAction() {
   disconnectSpotify();
   revalidatePath("/admin/spotify");
   revalidatePath("/music");
+}
+
+export async function importSpotifyExportAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const files = formData.getAll("files").filter((f): f is File => f instanceof File && f.size > 0);
+  if (!files.length) return { ok: false, error: "pick at least one json file" };
+  if (files.some((f) => f.size > 60 * 1024 * 1024)) return { ok: false, error: "files over 60 mb are too big, split the export" };
+  try {
+    const texts = await Promise.all(files.map((f) => f.text()));
+    const r = importExport(texts);
+    revalidatePath("/admin/spotify");
+    revalidatePath("/music");
+    const span = r.from && r.to ? ` (${r.from.slice(0, 10)} → ${r.to.slice(0, 10)})` : "";
+    return { ok: true, error: `${r.imported} plays from ${r.entries} entries in ${r.files} file(s)${span}, ${r.skippedOverlap} skipped as already logged live` };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "import failed" };
+  }
 }
 
 /* ---------- marquee ---------- */

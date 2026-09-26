@@ -88,7 +88,7 @@ export default async function MusicPage() {
       <p className="text-[10px] text-ink-soft">
         {spotify ? `top lists and playlists via spotify, refreshed ${relativeTime(spotify.fetchedAt)}. ` : ""}
         {connected
-          ? "hours, the clock and the most-played lists come from every play spotify reports, imported into this site's own log."
+          ? "hours, the clock and the this-year lists come from every play spotify reports plus my imported spotify history."
           : "hours and the clock come from this site's own minute-by-minute log, which only counts while spotify shows up on discord."}{" "}
         covers via spotify.
       </p>
