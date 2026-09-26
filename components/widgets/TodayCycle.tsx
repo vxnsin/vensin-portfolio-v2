@@ -26,7 +26,7 @@ export function TodayCycle({ health }: { health: Health | null }) {
     { key: "date", title: "today", node: <DateBlock /> },
     { key: "weather", title: "weather at my place", node: <Weather /> },
     health
-      ? { key: "rings", title: "apple watch · today", node: <ActivityRings health={health} /> }
+      ? { key: "rings", title: "activity", node: <ActivityRings health={health} /> }
       : { key: "japan", title: "meanwhile in japan", node: <JapanNow /> },
   ];
 

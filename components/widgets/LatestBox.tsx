@@ -1,11 +1,11 @@
 "use client";
 
 import { useLanyardContext } from "@/components/discord/LanyardProvider";
+import { isGame, watchingInfo } from "@/components/discord/detect";
 import type { Latest } from "@/lib/store";
 
 // Minecraft clients show up under their own name in Discord
 const MINECRAFT_CLIENTS = /^(labymod|lunar client|badlion client|feather client)/i;
-const NOT_A_GAME = /^(discord|premid)$/i;
 
 function gameLabel(name: string) {
   return MINECRAFT_CLIENTS.test(name) ? `Minecraft (${name})` : name;
@@ -27,7 +27,7 @@ type Row = { label: string; value: string; live: boolean; at?: string; href?: st
 export function LatestBox({ latest }: { latest: Latest }) {
   const { data } = useLanyardContext();
 
-  const game = data?.activities.find((a) => a.type === 0 && !NOT_A_GAME.test(a.name));
+  const game = data?.activities.find(isGame);
   const watching = data?.activities.find((a) => a.type === 3);
   const spotify = data?.spotify;
 
@@ -36,8 +36,11 @@ export function LatestBox({ latest }: { latest: Latest }) {
   if (game) rows.push({ label: "playing", value: gameLabel(game.name), live: true });
   else if (latest.playing) rows.push({ label: "played", value: gameLabel(latest.playing.name), live: false, at: latest.playing.at });
 
-  if (watching) rows.push({ label: "watching", value: `${watching.details || watching.name} (${watching.name})`, live: true });
-  else if (latest.watching) rows.push({ label: "watched", value: `${latest.watching.title} (${latest.watching.service})`, live: false, at: latest.watching.at });
+  if (watching) {
+    const info = watchingInfo(watching);
+    rows.push({ label: "watching", value: `${info.title} · ${info.service}`, live: true });
+  }
+  else if (latest.watching) rows.push({ label: "watched", value: `${latest.watching.title} · ${latest.watching.service}`, live: false, at: latest.watching.at });
 
   if (spotify) rows.push({ label: "listening", value: `${spotify.song} – ${spotify.artist}`, live: true, href: spotify.track_id ? `https://open.spotify.com/track/${spotify.track_id}` : undefined });
   else if (latest.listening)

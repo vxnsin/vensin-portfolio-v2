@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { site } from "@/data/site";
 import { LanyardDataSchema } from "@/components/discord/schemas";
+import { isGame, watchingInfo } from "@/components/discord/detect";
 import { getLatestFresh, saveLatest, type Latest } from "@/lib/store";
 
 // Visitors' browsers ping this route while they watch the Discord widget.
@@ -8,7 +9,6 @@ import { getLatestFresh, saveLatest, type Latest } from "@/lib/store";
 // game / video / song, so the "latest" box has something to show when nothing is live.
 
 const MIN_INTERVAL_MS = 60_000;
-const NOT_A_GAME = /^(discord|premid)$/i;
 let lastRun = 0;
 
 export async function POST() {
@@ -31,11 +31,14 @@ export async function POST() {
     const at = new Date(now).toISOString();
     const next: Latest = { ...current, checkedAt: at };
 
-    const game = d.activities.find((a) => a.type === 0 && !NOT_A_GAME.test(a.name));
+    const game = d.activities.find(isGame);
     if (game) next.playing = { name: game.name, at };
 
     const watching = d.activities.find((a) => a.type === 3);
-    if (watching) next.watching = { title: watching.details || watching.name, service: watching.name, at };
+    if (watching) {
+      const info = watchingInfo(watching);
+      next.watching = { title: info.title, service: info.service, at };
+    }
 
     if (d.spotify) next.listening = { song: d.spotify.song, artist: d.spotify.artist, trackId: d.spotify.track_id ?? null, at };
 

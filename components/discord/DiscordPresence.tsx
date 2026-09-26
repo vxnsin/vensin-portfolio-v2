@@ -3,6 +3,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useLanyardContext } from "./LanyardProvider";
+import { isBrowsing, watchingInfo } from "./detect";
 import type { Activity, LanyardData } from "./schemas";
 
 const STATUS: Record<LanyardData["discord_status"], { label: string; color: string }> = {
@@ -187,17 +188,18 @@ function Watching({ a }: { a: Activity }) {
   const end = a.timestamps?.end;
   const state = playback(a);
   const paused = state === "paused";
+  const info = watchingInfo(a);
   return (
     <div>
       <Heading icon={paused ? "⏸" : "▶"}>
-        {paused ? "paused" : "watching"} on {a.name}
+        {paused ? "paused" : "watching"} {info.anime ? "anime" : `on ${a.name}`}
       </Heading>
       <Row
         icon={assetUrl(a.assets?.large_image, a.application_id)}
         smallIcon={assetUrl(a.assets?.small_image, a.application_id)}
-        title={a.details || a.name}
-        sub={a.state ?? null}
-        sub2={a.assets?.large_text && a.assets.large_text !== a.details ? a.assets.large_text : null}
+        title={info.title}
+        sub={info.sub}
+        sub2={info.sub2}
         footer={
           start && end && end > start ? (
             <Progress start={start} end={end} paused={paused} />
@@ -216,10 +218,11 @@ function Watching({ a }: { a: Activity }) {
 function Generic({ a }: { a: Activity }) {
   const start = a.timestamps?.start;
   const end = a.timestamps?.end;
+  const browsing = isBrowsing(a);
   return (
     <div>
-      <Heading icon={a.type === 0 ? "🎮" : "•"}>
-        {verb(a)} {a.name}
+      <Heading icon={browsing ? "🌐" : a.type === 0 ? "🎮" : "•"}>
+        {browsing ? "browsing" : verb(a)} {a.name}
       </Heading>
       <Row
         icon={assetUrl(a.assets?.large_image, a.application_id)}
