@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PixelIcon } from "@/components/icons/PixelIcon";
 
 // Weather comes from our own API route; the location is configured server-side and never exposed.
 const REFRESH_MS = 10 * 60 * 1000;
@@ -15,20 +16,20 @@ type Current = {
   time: string | null;
 };
 
-/** WMO weather codes → label + glyph */
+/** WMO weather codes → label + pixel icon */
 function describe(code: number, day: boolean): { label: string; icon: string } {
-  if (code === 0) return { label: "clear sky", icon: day ? "☀" : "☾" };
-  if (code === 1) return { label: "mostly clear", icon: day ? "🌤" : "☾" };
-  if (code === 2) return { label: "partly cloudy", icon: "⛅" };
-  if (code === 3) return { label: "overcast", icon: "☁" };
-  if (code === 45 || code === 48) return { label: "foggy", icon: "🌫" };
-  if (code >= 51 && code <= 57) return { label: "drizzle", icon: "🌦" };
-  if (code >= 61 && code <= 67) return { label: "rain", icon: "🌧" };
-  if (code >= 71 && code <= 77) return { label: "snow", icon: "❄" };
-  if (code >= 80 && code <= 82) return { label: "rain showers", icon: "🌧" };
-  if (code === 85 || code === 86) return { label: "snow showers", icon: "🌨" };
-  if (code >= 95) return { label: "thunderstorm", icon: "⛈" };
-  return { label: "weather", icon: "•" };
+  if (code === 0) return { label: "clear sky", icon: day ? "sun" : "moon" };
+  if (code === 1) return { label: "mostly clear", icon: day ? "sun" : "moon" };
+  if (code === 2) return { label: "partly cloudy", icon: day ? "partly" : "cloud" };
+  if (code === 3) return { label: "overcast", icon: "cloud" };
+  if (code === 45 || code === 48) return { label: "foggy", icon: "fog" };
+  if (code >= 51 && code <= 57) return { label: "drizzle", icon: "drizzle" };
+  if (code >= 61 && code <= 67) return { label: "rain", icon: "rain" };
+  if (code >= 71 && code <= 77) return { label: "snow", icon: "snow" };
+  if (code >= 80 && code <= 82) return { label: "rain showers", icon: "rain" };
+  if (code === 85 || code === 86) return { label: "snow showers", icon: "snow" };
+  if (code >= 95) return { label: "thunderstorm", icon: "thunder" };
+  return { label: "weather", icon: "cloud" };
 }
 
 function mood(temp: number, code: number) {
@@ -79,9 +80,7 @@ export function Weather() {
   return (
     <div className="text-center leading-tight">
       <div className="flex items-center justify-center gap-3">
-        <span className="text-3xl" aria-hidden>
-          {d.icon}
-        </span>
+        <PixelIcon name={d.icon} size={34} className="text-accent" />
         <span className="pixel text-accent-2 leading-none" style={{ fontSize: 48 }}>
           {Math.round(data.temperature)}°
         </span>

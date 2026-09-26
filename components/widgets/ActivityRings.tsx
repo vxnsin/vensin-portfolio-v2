@@ -59,7 +59,7 @@ export function ActivityRings({ health }: { health: Health }) {
             </span>
           </div>
         ))}
-        {typeof health.steps === "number" && <div className="text-ink-soft mt-0.5">👟 {health.steps.toLocaleString("de-DE")} steps</div>}
+        {typeof health.steps === "number" && <div className="text-ink-soft mt-0.5">{health.steps.toLocaleString("de-DE")} steps</div>}
         <div className="text-[10px] text-ink-soft mt-0.5">
           {closed === 3 ? "all rings closed ✦" : `${closed}/3 closed`} · {ago(health.updatedAt)}
         </div>
