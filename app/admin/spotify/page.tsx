@@ -4,7 +4,8 @@ import { getSpotifyData, spotifyConfigured, spotifyConnected, spotifyRedirectBas
 import { kvGet } from "@/lib/db";
 import { listenStats } from "@/lib/listens";
 import { relativeTime } from "@/lib/time";
-import { disconnectSpotifyAction } from "../actions";
+import { disconnectSpotifyAction, runJobAction } from "../actions";
+import { getJobRun } from "@/lib/store";
 import { Window } from "@/components/layout/Window";
 import { site } from "@/data/site";
 
@@ -22,6 +23,10 @@ export default async function AdminSpotify({ searchParams }: { searchParams: Pro
   const connectedAt = kvGet<string | null>("spotify:connected_at", null);
   const data = connected ? await getSpotifyData() : null;
   const log = listenStats();
+  const runs = [
+    { id: "spotify", label: "top tracks / artists / playlists", run: getJobRun("spotify") },
+    { id: "spotify-now", label: "now playing", run: getJobRun("spotify-now") },
+  ];
 
   return (
     <div className="grid gap-4 text-xs">
@@ -81,10 +86,31 @@ export default async function AdminSpotify({ searchParams }: { searchParams: Pro
         )}
       </Window>
 
-      <Window title="listening log (from discord, no login needed)" dashed>
+      {connected && (
+        <Window title="jobs" dashed>
+          <ul className="grid gap-2">
+            {runs.map((r) => (
+              <li key={r.id} className="flex flex-wrap items-center gap-2">
+                <span className="status-dot shrink-0" style={{ background: !r.run ? "var(--off)" : r.run.ok ? "var(--ok)" : "var(--dnd)", borderWidth: 0 }} />
+                <span className="w-56">{r.label}</span>
+                <span className="text-ink-soft">{r.run ? `${relativeTime(r.run.at)} · ${r.run.ms} ms` : "never"}</span>
+                <form action={runJobAction}>
+                  <input type="hidden" name="id" value={r.id} />
+                  <button type="submit" className="btn text-[10px]">
+                    fetch now
+                  </button>
+                </form>
+                {r.run?.error && <span className="basis-full text-[var(--dnd)] break-all">{r.run.error}</span>}
+              </li>
+            ))}
+          </ul>
+        </Window>
+      )}
+
+      <Window title={connected ? "listening log" : "listening log (from discord, no login needed)"} dashed>
         <p>
           {log.minutesTotal} minutes logged since {log.since ? new Date(log.since).toLocaleDateString("de-DE") : "—"}, {log.minutesThisYear} this year across {log.tracksThisYear} tracks.
-          the scheduler adds one minute per poll while spotify is playing on discord.
+          {connected ? "one minute per poll while spotify reports something playing." : "the scheduler adds one minute per poll while spotify is playing on discord."}
         </p>
       </Window>
     </div>

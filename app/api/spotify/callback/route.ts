@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/auth";
-import { exchangeCode, fetchSpotifyData, SPOTIFY_CACHE_KEY, SPOTIFY_TTL, spotifyRedirectBase } from "@/lib/spotify";
+import { exchangeCode, fetchSpotifyData, SPOTIFY_CACHE_KEY, SPOTIFY_TTL, spotifyConnected, spotifyRedirectBase } from "@/lib/spotify";
 import { refresh } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,8 @@ export async function GET(req: NextRequest) {
   const back = (q: string) => NextResponse.redirect(`${spotifyRedirectBase()}/admin/spotify?${q}`);
 
   if (err) return back(`error=${encodeURIComponent(err)}`);
-  if (!code || !state || state !== expected) return back("error=state");
+  // a second hit of the callback (browser re-request) has no state cookie anymore: if we are already connected, that is fine
+  if (!code || !state || state !== expected) return back(spotifyConnected() ? "ok=1" : "error=state");
   try {
     await exchangeCode(code);
     await refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData);

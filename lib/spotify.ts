@@ -66,6 +66,9 @@ async function accessToken(): Promise<string | null> {
 
 async function api<T>(path: string, token: string): Promise<T | null> {
   const res = await fetch(`${API}${path}`, { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
+  if (res.status === 204) return null;
+  // surface auth/scope problems so the job log shows them (403 = user not allowed in a dev-mode app, missing scope, …)
+  if (res.status === 401 || res.status === 403) throw new Error(`spotify ${path} → ${res.status}: ${(await res.text()).slice(0, 160)}`);
   if (!res.ok) return null;
   return (await res.json()) as T;
 }

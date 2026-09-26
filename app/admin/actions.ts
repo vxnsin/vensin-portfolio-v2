@@ -140,6 +140,8 @@ export async function runJobAction(formData: FormData) {
   const job = jobs.find((j) => j.id === String(formData.get("id")));
   if (job) await runJob(job);
   revalidatePath("/admin");
+  revalidatePath("/admin/spotify");
+  revalidatePath("/music");
   revalidatePath("/", "layout");
 }
 
