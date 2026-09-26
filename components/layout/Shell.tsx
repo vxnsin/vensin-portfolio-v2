@@ -31,7 +31,7 @@ export async function Shell({ children }: { children: ReactNode }) {
     getNowPlaying(),
   ]);
   const lastPlayed = spotify ? listenStats().lastPlayed : null;
-  const { season, fallback: fallbackSeason } = await resolveSeason();
+  const { season, fallback: fallbackSeason, locked: seasonLocked } = await resolveSeason();
 
   return (
     <LanyardProvider>
@@ -177,7 +177,7 @@ export async function Shell({ children }: { children: ReactNode }) {
               <Link href="/privacy" className="btn text-xs no-underline">
                 privacy
               </Link>
-              <SeasonPicker fallback={fallbackSeason} />
+              <SeasonPicker fallback={fallbackSeason} locked={seasonLocked} />
               <ThemeToggle />
               <a
                 href="#top"

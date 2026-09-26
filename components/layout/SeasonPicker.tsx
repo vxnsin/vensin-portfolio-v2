@@ -15,9 +15,17 @@ const getChoice = (): SeasonSetting => {
 };
 
 /** lets a visitor pick the season; "auto" follows the calendar (or the admin's pick). The choice lives in a cookie so the server renders it next time. */
-export function SeasonPicker({ fallback }: { fallback: Season }) {
+export function SeasonPicker({ fallback, locked = false }: { fallback: Season; locked?: boolean }) {
   // null on the server so the value never mismatches during hydration
   const choice = useSyncExternalStore(subscribe, getChoice, () => null);
+
+  if (locked) {
+    return (
+      <span className="btn text-xs opacity-80 cursor-not-allowed" title="special day: the site picks the look today" aria-label="season (locked for today)">
+        {ICON[fallback]} {fallback} 🔒
+      </span>
+    );
+  }
 
   const pick = (next: SeasonSetting) => {
     const effective = next === "auto" ? fallback : next;

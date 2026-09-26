@@ -311,10 +311,8 @@ export async function saveSiteAction(_prev: ActionState, formData: FormData): Pr
     .map((l) => l.trim())
     .filter(Boolean)
     .slice(0, 40);
-  const season = String(formData.get("season") ?? "auto");
   try {
     await saveMarquee(marquee);
-    setSeasonSetting(isSeason(season) ? season : "auto");
     revalidatePath("/admin/site");
     revalidatePath("/", "layout");
     return { ok: true };
