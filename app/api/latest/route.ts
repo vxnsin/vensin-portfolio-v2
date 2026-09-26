@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { site } from "@/data/site";
 import { LanyardDataSchema } from "@/components/discord/schemas";
-import { codingInfo, isCoding, isGame, watchingInfo } from "@/components/discord/detect";
-import { getLatestFresh, saveLatest, type Latest } from "@/lib/store";
+import { resolveAll } from "@/components/discord/activities";
+import { getLatestFresh, listSeenActivities, markActivitySeen, saveLatest, type Latest } from "@/lib/store";
+import { notifyUnknownActivity } from "@/lib/discord-notify";
 
 // Visitors' browsers ping this route while they watch the Discord widget.
-// The server then asks Lanyard itself (source of truth) and remembers the last
-// game / video / song, so the "latest" box has something to show when nothing is live.
+// The server then asks Lanyard itself (source of truth), remembers the last
+// activity per kind for the "latest" box, and DMs the owner once per unknown site.
 
 const MIN_INTERVAL_MS = 60_000;
 let lastRun = 0;
@@ -27,28 +28,27 @@ export async function POST() {
     const parsed = LanyardDataSchema.safeParse((await res.json())?.data);
     if (!parsed.success) return NextResponse.json({ ok: false }, { status: 502 });
 
-    const d = parsed.data;
     const at = new Date(now).toISOString();
-    const next: Latest = { ...current, checkedAt: at };
+    const next: Latest = { items: { ...(current.items ?? {}) }, checkedAt: at };
 
-    const coding = d.activities.find(isCoding);
-    if (coding) {
-      const c = codingInfo(coding);
-      next.coding = { workspace: c.workspace ?? c.editor, at };
+    const resolved = resolveAll(parsed.data.activities);
+    for (const r of resolved) {
+      if (r.info.latest) next.items![r.info.kind] = { value: r.info.latest.value, href: r.info.latest.href ?? null, at };
     }
-
-    const game = d.activities.find(isGame);
-    if (game) next.playing = { name: game.name, at };
-
-    const watching = d.activities.find((a) => a.type === 3);
-    if (watching) {
-      const info = watchingInfo(watching);
-      next.watching = { title: info.title, service: info.service, at };
-    }
-
-    if (d.spotify) next.listening = { song: d.spotify.song, artist: d.spotify.artist, trackId: d.spotify.track_id ?? null, at };
-
     await saveLatest(next);
+
+    // unknown browser presences: tell the owner once, with the raw payload
+    const unknown = resolved.filter((r) => r.handler.id === "browsing");
+    if (unknown.length) {
+      const seen = await listSeenActivities();
+      for (const r of unknown) {
+        const key = `${r.activity.name}|${r.activity.application_id ?? ""}`;
+        if (seen.includes(key)) continue;
+        await markActivitySeen(key);
+        await notifyUnknownActivity(r.activity, r.activity.name);
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ ok: false }, { status: 502 });

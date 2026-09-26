@@ -6,7 +6,19 @@ import { put, del } from "@vercel/blob";
 import { promises as fs } from "fs";
 import path from "path";
 import { login, logout, requireAdmin } from "@/lib/auth";
-import { addGalleryItem, deleteMessage, removeGalleryItem, saveSettings, updateMessage, getSettingsFresh, uid } from "@/lib/store";
+import {
+  addFavorite,
+  addGalleryItem,
+  deleteMessage,
+  getSettingsFresh,
+  moveFavorite,
+  removeFavorite,
+  removeGalleryItem,
+  saveSettings,
+  uid,
+  updateFavorite,
+  updateMessage,
+} from "@/lib/store";
 import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
 
 export type ActionState = { ok: boolean; error?: string } | null;
@@ -111,6 +123,49 @@ export async function deleteUpdateAction(formData: FormData) {
   const s = await getSettingsFresh();
   await saveSettings({ updateLog: s.updateLog.filter((u) => u.id !== id) });
   revalidatePath("/admin/updates");
+}
+
+/* ---------- favorite anime ---------- */
+
+const clampRating = (v: unknown) => Math.min(10, Math.max(1, Math.round(Number(v) || 0)));
+
+export async function addFavoriteAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const kitsuId = String(formData.get("kitsuId") ?? "").trim();
+  const title = String(formData.get("title") ?? "").trim().slice(0, 120);
+  if (!kitsuId || !title) return { ok: false, error: "pick an anime from the suggestions first" };
+  const fav = await addFavorite({
+    kitsuId,
+    title,
+    slug: String(formData.get("slug") ?? "").trim(),
+    poster: String(formData.get("poster") ?? "").trim() || null,
+    note: String(formData.get("note") ?? "").trim().slice(0, 80),
+    rating: clampRating(formData.get("rating")),
+  });
+  if (!fav) return { ok: false, error: "already on the list" };
+  revalidatePath("/admin/anime");
+  return { ok: true };
+}
+
+export async function updateFavoriteAction(formData: FormData) {
+  await requireAdmin();
+  await updateFavorite(String(formData.get("id")), {
+    note: String(formData.get("note") ?? "").trim().slice(0, 80),
+    rating: clampRating(formData.get("rating")),
+  });
+  revalidatePath("/admin/anime");
+}
+
+export async function deleteFavoriteAction(formData: FormData) {
+  await requireAdmin();
+  await removeFavorite(String(formData.get("id")));
+  revalidatePath("/admin/anime");
+}
+
+export async function moveFavoriteAction(formData: FormData) {
+  await requireAdmin();
+  await moveFavorite(String(formData.get("id")), formData.get("dir") === "up" ? -1 : 1);
+  revalidatePath("/admin/anime");
 }
 
 /* ---------- marquee ---------- */

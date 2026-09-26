@@ -9,6 +9,7 @@ export const ActivitySchema = z.object({
   state: z.string().optional().nullable(),
   details: z.string().optional().nullable(),
   application_id: z.string().optional(),
+  sync_id: z.string().optional(),
   timestamps: Timestamps.optional(),
   assets: z
     .object({

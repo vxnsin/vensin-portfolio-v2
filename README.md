@@ -43,6 +43,14 @@ Without any env vars the site still runs: content falls back to `.data/store.jso
 - **today** – three pages that cycle: date, weather, Apple Watch rings (Tokyo time until the first ring sync).
 - **latest** – what's running now, otherwise the last game / video / song. Visitors' browsers ping `/api/latest`, the server asks Lanyard and remembers it.
 
+## Discord widget: adding a service
+
+Every activity is rendered from a small handler in `components/discord/activities/` (`match` + `info`). Built in: Spotify, editors (VSCord), anime (AniWorld), YouTube, GitHub, generic browsing (PreMiD), games. To add one, create `activities/<name>.ts` exporting an `ActivityHandler` and register it in `activities/index.ts` above the fallbacks. Unknown PreMiD sites are shown as "browsing" and the server DMs you the raw payload once, so you know what to match on.
+
+## Anime favorites
+
+Managed in `/admin/anime`: type a title, pick a suggestion from Kitsu, add a short note and your own rating. The anime page shows six at a time and flips through pages automatically. Until the list has entries, the seed list from `data/anime.ts` is shown.
+
 ## Apple Watch rings
 
 `POST /api/health` with `Authorization: Bearer <HEALTH_TOKEN>` and a JSON body:

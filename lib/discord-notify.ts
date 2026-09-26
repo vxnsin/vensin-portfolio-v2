@@ -20,7 +20,26 @@ function embed(m: Message) {
 
 /** DM the site owner through a bot; falls back to a webhook. Never throws. Returns true when something was sent. */
 export async function notifyNewMessage(m: Message): Promise<boolean> {
-  const payload = { embeds: [embed(m)] };
+  return send({ embeds: [embed(m)] });
+}
+
+/** an activity the widget has no dedicated handler for — includes the raw payload so a handler can be written */
+export async function notifyUnknownActivity(activity: unknown, name: string): Promise<boolean> {
+  const raw = JSON.stringify(activity, null, 1);
+  return send({
+    embeds: [
+      {
+        title: `🧩 new activity seen: ${name}`,
+        description: 'the widget shows this as generic "browsing". add a handler in `components/discord/activities/` to make it pretty.',
+        color: 0x8b7fd6,
+        fields: [{ name: "payload", value: "```json\n" + (raw.length > 950 ? raw.slice(0, 950) + "\n…" : raw) + "\n```" }],
+        timestamp: new Date().toISOString(),
+      },
+    ],
+  });
+}
+
+async function send(payload: { embeds: unknown[] }): Promise<boolean> {
   const token = process.env.DISCORD_BOT_TOKEN;
   const owner = process.env.DISCORD_OWNER_ID ?? site.discordUserId;
 

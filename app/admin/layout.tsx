@@ -9,6 +9,7 @@ const links = [
   { href: "/admin", label: "dashboard" },
   { href: "/admin/messages", label: "messages" },
   { href: "/admin/gallery", label: "gallery" },
+  { href: "/admin/anime", label: "anime" },
   { href: "/admin/updates", label: "update log" },
   { href: "/admin/site", label: "marquee & now" },
 ];

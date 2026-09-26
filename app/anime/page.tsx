@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getFavorites, getRecentlyWatched } from "@/lib/anime";
 import { Window } from "@/components/layout/Window";
+import { FavoritesShelf } from "@/components/anime/FavoritesShelf";
 
 export const metadata: Metadata = { title: "anime" };
 export const revalidate = 3600;
@@ -55,22 +56,9 @@ export default async function AnimePage() {
         )}
       </Window>
 
-      <Window title="all-time favorites" dashed>
-        <ul className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
-          {favorites.map((f) => (
-            <li key={f.malId} className="text-[11px]">
-              <a href={f.url} target="_blank" rel="noreferrer" className="block no-underline group">
-                <div className="relative">
-                  <Poster src={f.cover} alt={f.title} />
-                  {f.rating && <span className="absolute top-1 right-1 chip text-[9px] px-1.5 bg-paper">★ {f.rating.toFixed(1)}</span>}
-                </div>
-                <div className="mt-1 truncate text-ink group-hover:text-accent">{f.title}</div>
-                {f.note && <div className="text-[9px] text-ink-soft italic truncate">&quot;{f.note}&quot;</div>}
-              </a>
-            </li>
-          ))}
-        </ul>
-        <p className="text-[10px] text-ink-soft mt-3">posters &amp; ratings via kitsu.</p>
+      <Window title={`all-time favorites · ${favorites.length}`} dashed>
+        <FavoritesShelf items={favorites} />
+        <p className="text-[10px] text-ink-soft mt-3">posters via kitsu{favorites[0]?.own ? ", ratings are mine" : ", ratings by the kitsu community"}.</p>
       </Window>
     </div>
   );

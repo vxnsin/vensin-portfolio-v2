@@ -1,6 +1,7 @@
 import { parse } from "node-html-parser";
 import { aniworldProfile, favoriteAnime } from "@/data/anime";
 import { kitsuByMalId, kitsuSearch } from "./kitsu";
+import { listFavorites } from "./store";
 
 export type WatchedAnime = {
   title: string;
@@ -57,24 +58,41 @@ export async function getRecentlyWatched(): Promise<WatchedAnime[]> {
 }
 
 export type FavoriteWithCover = {
+  id: string;
   title: string;
   note?: string;
-  malId: number;
   cover: string | null;
   url: string;
-  rating: number | null;
+  rating: number | null; // own rating (admin) or community rating (seed list)
+  own: boolean;
 };
 
-/** Favorite posters from Kitsu via MAL-id mapping, text search as fallback. Cached 24h. */
+/** Favorites from the admin panel; falls back to the seed list in data/anime.ts (posters via MAL-id mapping). */
 export async function getFavorites(): Promise<FavoriteWithCover[]> {
+  const stored = await listFavorites();
+  if (stored.length > 0) {
+    return stored.map((f) => ({
+      id: f.id,
+      title: f.title,
+      note: f.note || undefined,
+      cover: f.poster,
+      url: `https://kitsu.app/anime/${f.slug || f.kitsuId}`,
+      rating: f.rating,
+      own: true,
+    }));
+  }
+
   const out: FavoriteWithCover[] = [];
   for (const fav of favoriteAnime) {
     const k = (await kitsuByMalId(fav.malId)) ?? (await kitsuSearch(fav.title));
     out.push({
-      ...fav,
+      id: String(fav.malId),
+      title: fav.title,
+      note: fav.note,
       cover: k?.poster ?? null,
       rating: k?.rating ?? null,
       url: k?.url ?? `https://myanimelist.net/anime/${fav.malId}`,
+      own: false,
     });
   }
   return out;

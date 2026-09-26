@@ -31,11 +31,10 @@ export type Health = {
   updatedAt: string;
 };
 
+export type LatestItem = { value: string; href?: string | null; at: string };
 export type Latest = {
-  coding?: { workspace: string; at: string };
-  playing?: { name: string; at: string };
-  watching?: { title: string; service: string; at: string };
-  listening?: { song: string; artist: string; trackId?: string | null; at: string };
+  /** keyed by activity kind: listening, coding, watching, playing */
+  items?: Record<string, LatestItem>;
   checkedAt?: string;
 };
 
@@ -154,6 +153,60 @@ export async function removeGalleryItem(id: string) {
   return item;
 }
 
+/* ---------- favorite anime (managed in /admin/anime) ---------- */
+
+export type Favorite = {
+  id: string;
+  kitsuId: string;
+  slug: string;
+  title: string;
+  poster: string | null;
+  note: string;
+  rating: number; // own rating 1-10
+  createdAt: string;
+};
+
+const favoritesCached = unstable_cache(() => get<Favorite[]>("favorites", []), ["favorites"], { tags: ["favorites"], revalidate: 3600 });
+export const listFavorites = () => favoritesCached();
+export const listFavoritesFresh = () => get<Favorite[]>("favorites", []);
+export async function addFavorite(f: Omit<Favorite, "id" | "createdAt">) {
+  const items = await listFavoritesFresh();
+  if (items.some((i) => i.kitsuId === f.kitsuId)) return null;
+  const fav: Favorite = { id: uid(), createdAt: new Date().toISOString(), ...f };
+  await set("favorites", [...items, fav]);
+  revalidateTag("favorites", "max");
+  revalidatePath("/anime");
+  return fav;
+}
+export async function updateFavorite(id: string, patch: Partial<Pick<Favorite, "note" | "rating">>) {
+  const items = await listFavoritesFresh();
+  await set(
+    "favorites",
+    items.map((i) => (i.id === id ? { ...i, ...patch } : i)),
+  );
+  revalidateTag("favorites", "max");
+  revalidatePath("/anime");
+}
+export async function removeFavorite(id: string) {
+  const items = await listFavoritesFresh();
+  await set(
+    "favorites",
+    items.filter((i) => i.id !== id),
+  );
+  revalidateTag("favorites", "max");
+  revalidatePath("/anime");
+}
+export async function moveFavorite(id: string, dir: -1 | 1) {
+  const items = await listFavoritesFresh();
+  const i = items.findIndex((f) => f.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= items.length) return;
+  [items[i], items[j]] = [items[j], items[i]];
+  await set("favorites", items);
+  revalidateTag("favorites", "max");
+  revalidatePath("/anime");
+}
+
 /* ---------- apple watch rings ---------- */
 
 const healthCached = unstable_cache(() => get<Health | null>("health", null), ["health"], { tags: ["health"], revalidate: 300 });
@@ -172,4 +225,12 @@ export const getLatestFresh = () => get<Latest>("latest", {});
 export async function saveLatest(l: Latest) {
   await set("latest", l);
   revalidateTag("latest", "max");
+}
+
+/* ---------- activities we already told the owner about ---------- */
+
+export const listSeenActivities = () => get<string[]>("seenActivities", []);
+export async function markActivitySeen(key: string) {
+  const seen = await listSeenActivities();
+  if (!seen.includes(key)) await set("seenActivities", [...seen, key].slice(-200));
 }

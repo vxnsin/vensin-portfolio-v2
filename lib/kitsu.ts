@@ -13,10 +13,13 @@ export type KitsuAnime = {
 };
 
 type Raw = {
+  id?: string;
   attributes?: {
     canonicalTitle?: string;
     slug?: string;
     averageRating?: string | null;
+    startDate?: string | null;
+    synopsis?: string | null;
     posterImage?: { large?: string; small?: string; medium?: string; original?: string } | null;
   };
 };
@@ -47,6 +50,34 @@ export async function kitsuByMalId(malId: number): Promise<KitsuAnime | null> {
     return map(json?.included?.[0]);
   } catch {
     return null;
+  }
+}
+
+export type KitsuHit = KitsuAnime & { id: string; year: string | null; synopsis: string | null };
+
+/** Search suggestions for the admin panel. Not cached (typed live). */
+export async function kitsuSearchMany(query: string, limit = 8): Promise<KitsuHit[]> {
+  try {
+    const res = await fetch(
+      `${API}/anime?filter[text]=${encodeURIComponent(query)}&page[limit]=${limit}&fields[anime]=canonicalTitle,posterImage,averageRating,slug,startDate,synopsis`,
+      { headers: HEADERS, cache: "no-store" },
+    );
+    if (!res.ok) return [];
+    const json = await res.json();
+    const out: KitsuHit[] = [];
+    for (const raw of json?.data ?? []) {
+      const m = map(raw);
+      if (!m) continue;
+      out.push({
+        ...m,
+        id: String(raw.id),
+        year: raw.attributes?.startDate?.slice(0, 4) ?? null,
+        synopsis: raw.attributes?.synopsis ? String(raw.attributes.synopsis).slice(0, 160) : null,
+      });
+    }
+    return out;
+  } catch {
+    return [];
   }
 }
 
