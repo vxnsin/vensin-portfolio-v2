@@ -136,17 +136,22 @@ body {
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 /* sakura petals */
-.petals { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.petals {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+  /* keep the header area clear so petals never look like stray dots next to the title */
+  mask-image: linear-gradient(to bottom, transparent 0, transparent 150px, #000 230px);
+}
 .petal {
   position: absolute;
   top: -5vh;
   width: 12px; height: 12px;
   background: var(--accent);
-  opacity: 0.45;
+  opacity: 0.35;
   border-radius: 100% 0 100% 0;
+  transform: scaleX(0.75);
   animation: fall linear infinite, sway ease-in-out infinite alternate;
 }
-@keyframes fall { to { transform: translateY(110vh) rotate(540deg); } }
+@keyframes fall { to { transform: translateY(110vh) rotate(540deg) scaleX(0.75); } }
 @keyframes sway { from { margin-left: -20px; } to { margin-left: 20px; } }
 @media (prefers-reduced-motion: reduce) {
   .petal, .marquee-track { animation: none !important; }
