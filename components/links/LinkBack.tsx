@@ -18,7 +18,7 @@ export function LinkBack() {
   return (
     <div className="grid gap-3 text-xs">
       <div className="flex items-center gap-4 flex-wrap">
-        <img src="/button.png" alt={site.domain} width={264} height={93} className="border border-line" style={{ imageRendering: "pixelated" }} />
+        <img src="/button.svg" alt={site.domain} width={264} height={93} className="border border-line" />
         <div className="grid gap-1">
           <img src="/button.png" alt="" width={88} height={31} className="border border-line" style={{ imageRendering: "pixelated" }} aria-hidden />
           <span className="text-ink-soft">actual size: 88x31 · hotlinking is fine</span>
