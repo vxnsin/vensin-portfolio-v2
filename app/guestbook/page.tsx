@@ -3,6 +3,7 @@ import Link from "next/link";
 import { countGuestbook, listGuestbook } from "@/lib/guestbook";
 import { Window } from "@/components/layout/Window";
 import { GuestbookForm } from "@/components/guestbook/GuestbookForm";
+import { resolveSeason } from "@/lib/season";
 
 export const metadata: Metadata = { title: "guestbook", description: "Leave a note on the wall." };
 export const dynamic = "force-dynamic";
@@ -23,6 +24,9 @@ export default async function GuestbookPage({ searchParams }: { searchParams: Pr
   const pages = Math.max(1, Math.ceil(total / PER_PAGE));
   const page = Math.min(pages, Math.max(1, Number(raw) || 1));
   const entries = listGuestbook({ status: "approved", limit: PER_PAGE, offset: (page - 1) * PER_PAGE });
+  // at christmas santa has always just signed, right at the top of page one (not stored, just rendered)
+  const { season } = await resolveSeason();
+  const santa = season === "christmas" && page === 1;
 
   return (
     <div className="grid gap-5">
@@ -38,8 +42,22 @@ export default async function GuestbookPage({ searchParams }: { searchParams: Pr
       </Window>
 
       <Window title={`the wall${pages > 1 ? ` · page ${page}/${pages}` : ""}`}>
+        {santa && (
+          <div className="border-2 border-dashed border-accent bg-accent-soft/60 p-3 grid gap-1 text-xs mb-3">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="pixel text-accent text-[10px]">🎄 pinned</span>
+              <span className="pixel text-ink">Santa Claus</span>
+              <span className="text-[11px] text-ink-soft">north pole</span>
+              <span className="ml-auto text-[10px] text-ink-soft">just now</span>
+            </div>
+            <p>
+              ho ho ho! checked the list twice, luis is on the nice one this year. the cookies by the keyboard were excellent. merry christmas to everyone reading this, and
+              go easy on the anime backlog over the holidays. sleigh&apos;s waiting, gotta go!
+            </p>
+          </div>
+        )}
         {entries.length === 0 ? (
-          <p className="text-xs text-ink-soft py-4 text-center">nobody has signed yet. be the first _(:з)∠)_</p>
+          <p className="text-xs text-ink-soft py-4 text-center">{santa ? "santa is lonely up there. sign below!" : "nobody has signed yet. be the first _(:з)∠)_"}</p>
         ) : (
           <ol className="grid gap-3 text-xs">
             {entries.map((e, i) => (
