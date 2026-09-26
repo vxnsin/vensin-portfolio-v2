@@ -1,13 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: { bodySizeLimit: "10mb" }, // gallery uploads
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "cdn.discordapp.com" },
       { protocol: "https", hostname: "media.discordapp.net" },
       { protocol: "https", hostname: "i.scdn.co" },
-      { protocol: "https", hostname: "cdn.myanimelist.net" },
-      { protocol: "https", hostname: "aniworld.to" },
+      { protocol: "https", hostname: "media.kitsu.app" },
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
     ],
   },
 };

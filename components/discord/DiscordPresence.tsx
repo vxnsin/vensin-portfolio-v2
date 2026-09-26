@@ -2,8 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useState, type ReactNode } from "react";
-import { site } from "@/data/site";
-import { useLanyard } from "./useLanyard";
+import { useLanyardContext } from "./LanyardProvider";
 import type { Activity, LanyardData } from "./schemas";
 
 const STATUS: Record<LanyardData["discord_status"], { label: string; color: string }> = {
@@ -251,7 +250,7 @@ function CustomStatus({ a }: { a: Activity }) {
 /* ---------- widget ---------- */
 
 export function DiscordPresence() {
-  const { data, live } = useLanyard(site.discordUserId);
+  const { data, live } = useLanyardContext();
 
   if (!data) {
     return (

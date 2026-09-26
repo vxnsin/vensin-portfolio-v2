@@ -35,8 +35,13 @@ export default function ImpressumPage() {
         <h3 className="pixel mb-1 text-ink">Hinweis</h3>
         <p>
           Diese Website ist ein privates, nicht-kommerzielles Portfolio. Eingebundene Inhalte Dritter (z.&nbsp;B. Discord-Status
-          über Lanyard, Cover-Bilder über MyAnimeList/Jikan) werden von den jeweiligen Anbietern geladen; es gelten deren
-          Datenschutzbestimmungen.
+          über Lanyard, Cover-Bilder über Kitsu, Wetterdaten über Open-Meteo) werden von den jeweiligen Anbietern geladen; es
+          gelten deren Datenschutzbestimmungen. Es werden keine Cookies zu Tracking-Zwecken gesetzt.
+        </p>
+        <p className="mt-2">
+          Kontaktformular: Name, E-Mail-Adresse und Nachricht werden gespeichert, um die Anfrage beantworten zu können, und
+          per Discord-Benachrichtigung an den Betreiber weitergeleitet. Die Daten werden nach Bearbeitung gelöscht und nicht
+          an Dritte weitergegeben.
         </p>
       </section>
     </div>
