@@ -22,7 +22,7 @@ async function importSpotifyHistory() {
 /** currently playing from the spotify api; feeds the listening log and the "latest" box without needing discord */
 async function pollSpotifyNow() {
   if (!spotifyConnected()) return null;
-  const now = await refresh(SPOTIFY_NOW_KEY, SPOTIFY_NOW_TTL, fetchNowPlaying);
+  const now = await refresh(SPOTIFY_NOW_KEY, SPOTIFY_NOW_TTL, fetchNowPlaying, { throwOnError: true });
   if (now?.playing && now.track) {
     const at = new Date().toISOString();
     const latest = await getLatest();
@@ -56,12 +56,12 @@ export const TTL = {
 
 export const jobs: Job[] = [
   { id: "discord-latest", label: "discord: latest activity", every: MIN, run: refreshLatest },
-  { id: "weather", label: "weather", every: 10 * MIN, run: () => refresh(CACHE_KEYS.weather, TTL.weather, fetchWeather) },
-  { id: "github-activity", label: "github: latest commit", every: HOUR, run: () => refresh(CACHE_KEYS.githubActivity, TTL.githubActivity, fetchLatestGithubActivity) },
-  { id: "anime-recent", label: "anime: recently watched", every: HOUR, run: () => refresh(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched) },
+  { id: "weather", label: "weather", every: 10 * MIN, run: () => refresh(CACHE_KEYS.weather, TTL.weather, fetchWeather, { throwOnError: true }) },
+  { id: "github-activity", label: "github: latest commit", every: HOUR, run: () => refresh(CACHE_KEYS.githubActivity, TTL.githubActivity, fetchLatestGithubActivity, { throwOnError: true }) },
+  { id: "anime-recent", label: "anime: recently watched", every: HOUR, run: () => refresh(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched, { throwOnError: true }) },
   { id: "spotify-now", label: "spotify: now playing", every: 30_000, run: pollSpotifyNow, since: spotifySince },
   { id: "spotify-history", label: "spotify: import plays into the log", every: 10 * MIN, run: importSpotifyHistory, since: spotifySince },
-  { id: "spotify", label: "spotify: top tracks, artists, playlists", every: HOUR, run: () => (spotifyConnected() ? refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData) : Promise.resolve(null)), since: spotifySince },
-  { id: "github-stats", label: "github: followers & repos", daily: "00:00", run: () => refresh(CACHE_KEYS.githubStats, TTL.githubStats, fetchGithubStats) },
-  { id: "github-contributions", label: "github: contribution graph", daily: "00:05", run: () => refresh(CACHE_KEYS.githubContributions, TTL.githubContributions, fetchContributionYears) },
+  { id: "spotify", label: "spotify: top tracks, artists, playlists", every: HOUR, run: () => (spotifyConnected() ? refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData, { throwOnError: true }) : Promise.resolve(null)), since: spotifySince },
+  { id: "github-stats", label: "github: followers & repos", daily: "00:00", run: () => refresh(CACHE_KEYS.githubStats, TTL.githubStats, fetchGithubStats, { throwOnError: true }) },
+  { id: "github-contributions", label: "github: contribution graph", daily: "00:05", run: () => refresh(CACHE_KEYS.githubContributions, TTL.githubContributions, fetchContributionYears, { throwOnError: true }) },
 ];

@@ -87,11 +87,21 @@ export type SpotifyData = {
   fetchedAt: string;
 };
 
-type RawTrack = { id: string; name: string; artists: Array<{ name: string }>; album: { name: string; images: Array<{ url: string }> }; external_urls: { spotify: string }; duration_ms: number };
+type RawTrack = { id: string | null; type?: string; name: string; artists?: Array<{ name: string }>; album?: { name?: string; images?: Array<{ url: string }> } | null; external_urls?: { spotify?: string }; duration_ms?: number };
 type RawArtist = { id: string; name: string; images: Array<{ url: string }>; external_urls: { spotify: string }; genres: string[] };
-type RawPlaylist = { id: string; name: string; description: string; images: Array<{ url: string }> | null; tracks: { total: number }; external_urls: { spotify: string }; public: boolean; owner: { id: string } };
+type RawPlaylist = { id: string; name: string; description: string | null; images: Array<{ url: string }> | null; tracks?: { total: number } | null; external_urls?: { spotify?: string }; public: boolean | null; owner: { id: string } };
 
-const track = (t: RawTrack): Track => ({ id: t.id, name: t.name, artists: t.artists.map((a) => a.name), album: t.album.name, art: t.album.images?.[1]?.url ?? t.album.images?.[0]?.url ?? null, url: t.external_urls.spotify, durationMs: t.duration_ms });
+// podcasts and local files come with missing fields; keep them from crashing the whole fetch
+const isTrack = (t: RawTrack | null | undefined): t is RawTrack => Boolean(t && t.name && (!t.type || t.type === "track"));
+const track = (t: RawTrack): Track => ({
+  id: t.id ?? `local-${t.name}`,
+  name: t.name,
+  artists: (t.artists ?? []).map((a) => a.name),
+  album: t.album?.name ?? "",
+  art: t.album?.images?.[1]?.url ?? t.album?.images?.[0]?.url ?? null,
+  url: t.external_urls?.spotify ?? (t.id ? `https://open.spotify.com/track/${t.id}` : "https://open.spotify.com"),
+  durationMs: t.duration_ms ?? 0,
+});
 const artist = (a: RawArtist): Artist => ({ id: a.id, name: a.name, image: a.images?.[1]?.url ?? a.images?.[0]?.url ?? null, url: a.external_urls.spotify, genres: a.genres ?? [] });
 
 const RANGES: Record<Range, string> = { short: "short_term", medium: "medium_term", long: "long_term" };
@@ -104,13 +114,13 @@ export async function fetchSpotifyData(): Promise<SpotifyData | null> {
   const topTracks = {} as Record<Range, Track[]>;
   const topArtists = {} as Record<Range, Artist[]>;
   for (const r of Object.keys(RANGES) as Range[]) {
-    topTracks[r] = ((await api<{ items: RawTrack[] }>(`/me/top/tracks?time_range=${RANGES[r]}&limit=10`, token))?.items ?? []).map(track);
+    topTracks[r] = ((await api<{ items: RawTrack[] }>(`/me/top/tracks?time_range=${RANGES[r]}&limit=10`, token))?.items ?? []).filter(isTrack).map(track);
     topArtists[r] = ((await api<{ items: RawArtist[] }>(`/me/top/artists?time_range=${RANGES[r]}&limit=10`, token))?.items ?? []).map(artist);
   }
-  const recent = ((await api<{ items: Array<{ track: RawTrack; played_at: string }> }>("/me/player/recently-played?limit=20", token))?.items ?? []).map((i) => ({ track: track(i.track), playedAt: i.played_at }));
+  const recent = ((await api<{ items: Array<{ track: RawTrack | null; played_at: string }> }>("/me/player/recently-played?limit=20", token))?.items ?? []).filter((i) => isTrack(i.track)).map((i) => ({ track: track(i.track as RawTrack), playedAt: i.played_at }));
   const playlists = ((await api<{ items: RawPlaylist[] }>("/me/playlists?limit=50", token))?.items ?? [])
     .filter((p) => p.public && (!me || p.owner.id === me.id))
-    .map((p) => ({ id: p.id, name: p.name, description: p.description ?? "", image: p.images?.[0]?.url ?? null, tracks: p.tracks.total, url: p.external_urls.spotify }));
+    .map((p) => ({ id: p.id, name: p.name, description: p.description ?? "", image: p.images?.[0]?.url ?? null, tracks: p.tracks?.total ?? 0, url: p.external_urls?.spotify ?? `https://open.spotify.com/playlist/${p.id}` }));
 
   return { topTracks, topArtists, recent, playlists, fetchedAt: new Date().toISOString() };
 }
@@ -120,8 +130,8 @@ export async function fetchSpotifyData(): Promise<SpotifyData | null> {
 export async function fetchRecentPlays(): Promise<Array<{ track: Track; playedAt: string }> | null> {
   const token = await accessToken();
   if (!token) return null;
-  const j = await api<{ items: Array<{ track: RawTrack; played_at: string }> }>("/me/player/recently-played?limit=50", token);
-  return (j?.items ?? []).map((i) => ({ track: track(i.track), playedAt: i.played_at }));
+  const j = await api<{ items: Array<{ track: RawTrack | null; played_at: string }> }>("/me/player/recently-played?limit=50", token);
+  return (j?.items ?? []).filter((i) => isTrack(i.track)).map((i) => ({ track: track(i.track as RawTrack), playedAt: i.played_at }));
 }
 
 /** artist picture by name (for the log-based artist list). Cached a week. */
@@ -147,7 +157,7 @@ export async function fetchNowPlaying(): Promise<NowPlaying | null> {
   if (res.status === 204 || res.status === 202) return { playing: false, track: null, progressMs: 0, fetchedAt, device: null };
   if (!res.ok) return null;
   const j = (await res.json()) as { is_playing: boolean; progress_ms: number; item: RawTrack | null; currently_playing_type: string; device?: { name?: string } };
-  if (!j.item || j.currently_playing_type !== "track") return { playing: false, track: null, progressMs: 0, fetchedAt, device: null };
+  if (!isTrack(j.item) || j.currently_playing_type !== "track") return { playing: false, track: null, progressMs: 0, fetchedAt, device: null };
   return { playing: j.is_playing, track: track(j.item), progressMs: j.progress_ms ?? 0, fetchedAt, device: j.device?.name ?? null };
 }
 export const getNowPlaying = () => (spotifyConnected() ? cached(SPOTIFY_NOW_KEY, SPOTIFY_NOW_TTL, fetchNowPlaying) : Promise.resolve(null));

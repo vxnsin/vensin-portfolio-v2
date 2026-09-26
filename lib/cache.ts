@@ -28,7 +28,7 @@ export function put(key: string, value: unknown, ttlMs: number) {
 }
 
 /** Force a refresh (used by the scheduler). Keeps the old value when the fetcher fails or returns null. */
-export async function refresh<T>(key: string, ttlMs: number, fetcher: () => Promise<T>): Promise<T | null> {
+export async function refresh<T>(key: string, ttlMs: number, fetcher: () => Promise<T>, opts: { throwOnError?: boolean } = {}): Promise<T | null> {
   const existing = inflight.get(key) as Promise<T> | undefined;
   if (existing) return existing;
   const p = (async () => {
@@ -41,7 +41,8 @@ export async function refresh<T>(key: string, ttlMs: number, fetcher: () => Prom
         return old?.value ?? null;
       }
       return value;
-    } catch {
+    } catch (e) {
+      if (opts.throwOnError) throw e;
       return peek<T>(key)?.value ?? null;
     } finally {
       inflight.delete(key);
