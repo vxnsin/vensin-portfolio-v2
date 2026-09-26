@@ -4,6 +4,7 @@ import "./globals.css";
 import { site } from "@/data/site";
 import { Shell } from "@/components/layout/Shell";
 import { Petals } from "@/components/decor/Petals";
+import Script from "next/script";
 import { themeInitScript } from "@/components/layout/ThemeToggle";
 
 const dotGothic = DotGothic16({ weight: "400", subsets: ["latin"], variable: "--font-dot-gothic", display: "swap" });
@@ -36,10 +37,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${dotGothic.variable} ${plexMono.variable} h-full`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
       <body className="min-h-full">
+        {/* applies the saved theme before first paint, without a flash */}
+        <Script id="theme-init" strategy="beforeInteractive">
+          {themeInitScript}
+        </Script>
         <Petals />
         <Shell>{children}</Shell>
       </body>
