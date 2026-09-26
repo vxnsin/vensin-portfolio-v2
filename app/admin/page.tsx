@@ -21,7 +21,7 @@ export default async function AdminHome() {
     { label: "discord notify", ok: discordNotifyConfigured(), note: process.env.DISCORD_BOT_TOKEN ? "bot dm" : process.env.DISCORD_WEBHOOK_URL ? "webhook" : "not configured" },
     { label: "weather", ok: Boolean(process.env.WEATHER_LAT && process.env.WEATHER_LON), note: "env coords" },
     {
-      label: "apple watch",
+      label: "ios shortcut",
       ok: Boolean(process.env.HEALTH_TOKEN) && Boolean(health),
       note: !process.env.HEALTH_TOKEN ? "set HEALTH_TOKEN" : health ? `last sync ${new Date(health.updatedAt).toLocaleString("de-DE")}` : "token set, waiting for first shortcut run",
     },

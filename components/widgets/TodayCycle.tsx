@@ -61,8 +61,13 @@ export function TodayCycle({ health }: { health: Health | null }) {
           {page + 1}/{pages.length}
         </span>
       </div>
+      {/* all pages stay mounted so weather & co. keep their data while cycling; only the active one is visible */}
       <div className="win-body grid items-center overflow-hidden" style={{ height: PAGE_HEIGHT }}>
-        {current.node}
+        {pages.map((p, i) => (
+          <div key={p.key} hidden={i !== page % pages.length}>
+            {p.node}
+          </div>
+        ))}
       </div>
     </section>
   );
