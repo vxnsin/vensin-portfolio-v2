@@ -47,9 +47,10 @@ export default function PrivacyPage() {
 
       <H>4. Cookies und lokale Speicherung</H>
       <p>
-        Für Besucher werden keine Cookies gesetzt. Die Wahl zwischen hellem und dunklem Design wird ausschließlich im lokalen Speicher
-        deines Browsers (localStorage) abgelegt und nicht an den Server übertragen. Ein Cookie wird nur für den passwortgeschützten
-        Administrationsbereich des Betreibers gesetzt; Besucher sind davon nicht betroffen.
+        Es werden keine Tracking-Cookies gesetzt. Wenn du das Design umschaltest, merkt sich ein technisch notwendiges Cookie
+        (&quot;theme&quot;, ein Jahr gültig) deine Wahl, damit die Seite beim nächsten Besuch sofort richtig aussieht; es enthält nur das
+        Wort &quot;light&quot; oder &quot;dark&quot;. Ein weiteres Cookie wird nur für den passwortgeschützten Administrationsbereich des
+        Betreibers gesetzt; Besucher sind davon nicht betroffen.
       </p>
 
       <H>5. Kontaktformular</H>

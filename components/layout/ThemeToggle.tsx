@@ -7,11 +7,18 @@ type Theme = "light" | "dark";
 function subscribe(cb: () => void) {
   const obs = new MutationObserver(cb);
   obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-  return () => obs.disconnect();
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  mq.addEventListener("change", cb);
+  return () => {
+    obs.disconnect();
+    mq.removeEventListener("change", cb);
+  };
 }
 
 function getSnapshot(): Theme {
-  return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  const attr = document.documentElement.getAttribute("data-theme");
+  if (attr === "dark" || attr === "light") return attr;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 export function ThemeToggle() {
@@ -21,9 +28,8 @@ export function ThemeToggle() {
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
-    try {
-      localStorage.setItem("theme", next);
-    } catch {}
+    // one year; the server reads this to render the right theme on the next visit
+    document.cookie = `theme=${next}; path=/; max-age=31536000; samesite=lax`;
   };
 
   return (
@@ -32,6 +38,3 @@ export function ThemeToggle() {
     </button>
   );
 }
-
-/** Inline script that applies the saved theme before paint (no flash). */
-export const themeInitScript = `(function(){try{var t=localStorage.getItem('theme');if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}document.documentElement.setAttribute('data-theme',t)}catch(e){}})();`;
