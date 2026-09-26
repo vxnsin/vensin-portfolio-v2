@@ -14,6 +14,10 @@ const SCHEMA = `
   create table if not exists updates (id text primary key, date text not null, text text not null, created_at text not null);
   create table if not exists favorites (id text primary key, kitsu_id text not null unique, slug text not null default '', title text not null, poster text, note text not null default '', rating integer not null default 8, position integer not null, created_at text not null);
   create table if not exists seen_activities (key text primary key, first_seen text not null);
+  create table if not exists neighbors (id text primary key, name text not null, url text not null, button_url text not null, position integer not null, created_at text not null);
+  create table if not exists listens (id integer primary key autoincrement, track_id text, song text not null, artist text not null, album text, art text, at text not null);
+  create index if not exists listens_at on listens (at);
+  create index if not exists listens_track on listens (track_id);
   create index if not exists messages_created on messages (created_at desc);
   create index if not exists gallery_created on gallery (created_at desc);
   create index if not exists favorites_position on favorites (position);

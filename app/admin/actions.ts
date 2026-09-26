@@ -7,14 +7,18 @@ import { promises as fs } from "fs";
 import path from "path";
 import { checkPassword, login, logout, requireAdmin } from "@/lib/auth";
 import { setMaintenance } from "@/lib/maintenance";
+import { disconnectSpotify } from "@/lib/spotify";
 import {
   addFavorite,
   addGalleryItem,
+  addNeighbor,
   addUpdate,
   deleteMessage,
   deleteUpdate,
   moveFavorite,
+  moveNeighbor,
   removeFavorite,
+  removeNeighbor,
   removeGalleryItem,
   saveMarquee,
   uid,
@@ -197,6 +201,54 @@ export async function setMaintenanceAction(_prev: ActionState, formData: FormDat
   revalidatePath("/admin/maintenance");
   revalidatePath("/", "layout");
   return { ok: true };
+}
+
+/* ---------- neighbors ---------- */
+
+export async function addNeighborAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const name = String(formData.get("name") ?? "").trim().slice(0, 60);
+  const url = String(formData.get("url") ?? "").trim();
+  let buttonUrl = String(formData.get("buttonUrl") ?? "").trim();
+  const file = formData.get("file");
+  if (!name || !url.startsWith("http")) return { ok: false, error: "name and a valid site url are required" };
+  if (file instanceof File && file.size > 0) {
+    if (!file.type.startsWith("image/") || file.size > 512 * 1024) return { ok: false, error: "button must be an image under 512 kb" };
+    const dot = file.name.lastIndexOf(".");
+    const ext = (dot >= 0 ? file.name.slice(dot) : ".png").toLowerCase();
+    const fileName = `btn-${uid()}${ext}`;
+    await fs.mkdir(UPLOAD_DIR, { recursive: true });
+    await fs.writeFile(path.join(UPLOAD_DIR, fileName), Buffer.from(await file.arrayBuffer()));
+    buttonUrl = `/uploads/${fileName}`;
+  }
+  if (!buttonUrl) return { ok: false, error: "add a button image url or upload one" };
+  await addNeighbor({ name, url, buttonUrl });
+  revalidatePath("/admin/neighbors");
+  revalidatePath("/links");
+  return { ok: true };
+}
+
+export async function deleteNeighborAction(formData: FormData) {
+  await requireAdmin();
+  await removeNeighbor(String(formData.get("id")));
+  revalidatePath("/admin/neighbors");
+  revalidatePath("/links");
+}
+
+export async function moveNeighborAction(formData: FormData) {
+  await requireAdmin();
+  await moveNeighbor(String(formData.get("id")), formData.get("dir") === "up" ? -1 : 1);
+  revalidatePath("/admin/neighbors");
+  revalidatePath("/links");
+}
+
+/* ---------- spotify ---------- */
+
+export async function disconnectSpotifyAction() {
+  await requireAdmin();
+  disconnectSpotify();
+  revalidatePath("/admin/spotify");
+  revalidatePath("/music");
 }
 
 /* ---------- marquee ---------- */

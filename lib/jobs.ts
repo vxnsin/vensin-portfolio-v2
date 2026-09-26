@@ -3,6 +3,7 @@ import { fetchContributionYears, fetchGithubStats, fetchLatestGithubActivity } f
 import { fetchRecentlyWatched } from "./anime";
 import { fetchWeather } from "./weather";
 import { refreshLatest } from "./latest";
+import { fetchSpotifyData, spotifyConnected, SPOTIFY_CACHE_KEY, SPOTIFY_TTL } from "./spotify";
 
 /**
  * Everything the site pulls from the outside world, and how often.
@@ -32,6 +33,7 @@ export const jobs: Job[] = [
   { id: "weather", label: "weather", every: 10 * MIN, run: () => refresh(CACHE_KEYS.weather, TTL.weather, fetchWeather) },
   { id: "github-activity", label: "github: latest commit", every: HOUR, run: () => refresh(CACHE_KEYS.githubActivity, TTL.githubActivity, fetchLatestGithubActivity) },
   { id: "anime-recent", label: "anime: recently watched", every: HOUR, run: () => refresh(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched) },
+  { id: "spotify", label: "spotify: top tracks, artists, playlists", every: HOUR, run: () => (spotifyConnected() ? refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData) : Promise.resolve(null)) },
   { id: "github-stats", label: "github: followers & repos", daily: "00:00", run: () => refresh(CACHE_KEYS.githubStats, TTL.githubStats, fetchGithubStats) },
   { id: "github-contributions", label: "github: contribution graph", daily: "00:05", run: () => refresh(CACHE_KEYS.githubContributions, TTL.githubContributions, fetchContributionYears) },
 ];

@@ -134,6 +134,37 @@ export async function moveFavorite(id: string, dir: -1 | 1) {
   swap();
 }
 
+/* ---------- neighbors (88x31 buttons) ---------- */
+
+export type Neighbor = { id: string; name: string; url: string; buttonUrl: string; createdAt: string };
+type NeighborRow = { id: string; name: string; url: string; button_url: string; created_at: string };
+const toNeighbor = (r: NeighborRow): Neighbor => ({ id: r.id, name: r.name, url: r.url, buttonUrl: r.button_url, createdAt: r.created_at });
+
+export async function listNeighbors(): Promise<Neighbor[]> {
+  return (getDb().prepare("select * from neighbors order by position asc").all() as NeighborRow[]).map(toNeighbor);
+}
+export async function addNeighbor(n: Omit<Neighbor, "id" | "createdAt">): Promise<Neighbor> {
+  const db = getDb();
+  const pos = ((db.prepare("select max(position) m from neighbors").get() as { m: number | null }).m ?? -1) + 1;
+  const it: Neighbor = { id: uid(), createdAt: new Date().toISOString(), ...n };
+  db.prepare("insert into neighbors (id, name, url, button_url, position, created_at) values (?, ?, ?, ?, ?, ?)").run(it.id, it.name, it.url, it.buttonUrl, pos, it.createdAt);
+  return it;
+}
+export async function removeNeighbor(id: string) {
+  getDb().prepare("delete from neighbors where id = ?").run(id);
+}
+export async function moveNeighbor(id: string, dir: -1 | 1) {
+  const db = getDb();
+  const rows = db.prepare("select id, position from neighbors order by position asc").all() as Array<{ id: string; position: number }>;
+  const i = rows.findIndex((r) => r.id === id);
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= rows.length) return;
+  db.transaction(() => {
+    db.prepare("update neighbors set position = ? where id = ?").run(rows[j].position, rows[i].id);
+    db.prepare("update neighbors set position = ? where id = ?").run(rows[i].position, rows[j].id);
+  })();
+}
+
 /* ---------- apple watch rings ---------- */
 
 export async function getHealth(): Promise<Health | null> {

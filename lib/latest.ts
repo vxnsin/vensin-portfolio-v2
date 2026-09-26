@@ -3,6 +3,7 @@ import { LanyardDataSchema } from "@/components/discord/schemas";
 import { resolveAll } from "@/components/discord/activities";
 import { getLatest, listSeenActivities, markActivitySeen, saveLatest, type Latest } from "./store";
 import { notifyUnknownActivity } from "./discord-notify";
+import { recordListen } from "./listens";
 
 /**
  * Ask Lanyard what's running, remember the last activity per kind for the "latest" box,
@@ -24,6 +25,9 @@ export async function refreshLatest(): Promise<boolean> {
     if (r.info.latest) next.items![r.info.kind] = { value: r.info.latest.value, href: r.info.latest.href ?? null, at };
   }
   await saveLatest(next);
+
+  // one row per minute while spotify is playing feeds the music page (hours, top tracks, listening clock)
+  if (parsed.data.spotify) recordListen(parsed.data.spotify, at);
 
   const unknown = resolved.filter((r) => r.handler.id === "browsing");
   if (unknown.length) {

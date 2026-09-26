@@ -76,7 +76,8 @@ export default function PrivacyPage() {
           Discord Inc., USA.
         </li>
         <li>
-          <b>Spotify</b> (i.scdn.co): Albumcover, wenn gerade Musik läuft. Spotify AB, Regeringsgatan 19, 111 53 Stockholm, Schweden.
+          <b>Spotify</b> (i.scdn.co): Albumcover, Artist-Bilder und Playlist-Cover auf der Musik-Seite und im Discord-Widget. Spotify AB, Regeringsgatan 19,
+          111 53 Stockholm, Schweden. Die Hördaten auf der Musik-Seite betreffen ausschließlich den Betreiber selbst und werden serverseitig abgerufen.
         </li>
         <li>
           <b>Kitsu</b> (media.kitsu.app): Anime-Poster auf der Anime-Seite und im Discord-Widget. Kitsu / Hummingbird Media, USA.

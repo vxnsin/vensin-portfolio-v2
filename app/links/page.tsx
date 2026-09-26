@@ -1,10 +1,15 @@
+/* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
 import { socials } from "@/data/site";
+import { listNeighbors } from "@/lib/store";
 import { PixelIcon } from "@/components/icons/PixelIcon";
+import { Window } from "@/components/layout/Window";
+import { LinkBack } from "@/components/links/LinkBack";
 
 export const metadata: Metadata = { title: "links" };
 
-export default function LinksPage() {
+export default async function LinksPage() {
+  const neighbors = await listNeighbors();
   return (
     <div className="grid gap-5">
       <div>
@@ -34,9 +39,26 @@ export default function LinksPage() {
         ))}
       </ul>
 
-      <p className="text-xs text-ink-soft">
-        want to link back? this site is <span className="chip">vensin.dev</span> — no 88x31 button yet, but soon (probably).
-      </p>
+      <Window title="neighbors" dashed>
+        {neighbors.length === 0 ? (
+          <p className="text-xs text-ink-soft">no neighbors yet. want to swap buttons? send me yours via the contact form.</p>
+        ) : (
+          <ul className="flex flex-wrap gap-2">
+            {neighbors.map((n) => (
+              <li key={n.id}>
+                <a href={n.url} target="_blank" rel="noreferrer" title={n.name} className="block border border-line hover:border-accent">
+                  <img src={n.buttonUrl} alt={n.name} width={88} height={31} loading="lazy" style={{ imageRendering: "pixelated", display: "block" }} />
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+        <p className="text-[10px] text-ink-soft mt-2">sites i like, run by people i like. want in? swap buttons with me.</p>
+      </Window>
+
+      <Window title="link back" dashed>
+        <LinkBack />
+      </Window>
     </div>
   );
 }

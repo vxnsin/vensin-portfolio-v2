@@ -50,8 +50,9 @@ Every job can be triggered from the admin dashboard ("run now"). On a serverless
 | `/about` | bio, stats, tech stack |
 | `/projects` | project cards with filters |
 | `/anime` | recently watched + favorites |
+| `/music` | now playing, hours listened, top tracks/artists, playlists, listening clock |
 | `/gallery` | photos & videos with tags + lightbox |
-| `/links` | socials |
+| `/links` | socials, neighbors (88x31 buttons), link-back button |
 | `/contact` | contact form → Discord DM + admin inbox |
 | `/impressum` | forwards to the external impressum service (`IMPRESSUM_URL`) |
 | `/privacy` | Datenschutzerklärung |
@@ -74,6 +75,17 @@ Every activity is rendered from a small handler in `components/discord/activitie
 ## Anime favorites
 
 Managed in `/admin/anime`: type a title, pick a suggestion from Kitsu, add a short note and your own rating. The anime page shows six at a time and flips through pages automatically. Until the list has entries, the seed list from `data/anime.ts` is shown.
+
+## Music page
+
+Two sources, both optional:
+
+- **Listening log** (no setup): the minute-by-minute Discord poll writes one row per minute while Spotify is playing. That gives hours per year, most played tracks/artists, and the listening clock. Starts counting the moment the scheduler runs.
+- **Spotify API** (top tracks/artists per time range, recently played, public playlists): create an app on developer.spotify.com, set `SPOTIFY_CLIENT_ID` / `SPOTIFY_CLIENT_SECRET`, add the redirect URIs `http://127.0.0.1:3000/api/spotify/callback` and `https://vensin.dev/api/spotify/callback`, then click "connect spotify" in `/admin/spotify`. Only the refresh token is stored (SQLite); a job refreshes the data hourly.
+
+## Neighbors & link back
+
+`/admin/neighbors` manages the 88x31 buttons of friends' sites (image URL or upload). The own button lives at `/button.png` (`/button@2x.png`, `/button.svg`); the links page shows the HTML snippet to copy.
 
 ## Apple Watch rings
 
