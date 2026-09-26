@@ -9,6 +9,8 @@ import { SpotifyNow } from "@/components/music/SpotifyNow";
 import { NavTabs } from "./NavTabs";
 import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
+import { SeasonPicker } from "./SeasonPicker";
+import { currentSeason } from "@/lib/season";
 import { Window } from "./Window";
 import { LanyardProvider } from "@/components/discord/LanyardProvider";
 import { DiscordPresence } from "@/components/discord/DiscordPresence";
@@ -172,6 +174,7 @@ export async function Shell({ children }: { children: ReactNode }) {
               <Link href="/privacy" className="btn text-xs no-underline">
                 privacy
               </Link>
+              <SeasonPicker fallback={currentSeason()} />
               <ThemeToggle />
               <a
                 href="#top"

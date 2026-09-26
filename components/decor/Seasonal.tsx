@@ -1,4 +1,26 @@
-import type { Season } from "@/lib/season-data";
+"use client";
+
+import { useSyncExternalStore } from "react";
+import { isSeason, type Season } from "@/lib/season-data";
+
+function subscribe(cb: () => void) {
+  const obs = new MutationObserver(cb);
+  obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-season"] });
+  return () => obs.disconnect();
+}
+
+/** particles for the season on <html data-season>; `initial` is what the server rendered, so the first paint matches */
+export function Seasonal({ initial }: { initial: Season }) {
+  const season = useSyncExternalStore(
+    subscribe,
+    () => {
+      const v = document.documentElement.getAttribute("data-season");
+      return isSeason(v) ? v : initial;
+    },
+    () => initial,
+  );
+  return <Particles season={season} />;
+}
 
 // Deterministic values so server and client render the same markup.
 const seq = (i: number, a: number, b: number) => ((i * a + b) % 100) / 100; // pseudo-random 0..1 per index
@@ -49,7 +71,7 @@ function Cobweb() {
 }
 
 /** what drifts across the page this season */
-export function Seasonal({ season }: { season: Season }) {
+function Particles({ season }: { season: Season }) {
   if (season === "spring") {
     return (
       <div className="particles" aria-hidden>

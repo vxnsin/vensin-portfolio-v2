@@ -49,7 +49,7 @@ export default function PrivacyPage() {
       <p>
         Es werden keine Tracking-Cookies gesetzt. Wenn du das Design umschaltest, merkt sich ein technisch notwendiges Cookie
         (&quot;theme&quot;, ein Jahr gültig) deine Wahl, damit die Seite beim nächsten Besuch sofort richtig aussieht; es enthält nur das
-        Wort &quot;light&quot; oder &quot;dark&quot;. Ein weiteres Cookie wird nur für den passwortgeschützten Administrationsbereich des
+        Wort &quot;light&quot; oder &quot;dark&quot;. Genauso merkt sich ein Cookie &quot;season&quot; (ein Jahr gültig) eine selbst gewählte Jahreszeit für das Design; ohne Auswahl wird es nicht gesetzt. Ein weiteres Cookie wird nur für den passwortgeschützten Administrationsbereich des
         Betreibers gesetzt; Besucher sind davon nicht betroffen.
       </p>
 

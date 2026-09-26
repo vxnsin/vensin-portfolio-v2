@@ -5,6 +5,7 @@ import { site } from "@/data/site";
 import { Shell } from "@/components/layout/Shell";
 import { Seasonal } from "@/components/decor/Seasonal";
 import { currentSeason } from "@/lib/season";
+import { isSeason } from "@/lib/season-data";
 import { cookies } from "next/headers";
 
 const dotGothic = DotGothic16({ weight: "400", subsets: ["latin"], variable: "--font-dot-gothic", display: "swap" });
@@ -33,13 +34,17 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   // the chosen theme lives in a cookie so the server can render it straight into <html>; without one, css follows the system setting
-  const saved = (await cookies()).get("theme")?.value;
+  const jar = await cookies();
+  const saved = jar.get("theme")?.value;
   const theme = saved === "light" || saved === "dark" ? saved : undefined;
-  const season = currentSeason();
+  // same idea for the season: a visitor's pick wins, otherwise the admin's pick or the calendar
+  const picked = jar.get("season")?.value;
+  const choice = isSeason(picked) ? picked : "auto";
+  const season = choice === "auto" ? currentSeason() : choice;
   return (
-    <html lang="en" className={`${dotGothic.variable} ${plexMono.variable} h-full`} data-theme={theme} data-season={season}>
+    <html lang="en" className={`${dotGothic.variable} ${plexMono.variable} h-full`} data-theme={theme} data-season={season} data-season-choice={choice}>
       <body className="min-h-full">
-        <Seasonal season={season} />
+        <Seasonal initial={season} />
         <Shell>{children}</Shell>
       </body>
     </html>
