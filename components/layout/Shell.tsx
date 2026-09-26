@@ -79,6 +79,10 @@ export async function Shell({ children }: { children: ReactNode }) {
                 <a href="https://kitsu.app" target="_blank" rel="noreferrer">
                   kitsu
                 </a>
+                , pixel icons by{" "}
+                <a href="https://pixelarticons.com" target="_blank" rel="noreferrer">
+                  pixelarticons
+                </a>
                 . no cookies, no tracking.
               </div>
             </div>

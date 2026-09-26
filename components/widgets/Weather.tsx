@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PixelIcon } from "@/components/icons/PixelIcon";
+import { WeatherIcon } from "@/components/icons/WeatherIcon";
 
 // Weather comes from our own API route; the location is configured server-side and never exposed.
 const REFRESH_MS = 10 * 60 * 1000;
@@ -20,7 +20,7 @@ type Current = {
 function describe(code: number, day: boolean): { label: string; icon: string } {
   if (code === 0) return { label: "clear sky", icon: day ? "sun" : "moon" };
   if (code === 1) return { label: "mostly clear", icon: day ? "sun" : "moon" };
-  if (code === 2) return { label: "partly cloudy", icon: day ? "partly" : "cloud" };
+  if (code === 2) return { label: "partly cloudy", icon: day ? "cloud-sun" : "cloud-moon" };
   if (code === 3) return { label: "overcast", icon: "cloud" };
   if (code === 45 || code === 48) return { label: "foggy", icon: "fog" };
   if (code >= 51 && code <= 57) return { label: "drizzle", icon: "drizzle" };
@@ -80,7 +80,7 @@ export function Weather() {
   return (
     <div className="text-center leading-tight">
       <div className="flex items-center justify-center gap-3">
-        <PixelIcon name={d.icon} size={34} className="text-accent" />
+        <WeatherIcon name={d.icon} size={40} className="text-accent" />
         <span className="pixel text-accent-2 leading-none" style={{ fontSize: 48 }}>
           {Math.round(data.temperature)}°
         </span>

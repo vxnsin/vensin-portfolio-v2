@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { PixelIcon } from "@/components/icons/PixelIcon";
+import { WeatherIcon } from "@/components/icons/WeatherIcon";
 
 const TICK_MS = 30_000;
 const subscribe = (cb: () => void) => {
@@ -18,9 +18,9 @@ function animeSeason(month: number, year: number) {
 }
 
 function timeOfDay(hour: number) {
-  if (hour >= 5 && hour < 11) return { label: "morning", jp: "おはよう", icon: "sunrise" };
-  if (hour >= 11 && hour < 17) return { label: "afternoon", jp: "こんにちは", icon: "sun" };
-  if (hour >= 17 && hour < 22) return { label: "evening", jp: "こんばんは", icon: "sunset" };
+  if (hour >= 5 && hour < 11) return { label: "morning", jp: "おはよう", icon: "sun" };
+  if (hour >= 11 && hour < 17) return { label: "afternoon", jp: "こんにちは", icon: "sun-solid" };
+  if (hour >= 17 && hour < 22) return { label: "evening", jp: "こんばんは", icon: "cloud-moon" };
   return { label: "late night", jp: "おやすみ", icon: "moon" };
 }
 
@@ -46,7 +46,7 @@ export function JapanNow() {
   return (
     <div className="text-center leading-tight">
       <div className="flex items-center justify-center gap-3">
-        <PixelIcon name={tod.icon} size={30} className="text-accent" />
+        <WeatherIcon name={tod.icon} size={36} className="text-accent" />
         <span className="pixel text-accent-2 leading-none" style={{ fontSize: 48 }}>
           {get("hour")}:{get("minute")}
         </span>
