@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "220mb", // gallery uploads (videos)
       // hosts that may submit server actions (forms). needed when the site is reached through a tunnel, a lan ip or a proxy.
-      allowedOrigins: ["vensin.dev", "*.vensin.dev", "*.devtunnels.ms", "*.trycloudflare.com", "localhost:*", "127.0.0.1:*", ...(process.env.SERVER_ACTIONS_ORIGINS ?? "").split(",").map((s) => s.trim()).filter(Boolean)],
+      allowedOrigins: ["vensin.dev", "*.vensin.dev", "*.devtunnels.ms", "*.trycloudflare.com", "localhost:3000", "localhost:3001", "localhost:3002", "127.0.0.1:3000", "127.0.0.1:3001", "127.0.0.1:3002", ...(process.env.SERVER_ACTIONS_ORIGINS ?? "").split(",").map((s) => s.trim()).filter(Boolean)],
     },
   },
   serverExternalPackages: ["sharp", "heic-convert", "better-sqlite3"],
