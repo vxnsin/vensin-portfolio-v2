@@ -43,7 +43,8 @@ export const site = {
 
 export const socials = [
   { id: "github", label: "GitHub", url: "https://github.com/vxnsin", handle: "@vxnsin" },
-  { id: "tiktok", label: "TikTok", url: "https://www.tiktok.com/@vxnsin", handle: "@vxnsin" },
+  { id: "tiktok", label: "TikTok", url: "https://www.tiktok.com/@vxn_sin", handle: "@vxn_sin" },
+  { id: "instagram", label: "Instagram", url: "https://www.instagram.com/vxnsin/", handle: "@vxnsin" },
   { id: "steam", label: "Steam", url: "https://steamcommunity.com/id/Vxnsin", handle: "Vxnsin" },
   { id: "discord", label: "Discord", url: "https://discord.gg/velane", handle: "velane server" },
 ];
