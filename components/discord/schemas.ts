@@ -19,6 +19,7 @@ export const ActivitySchema = z.object({
     })
     .optional(),
   emoji: z.object({ name: z.string(), id: z.string().optional(), animated: z.boolean().optional() }).optional().nullable(),
+  buttons: z.array(z.string()).optional(),
 });
 
 export const LanyardDataSchema = z.object({

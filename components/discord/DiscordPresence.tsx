@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { site } from "@/data/site";
 import { useLanyard } from "./useLanyard";
 import type { Activity, LanyardData } from "./schemas";
@@ -13,19 +13,20 @@ const STATUS: Record<LanyardData["discord_status"], { label: string; color: stri
   offline: { label: "offline", color: "var(--off)" },
 };
 
+/* ---------- helpers ---------- */
+
 function avatarUrl(user: LanyardData["discord_user"]) {
   if (!user.avatar) return "https://cdn.discordapp.com/embed/avatars/0.png";
   const ext = user.avatar.startsWith("a_") ? "gif" : "png";
   return `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.${ext}?size=128`;
 }
 
-function assetUrl(a: Activity): string | null {
-  const img = a.assets?.large_image;
+function assetUrl(img: string | undefined, applicationId?: string): string | null {
   if (!img) return null;
   if (img.startsWith("mp:external/")) return `https://media.discordapp.net/external/${img.slice("mp:external/".length)}`;
   if (img.startsWith("mp:")) return `https://media.discordapp.net/${img.slice(3)}`;
   if (img.startsWith("spotify:")) return `https://i.scdn.co/image/${img.slice(8)}`;
-  if (a.application_id) return `https://cdn.discordapp.com/app-assets/${a.application_id}/${img}.png`;
+  if (applicationId) return `https://cdn.discordapp.com/app-assets/${applicationId}/${img}.png`;
   return null;
 }
 
@@ -68,77 +69,158 @@ function verb(a: Activity) {
   }
 }
 
-function Row({ icon, title, sub, sub2, footer }: { icon?: string | null; title: string; sub?: string | null; sub2?: string | null; footer?: React.ReactNode }) {
+/** PreMiD-style presences (YouTube, AniWorld, Netflix, …) put the playback state in the small asset text. */
+function playback(a: Activity): "playing" | "paused" | null {
+  const t = (a.assets?.small_text ?? "").toLowerCase();
+  if (/paus/.test(t)) return "paused";
+  if (/play|live|watch/.test(t)) return "playing";
+  return null;
+}
+
+/* ---------- building blocks ---------- */
+
+function Heading({ icon, children }: { icon: string; children: ReactNode }) {
+  return (
+    <div className="text-[11px] text-ink-soft uppercase tracking-wide truncate">
+      {icon} {children}
+    </div>
+  );
+}
+
+function Row({
+  icon,
+  smallIcon,
+  title,
+  sub,
+  sub2,
+  footer,
+}: {
+  icon?: string | null;
+  smallIcon?: string | null;
+  title: string;
+  sub?: string | null;
+  sub2?: string | null;
+  footer?: ReactNode;
+}) {
   return (
     <div className="flex gap-3 py-2">
-      {icon ? (
-        <img src={icon} alt="" width={44} height={44} className="w-11 h-11 object-cover border border-line shrink-0" />
-      ) : (
-        <div className="w-11 h-11 border border-dashed border-line shrink-0 grid place-items-center text-ink-soft">?</div>
-      )}
+      <div className="relative shrink-0">
+        {icon ? (
+          <img src={icon} alt="" width={44} height={44} className="w-11 h-11 object-cover border border-line" />
+        ) : (
+          <div className="w-11 h-11 border border-dashed border-line grid place-items-center text-ink-soft">?</div>
+        )}
+        {smallIcon && (
+          <img src={smallIcon} alt="" width={16} height={16} className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border border-line bg-paper" />
+        )}
+      </div>
       <div className="min-w-0 flex-1 text-xs leading-snug">
-        <div className="font-semibold truncate text-ink">{title}</div>
-        {sub && <div className="truncate text-ink-soft">{sub}</div>}
-        {sub2 && <div className="truncate text-ink-soft">{sub2}</div>}
+        <div className="font-semibold truncate text-ink" title={title}>
+          {title}
+        </div>
+        {sub && (
+          <div className="truncate text-ink-soft" title={sub}>
+            {sub}
+          </div>
+        )}
+        {sub2 && (
+          <div className="truncate text-ink-soft" title={sub2}>
+            {sub2}
+          </div>
+        )}
         {footer}
       </div>
     </div>
   );
 }
 
-function Spotify({ s }: { s: NonNullable<LanyardData["spotify"]> }) {
+/** Progress bar driven by start/end timestamps. Freezes when paused. */
+function Progress({ start, end, paused }: { start: number; end: number; paused?: boolean }) {
   const now = useNow();
+  const total = end - start;
+  const elapsed = Math.min(total, Math.max(0, now - start));
+  const pct = total > 0 ? (elapsed / total) * 100 : 0;
+  return (
+    <div className="mt-1">
+      <div className="progress">
+        <i style={{ width: `${pct}%`, opacity: paused ? 0.5 : 1 }} />
+      </div>
+      <div className="flex justify-between text-[10px] text-ink-soft mt-0.5">
+        <span>{fmt(elapsed)}</span>
+        <span>{paused ? "⏸ paused" : fmt(total)}</span>
+      </div>
+    </div>
+  );
+}
+
+function Elapsed({ start }: { start: number }) {
+  const now = useNow();
+  return <div className="text-[10px] text-ink-soft mt-0.5">⏱ {fmt(now - start)} elapsed</div>;
+}
+
+/* ---------- activity renderers ---------- */
+
+function Spotify({ s }: { s: NonNullable<LanyardData["spotify"]> }) {
   const start = s.timestamps?.start ?? 0;
   const end = s.timestamps?.end ?? 0;
-  const pct = end > start ? Math.min(100, ((now - start) / (end - start)) * 100) : 0;
-  const title = s.track_id ? (
-    <a href={`https://open.spotify.com/track/${s.track_id}`} target="_blank" rel="noreferrer" className="no-underline hover:underline">
-      {s.song}
-    </a>
-  ) : (
-    s.song
-  );
   return (
     <div>
-      <div className="text-[11px] text-ink-soft uppercase tracking-wide">♪ listening on spotify</div>
+      <Heading icon="♪">listening on spotify</Heading>
       <Row
         icon={s.album_art_url ?? null}
         title={s.song}
         sub={`by ${s.artist}`}
         sub2={s.album ? `on ${s.album}` : null}
-        footer={
-          end > start ? (
-            <div className="mt-1">
-              <div className="progress">
-                <i style={{ width: `${pct}%` }} />
-              </div>
-              <div className="flex justify-between text-[10px] text-ink-soft mt-0.5">
-                <span>{fmt(now - start)}</span>
-                <span>{fmt(end - start)}</span>
-              </div>
-            </div>
-          ) : null
-        }
+        footer={end > start ? <Progress start={start} end={end} /> : null}
       />
-      <span className="sr-only">{title}</span>
+      {s.track_id && (
+        <a href={`https://open.spotify.com/track/${s.track_id}`} target="_blank" rel="noreferrer" className="text-[10px]">
+          open in spotify ↗
+        </a>
+      )}
     </div>
   );
 }
 
-function Generic({ a }: { a: Activity }) {
-  const now = useNow();
+/** type 3 "watching": YouTube, AniWorld, Netflix … (PreMiD). Video title in details, channel/series in state. */
+function Watching({ a }: { a: Activity }) {
   const start = a.timestamps?.start;
+  const end = a.timestamps?.end;
+  const state = playback(a);
+  const paused = state === "paused";
   return (
     <div>
-      <div className="text-[11px] text-ink-soft uppercase tracking-wide">
-        {verb(a)} {a.name}
-      </div>
+      <Heading icon={paused ? "⏸" : "▶"}>
+        {paused ? "paused" : "watching"} on {a.name}
+      </Heading>
       <Row
-        icon={assetUrl(a)}
+        icon={assetUrl(a.assets?.large_image, a.application_id)}
+        smallIcon={assetUrl(a.assets?.small_image, a.application_id)}
+        title={a.details || a.name}
+        sub={a.state ?? null}
+        sub2={a.assets?.large_text && a.assets.large_text !== a.details ? a.assets.large_text : null}
+        footer={start && end && end > start ? <Progress start={start} end={end} paused={paused} /> : start ? <Elapsed start={start} /> : null}
+      />
+    </div>
+  );
+}
+
+/** everything else: games, streaming, generic rich presence */
+function Generic({ a }: { a: Activity }) {
+  const start = a.timestamps?.start;
+  const end = a.timestamps?.end;
+  return (
+    <div>
+      <Heading icon={a.type === 0 ? "🎮" : "•"}>
+        {verb(a)} {a.name}
+      </Heading>
+      <Row
+        icon={assetUrl(a.assets?.large_image, a.application_id)}
+        smallIcon={assetUrl(a.assets?.small_image, a.application_id)}
         title={a.details || a.name}
         sub={a.state ?? null}
         sub2={a.assets?.large_text ?? null}
-        footer={start ? <div className="text-[10px] text-ink-soft mt-0.5">⏱ {fmt(now - start)} elapsed</div> : null}
+        footer={start && end && end > start ? <Progress start={start} end={end} /> : start ? <Elapsed start={start} /> : null}
       />
     </div>
   );
@@ -147,13 +229,18 @@ function Generic({ a }: { a: Activity }) {
 function CustomStatus({ a }: { a: Activity }) {
   const e = a.emoji;
   const url = e ? emojiUrl(e) : null;
+  const text = (a.state ?? "").replace(/\s*\n\s*/g, " / ");
   return (
     <div className="flex items-center gap-2 text-xs py-1 min-w-0">
       {url ? <img src={url} alt="" width={18} height={18} className="w-[18px] h-[18px] shrink-0" /> : e?.name ? <span className="shrink-0">{e.name}</span> : null}
-      <span className="truncate min-w-0" title={a.state ?? ""}>{a.state ?? ""}</span>
+      <span className="truncate min-w-0" title={text}>
+        {text}
+      </span>
     </div>
   );
 }
+
+/* ---------- widget ---------- */
 
 export function DiscordPresence() {
   const { data, live } = useLanyard(site.discordUserId);
@@ -169,7 +256,9 @@ export function DiscordPresence() {
   const status = STATUS[data.discord_status];
   const name = data.discord_user.display_name || data.discord_user.global_name || data.discord_user.username;
   const custom = data.activities.find((a) => a.type === 4);
-  const others = data.activities.filter((a) => a.type !== 4 && a.name !== "Spotify");
+  const watching = data.activities.filter((a) => a.type === 3);
+  const others = data.activities.filter((a) => a.type !== 4 && a.type !== 3 && a.name !== "Spotify");
+  const hasActivity = Boolean(data.spotify) || watching.length > 0 || others.length > 0;
 
   return (
     <div>
@@ -189,14 +278,17 @@ export function DiscordPresence() {
 
       {custom && <CustomStatus a={custom} />}
 
-      {(data.spotify || others.length > 0) && <hr className="dotted-hr" />}
+      {hasActivity && <hr className="dotted-hr" />}
 
       {data.spotify && <Spotify s={data.spotify} />}
+      {watching.map((a) => (
+        <Watching key={a.id ?? a.name} a={a} />
+      ))}
       {others.map((a) => (
         <Generic key={a.id ?? a.name} a={a} />
       ))}
 
-      {!data.spotify && others.length === 0 && !custom && (
+      {!hasActivity && !custom && (
         <div className="text-xs text-ink-soft mt-2">
           {data.discord_status === "offline" ? "probably sleeping or touching grass" : "not doing anything special right now"} (￣o￣) zzZ
         </div>

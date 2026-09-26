@@ -44,10 +44,11 @@ export async function getRecentlyWatched(): Promise<WatchedAnime[]> {
     const seen = new Set<string>();
     const unique = out.filter((a) => (seen.has(a.title) ? false : (seen.add(a.title), true))).slice(0, 8);
 
-    // upgrade covers to Kitsu posters (sequential to be polite)
+    // upgrade covers to Kitsu posters and link to Kitsu (sequential to be polite)
     for (const a of unique) {
       const k = await kitsuSearch(a.title);
       if (k?.poster) a.cover = k.poster;
+      if (k?.url) a.url = k.url;
     }
     return unique;
   } catch {
