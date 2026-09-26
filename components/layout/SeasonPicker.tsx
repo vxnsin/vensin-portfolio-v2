@@ -1,9 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { isSeason, SEASONS, type Season, type SeasonSetting } from "@/lib/season-data";
-
-const ICON: Record<Season, string> = { spring: "✿", summer: "☀", autumn: "🍂", halloween: "👻", winter: "❄" };
+import { isSeason, SEASONS, SEASON_ICON as ICON, type Season, type SeasonSetting } from "@/lib/season-data";
 
 function subscribe(cb: () => void) {
   const obs = new MutationObserver(cb);

@@ -88,7 +88,7 @@ Two sources, both optional:
 
 ## Seasons
 
-The palette, the window frames and the particles follow the calendar (`lib/season.ts`): spring (sakura petals), summer (fireflies, sunny stripes), autumn (tumbling leaves), halloween from Oct 15 to Nov 2 (ghosts, bats, a cobweb), winter (pixel snow with snow caps on every window). Light and dark mode each have their own set. Visitors can pick a season in the footer (cookie `season`, "auto" removes it); `/admin/site` sets the default for everyone else.
+The palette, the window frames and the particles follow the calendar (`lib/season.ts`): spring (sakura petals), summer (fireflies, sunny stripes), autumn (tumbling leaves), halloween from Oct 15 to Nov 2 (ghosts, bats, a cobweb), winter (pixel snow with snow caps on every window), and from Dec 18 to 27 a christmas special that visitors can't pick themselves: santa's sleigh with two reindeer crosses the sky, presents tumble down between the snow, fairy lights run along every title bar. Light and dark mode each have their own set. Visitors can pick a season in the footer (cookie `season`, "auto" removes it); `/admin/site` sets the default for everyone else.
 
 ## Guestbook & Discord buttons
 

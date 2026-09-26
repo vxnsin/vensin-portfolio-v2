@@ -200,6 +200,42 @@
   }
 }
 
+:root[data-season="christmas"] {
+  --bg: #e9eff6;
+  --paper: #fbfdff;
+  --paper-2: #eef4fa;
+  --line: #a9bcd3;
+  --accent: #d9453d;
+  --accent-2: #2e9d5c;
+  --accent-soft: #fbe1df;
+  --glow-1: rgba(217, 69, 61, 0.22);
+  --glow-2: rgba(46, 157, 92, 0.22);
+}
+:root[data-season="christmas"][data-theme="dark"] {
+  --bg: #0f1420;
+  --paper: #171d2b;
+  --paper-2: #202838;
+  --line: #4a5a76;
+  --accent: #ff6b6b;
+  --accent-2: #5fd48a;
+  --accent-soft: #3a2630;
+  --glow-1: rgba(255, 107, 107, 0.16);
+  --glow-2: rgba(95, 212, 138, 0.16);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-season="christmas"]:not([data-theme="light"]) {
+    --bg: #0f1420;
+    --paper: #171d2b;
+    --paper-2: #202838;
+    --line: #4a5a76;
+    --accent: #ff6b6b;
+    --accent-2: #5fd48a;
+    --accent-soft: #3a2630;
+    --glow-1: rgba(255, 107, 107, 0.16);
+    --glow-2: rgba(95, 212, 138, 0.16);
+  }
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-paper: var(--paper);
@@ -347,6 +383,14 @@ body::before {
 .bat > i { transform-origin: 50% 50%; animation: p-flap ease-in-out infinite alternate; }
 .cobweb { position: fixed; top: 0; left: 0; z-index: 0; color: var(--ink); opacity: 0.22; pointer-events: none; }
 
+/* christmas: santa crosses the sky now and then, presents tumble down */
+.sleigh-track { position: fixed; top: 8px; left: 0; z-index: 0; pointer-events: none; animation: p-sleigh 38s linear infinite; }
+.sleigh-track > i { display: block; animation: p-bob 1.6s ease-in-out infinite alternate; }
+.sleigh { display: block; filter: drop-shadow(0 0 6px rgba(255, 220, 120, 0.35)); }
+@keyframes p-sleigh { 0% { transform: translateX(-30vw); } 55% { transform: translateX(105vw); } 100% { transform: translateX(105vw); } }
+.gift { animation: p-fall linear infinite, p-sway ease-in-out infinite alternate; opacity: 0.9; }
+.gift > i { animation: p-tumble linear infinite; }
+
 /* winter: pixel snow */
 .flake { background: #fff; box-shadow: 0 0 2px rgba(120, 160, 220, 0.5); animation: p-fall linear infinite, p-sway ease-in-out infinite alternate; }
 :root[data-theme="light"] .flake { background: #fff; box-shadow: 0 0 0 1px rgba(120, 160, 220, 0.35); }
@@ -364,16 +408,28 @@ body::before {
 
 /* ---------- seasonal frame ---------- */
 .win { position: relative; }
-/* winter: snow caps on every window */
-:root[data-season="winter"] .win::before {
+/* winter and christmas: snow caps on every window */
+:root[data-season="winter"] .win::before,
+:root[data-season="christmas"] .win::before {
   content: ""; position: absolute; left: -1.5px; right: -1.5px; top: -5px; height: 5px; pointer-events: none;
   background:
     linear-gradient(#fff, #fff) bottom / 100% 2px no-repeat,
     repeating-linear-gradient(90deg, #fff 0 5px, transparent 5px 8px) top / 100% 3px no-repeat;
 }
 /* in light mode the caps need an edge to show against the paper */
-:root[data-season="winter"]:not([data-theme="dark"]) .win::before { filter: drop-shadow(0 1px 0 rgba(120, 160, 220, 0.7)); }
-@media (prefers-color-scheme: dark) { :root[data-season="winter"]:not([data-theme="light"]) .win::before { filter: none; } }
+:root[data-season="winter"]:not([data-theme="dark"]) .win::before,
+:root[data-season="christmas"]:not([data-theme="dark"]) .win::before { filter: drop-shadow(0 1px 0 rgba(120, 160, 220, 0.7)); }
+@media (prefers-color-scheme: dark) {
+  :root[data-season="winter"]:not([data-theme="light"]) .win::before,
+  :root[data-season="christmas"]:not([data-theme="light"]) .win::before { filter: none; }
+}
+/* christmas: fairy lights along every title bar */
+:root[data-season="christmas"] .win-title {
+  background-image: repeating-linear-gradient(90deg, #e04b4b 0 3px, transparent 3px 10px, #5fd48a 10px 13px, transparent 13px 20px, #e0b34a 20px 23px, transparent 23px 30px, #6fb3ff 30px 33px, transparent 33px 40px);
+  background-size: 100% 3px;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+}
 /* autumn: a warm band on the title bars */
 :root[data-season="autumn"] .win-title { background: linear-gradient(90deg, var(--accent-soft), var(--paper-2)); }
 /* summer: a sunny stripe above each window */
@@ -383,8 +439,8 @@ body::before {
 :root[data-season="halloween"] .win { box-shadow: 4px 4px 0 var(--line), 0 0 0 1px rgba(169, 133, 255, 0.12); }
 
 @media (prefers-reduced-motion: reduce) {
-  .particle, .particle > i, .marquee-track { animation: none !important; }
-  .particles { display: none; }
+  .particle, .particle > i, .marquee-track, .sleigh-track, .sleigh-track > i { animation: none !important; }
+  .particles, .sleigh-track { display: none; }
 }
 
 /* misc */

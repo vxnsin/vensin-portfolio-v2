@@ -47,6 +47,52 @@ function Bat() {
   );
 }
 
+// santa's sleigh and two reindeer as a pixel grid (k dark, a antler, b brown, r red, w white, f face, g gold)
+const REINDEER = [
+  "........a.a.a...",
+  ".........aaa....",
+  "........bbbN....",
+  "........bb......",
+  "..bbbbbbbbb.....",
+  ".bbbbbbbbbb.....",
+  ".bbbbbbbbb......",
+  ".b..b...b.b.....",
+  ".b..b..b...b....",
+  "b...b.b.....b...",
+];
+const SLEIGH = ["......rr....", "......rw....", "......ff....", ".....rrrr...", ".ggrrrrrrrr.", "rrrrrrrrrrrr", ".rrrrrrrrrr.", "..gggggggggg"];
+const SCENE = REINDEER.map((row, i) => {
+  const sleigh = i >= 2 ? SLEIGH[i - 2] : "............";
+  const rope = i === 6 ? "gg" : "..";
+  const link = i === 6 ? "g" : ".";
+  return sleigh + rope + row.replace("N", "k") + link + row.replace("N", "r");
+});
+const PIX: Record<string, string> = { k: "#3b2c3a", a: "#c9924f", b: "#8a5a2b", r: "#d9453d", w: "#ffffff", f: "#f2c9a0", g: "#e0b34a" };
+
+function Sleigh() {
+  const w = SCENE[0].length;
+  const h = SCENE.length;
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} width={w * 3} height={h * 3} className="sleigh" aria-hidden shapeRendering="crispEdges">
+      {SCENE.flatMap((row, y) => [...row].map((c, x) => (PIX[c] ? <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill={PIX[c]} /> : null)))}
+    </svg>
+  );
+}
+
+const GIFT_COLORS = ["#d9453d", "#2e9d5c", "#4f93d6", "#8e86d9"];
+function Gift({ color }: { color: string }) {
+  return (
+    <svg viewBox="0 0 10 10" width="14" height="14" aria-hidden shapeRendering="crispEdges">
+      <rect x="0" y="3" width="10" height="7" fill={color} />
+      <rect x="4" y="3" width="2" height="7" fill="#e0b34a" />
+      <rect x="0" y="5" width="10" height="2" fill="#e0b34a" />
+      <rect x="2" y="1" width="2" height="2" fill="#e0b34a" />
+      <rect x="6" y="1" width="2" height="2" fill="#e0b34a" />
+      <rect x="4" y="2" width="2" height="1" fill="#e0b34a" />
+    </svg>
+  );
+}
+
 function Cobweb() {
   const rays = [0, 15, 30, 45, 60, 75, 90];
   const rings = [22, 44, 66, 88];
@@ -144,6 +190,41 @@ function Particles({ season }: { season: Season }) {
             >
               <i style={{ animationDuration: `${0.35 + seq(i, 11, 3) * 0.25}s` }}>
                 <Bat />
+              </i>
+            </span>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  if (season === "christmas") {
+    return (
+      <>
+        <span className="sleigh-track" aria-hidden>
+          <i>
+            <Sleigh />
+          </i>
+        </span>
+        <div className="particles" aria-hidden>
+          {Array.from({ length: 22 }, (_, i) => {
+            const size = 3 + ((i * 5) % 3) * 2;
+            return (
+              <span
+                key={`f${i}`}
+                className="particle flake"
+                style={{ left: `${(i * 23 + 3) % 100}%`, width: size, height: size, opacity: 0.35 + ((i * 3) % 5) * 0.12, animationDuration: `${10 + ((i * 7) % 16)}s, ${3 + (i % 5)}s`, animationDelay: `${-((i * 3.7) % 24)}s, ${-((i * 1.9) % 6)}s` }}
+              />
+            );
+          })}
+          {Array.from({ length: 9 }, (_, i) => (
+            <span
+              key={`g${i}`}
+              className="particle gift"
+              style={{ left: `${(i * 41 + 13) % 100}%`, animationDuration: `${14 + ((i * 5) % 10)}s, ${3 + (i % 3)}s`, animationDelay: `${-((i * 6.1) % 20)}s, ${-((i * 1.4) % 4)}s` }}
+            >
+              <i style={{ animationDuration: `${5 + (i % 4)}s` }}>
+                <Gift color={GIFT_COLORS[i % GIFT_COLORS.length]} />
               </i>
             </span>
           ))}
