@@ -58,16 +58,16 @@ export default async function MusicPage() {
             {logArtists.length === 0 ? (
               <p className="text-ink-soft">nothing logged yet.</p>
             ) : (
-              <ul className="grid gap-2">
+              <ul className="grid gap-2 min-w-0">
                 {logArtists.map((a, i) => (
-                  <li key={a.artist} className="flex items-center gap-2">
+                  <li key={a.artist} className="flex items-center gap-2 min-w-0 overflow-hidden">
                     <span className="pixel text-accent-2 w-4 text-right">{i + 1}</span>
                     <span className="w-8 h-8 rounded-full overflow-hidden border border-line shrink-0 bg-paper-2">{a.image && <img src={a.image} alt="" className="w-full h-full object-cover" loading="lazy" />}</span>
                     <span className="min-w-0 flex-1">
                       <span className="block truncate">{a.artist}</span>
                       <span className="block h-1 bg-accent-2 mt-0.5" style={{ width: `${Math.max(6, (a.minutes / maxArtistMin) * 100)}%`, opacity: 0.8 }} />
                     </span>
-                    <span className="text-[10px] text-ink-soft shrink-0">{a.minutes} min</span>
+                    <span className="text-[10px] text-ink-soft shrink-0 w-12 text-right">{a.minutes} min</span>
                   </li>
                 ))}
               </ul>
