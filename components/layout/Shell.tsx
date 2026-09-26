@@ -10,7 +10,6 @@ import { NavTabs } from "./NavTabs";
 import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
 import { Window } from "./Window";
-import { CycleWindow } from "./CycleWindow";
 import { LanyardProvider } from "@/components/discord/LanyardProvider";
 import { DiscordPresence } from "@/components/discord/DiscordPresence";
 import { TodayCycle } from "@/components/widgets/TodayCycle";
@@ -62,43 +61,21 @@ export async function Shell({ children }: { children: ReactNode }) {
 
           {/* sidebar */}
           <aside className="grid gap-5 min-w-0 md:sticky md:top-6">
-            <CycleWindow
-              autoMs={15_000}
-              pages={[
-                {
-                  key: "discord",
-                  title: "discord",
-                  right: <Kaomoji className="text-[11px] text-ink-soft" />,
-                  node: <DiscordPresence hideSpotify={spotify} />,
-                },
-                ...(spotify
-                  ? [
-                      {
-                        key: "spotify",
-                        title: "spotify",
-                        right: (
-                          <Link
-                            href="/music"
-                            className="text-[10px] no-underline text-ink-soft hover:text-accent"
-                          >
-                            music →
-                          </Link>
-                        ),
-                        node: (
-                          <SpotifyNow
-                            initial={now}
-                            last={
-                              lastPlayed
-                                ? {
-                                    song: lastPlayed.song,
-                                    artist: lastPlayed.artist,
-                                    art: lastPlayed.art,
-                                    trackId: lastPlayed.trackId,
-                                    at: lastPlayed.at,
-                                  }
-                                : null
-                            }
-                          />
+            <Window title="discord" right={<Kaomoji className="text-[11px] text-ink-soft" />}>
+              <DiscordPresence hideSpotify={spotify} />
+            </Window>
+            {spotify && (
+              <Window
+                title="spotify"
+                right={
+                  <Link href="/music" className="text-[10px] no-underline text-ink-soft hover:text-accent">
+                    music →
+                  </Link>
+                }
+              >
+                <SpotifyNow initial={now} last={lastPlayed ? { song: lastPlayed.song, artist: lastPlayed.artist, art: lastPlayed.art, trackId: lastPlayed.trackId, at: lastPlayed.at } : null} />
+              </Window>
+            )}
                         ),
                       },
                     ]
