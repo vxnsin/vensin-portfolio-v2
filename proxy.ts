@@ -3,6 +3,7 @@ import { ADMIN_COOKIE, verifyAdminToken } from "@/lib/auth";
 import { getMaintenance } from "@/lib/maintenance";
 
 import { isSeason } from "@/lib/season-data";
+import { recordVisit } from "@/lib/visits";
 
 // Maintenance mode, toggled in /admin/maintenance. Runs in the Node runtime so it can read sqlite.
 // Admins (valid session cookie) always see the real site; everyone else gets the maintenance page with a 503.
@@ -15,6 +16,13 @@ export const config = {
 export function proxy(req: NextRequest) {
   const admin = verifyAdminToken(req.cookies.get(ADMIN_COOKIE)?.value);
   const preview = req.nextUrl.searchParams.get("season");
+  // one tick per person per day, only for real page loads (not prefetches, not the admin)
+  if (!admin && req.method === "GET" && req.headers.get("sec-fetch-dest") === "document" && !req.headers.get("next-router-prefetch")) {
+    try {
+      recordVisit((req.headers.get("x-forwarded-for") ?? "local").split(",")[0].trim(), req.headers.get("user-agent") ?? "");
+    } catch {}
+  }
+
   const pass = () => {
     if (!admin || !isSeason(preview)) return NextResponse.next();
     const requestHeaders = new Headers(req.headers);

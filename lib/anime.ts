@@ -52,6 +52,40 @@ export async function fetchRecentlyWatched(): Promise<WatchedAnime[] | null> {
   }
   return unique;
 }
+export type ShelfAnime = { title: string; url: string; cover: string | null };
+export type AnimeLists = { watched: ShelfAnime[]; watchlist: ShelfAnime[]; fetchedAt: string };
+
+async function fetchList(path: string): Promise<ShelfAnime[] | null> {
+  const res = await fetch(`${ANIWORLD}/user/profil/${aniworldProfile}/${path}`, { headers: { "user-agent": "Mozilla/5.0 (compatible; vensin.dev)" }, cache: "no-store" });
+  if (!res.ok) return null;
+  const root = parse(await res.text());
+  const out: ShelfAnime[] = [];
+  const seen = new Set<string>();
+  for (const el of root.querySelectorAll(".coverListItem")) {
+    const title = el.querySelector("h3")?.text.trim();
+    const link = el.querySelector("a")?.getAttribute("href") ?? "";
+    if (!title || seen.has(title)) continue;
+    seen.add(title);
+    out.push({ title, url: link ? ANIWORLD + link : ANIWORLD, cover: null });
+  }
+  return out;
+}
+
+/** "abonnierte animes" are the ones i watched, the watchlist is what's still ahead. posters via kitsu (cached per title). */
+export async function fetchAnimeLists(): Promise<AnimeLists | null> {
+  const [watched, watchlist] = await Promise.all([fetchList("subscribed"), fetchList("watchlist")]);
+  if (!watched || !watchlist) return null;
+  for (const a of [...watched, ...watchlist]) {
+    const k = await kitsuSearch(a.title);
+    if (k?.poster) a.cover = k.poster;
+    if (k?.url) a.url = k.url;
+  }
+  return { watched, watchlist, fetchedAt: new Date().toISOString() };
+}
+export async function getAnimeLists(): Promise<AnimeLists | null> {
+  return cached(CACHE_KEYS.animeLists, TTL.animeLists, fetchAnimeLists);
+}
+
 export async function getRecentlyWatched(): Promise<WatchedAnime[]> {
   return (await cached(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched)) ?? [];
 }

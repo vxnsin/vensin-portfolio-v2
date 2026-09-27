@@ -35,7 +35,10 @@ export default function PrivacyPage() {
       <H>2. Was diese Seite ist</H>
       <p>
         vensin.dev ist eine private, nicht-kommerzielle Portfolio-Website. Es werden keine Nutzerkonten angeboten, es findet keine Werbung
-        und kein Tracking statt. Es werden keine Analyse-Dienste (z.&nbsp;B. Google Analytics) eingesetzt.
+        und kein Tracking statt. Es werden keine Analyse-Dienste (z.&nbsp;B. Google Analytics) eingesetzt. Der Besucherzähler im
+        Fußbereich zählt pro Tag höchstens einen Aufruf pro Person: dazu wird aus IP-Adresse, Browserkennung und Tagesdatum ein
+        gekürzter Hash gebildet, der nach zwei Tagen gelöscht wird; er lässt sich weder zurückrechnen noch über Tage hinweg verknüpfen
+        (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO). Gespeichert bleibt nur die Gesamtzahl.
       </p>
 
       <H>3. Hosting und Server-Logs</H>

@@ -53,6 +53,7 @@ Every job can be triggered from the admin dashboard ("run now"). On a serverless
 | `/anime` | recently watched + favorites |
 | `/music` | now playing, hours listened, top tracks/artists, playlists, listening clock |
 | `/gallery` | photos & videos with tags + lightbox |
+| `/setup` | desk, computer, audio, motorcycle, everyday carry: what's actually in use, edited in the admin |
 | `/links` | socials, neighbors (88x31 buttons), link-back button |
 | `/contact` | contact form → Discord DM + admin inbox (two messages a day per sender) |
 | `/guestbook` | public guestbook with spam screening; flagged entries wait for a Discord button click or the admin |
@@ -141,6 +142,18 @@ iPhone setup (Shortcuts app):
 ## Gallery uploads
 
 Photos are rotated by EXIF, resized to max 2200px and saved as WebP. HEIC/HEIF from iPhone is converted automatically. GIFs stay GIFs. Videos (mp4, mov, webm) are stored as-is; mp4/H.264 plays everywhere, HEVC `.mov` does not play in every browser.
+
+## Visitor counter
+
+The footer odometer counts one visit per person per day: the proxy hashes ip + user agent + day (salted), inserts it into a small table (rows older than two days are dropped) and bumps a lifetime total in kv. No cookies, nothing that links days together.
+
+## Anime lists
+
+`aniworld.to/user/profil/<name>/subscribed` is treated as "watched" and `/watchlist` as "not yet"; a daily job scrapes both (titles + links), posters come from Kitsu (cached per title for a week) and the anime page shows both shelves folded to twelve posters.
+
+## Social previews
+
+Every main page has its own Open Graph image (`app/*/opengraph-image.tsx`, shared card in `lib/og.tsx`): the music card shows the current track, anime the latest posters, projects the count, guestbook the newest signature.
 
 ## Projects
 

@@ -57,6 +57,7 @@ export const nav = [
   { href: "/anime", label: "anime" },
   { href: "/music", label: "music" },
   { href: "/gallery", label: "gallery" },
+  { href: "/setup", label: "setup" },
   { href: "/links", label: "links" },
   { href: "/guestbook", label: "guestbook" },
 ] as const;

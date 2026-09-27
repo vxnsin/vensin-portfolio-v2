@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getFavorites, getRecentlyWatched } from "@/lib/anime";
+import { getAnimeLists, getFavorites, getRecentlyWatched } from "@/lib/anime";
+import { AnimeShelfGrid } from "@/components/anime/AnimeShelfGrid";
 import { Window } from "@/components/layout/Window";
 import { FavoritesShelf } from "@/components/anime/FavoritesShelf";
 
@@ -20,7 +21,7 @@ function Poster({ src, alt }: { src: string | null; alt: string }) {
 }
 
 export default async function AnimePage() {
-  const [recent, favorites] = await Promise.all([getRecentlyWatched(), getFavorites()]);
+  const [recent, favorites, lists] = await Promise.all([getRecentlyWatched(), getFavorites(), getAnimeLists()]);
 
   return (
     <div className="grid gap-5">
@@ -55,6 +56,19 @@ export default async function AnimePage() {
           </ul>
         )}
       </Window>
+
+      {lists && lists.watched.length > 0 && (
+        <Window title={`watched · ${lists.watched.length}`} dashed>
+          <p className="text-[10px] text-ink-soft mb-2">everything i&apos;ve followed on aniworld, which is my way of saying &quot;seen it&quot;. newest first.</p>
+          <AnimeShelfGrid items={lists.watched} />
+        </Window>
+      )}
+      {lists && lists.watchlist.length > 0 && (
+        <Window title={`watchlist · ${lists.watchlist.length}`} dashed>
+          <p className="text-[10px] text-ink-soft mb-2">not yet watched. the backlog is a lifestyle.</p>
+          <AnimeShelfGrid items={lists.watchlist} />
+        </Window>
+      )}
 
       <Window title={`all-time favorites · ${favorites.length}`} dashed>
         <FavoritesShelf items={favorites} />

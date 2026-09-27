@@ -1,6 +1,6 @@
 import { DAY, HOUR, MIN, refresh } from "./cache";
 import { fetchContributionYears, fetchGithubStats, fetchLatestGithubActivity } from "./github";
-import { fetchRecentlyWatched } from "./anime";
+import { fetchAnimeLists, fetchRecentlyWatched } from "./anime";
 import { fetchWeather } from "./weather";
 import { refreshLatest } from "./latest";
 import { runBackup } from "./backup";
@@ -45,6 +45,7 @@ export const CACHE_KEYS = {
   githubActivity: "github:activity",
   githubContributions: "github:contributions",
   animeRecent: "anime:recent",
+  animeLists: "anime:lists",
   weather: "weather",
 } as const;
 
@@ -53,6 +54,7 @@ export const TTL = {
   githubActivity: 3 * HOUR,
   githubContributions: 2 * DAY,
   animeRecent: 3 * HOUR,
+  animeLists: 2 * DAY,
   weather: 30 * MIN,
 } as const;
 
@@ -61,6 +63,7 @@ export const jobs: Job[] = [
   { id: "weather", label: "weather", every: 10 * MIN, run: () => refresh(CACHE_KEYS.weather, TTL.weather, fetchWeather, { throwOnError: true }) },
   { id: "github-activity", label: "github: latest commit", every: HOUR, run: () => refresh(CACHE_KEYS.githubActivity, TTL.githubActivity, fetchLatestGithubActivity, { throwOnError: true }) },
   { id: "anime-recent", label: "anime: recently watched", every: HOUR, run: () => refresh(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched, { throwOnError: true }) },
+  { id: "anime-lists", label: "anime: watched + watchlist from aniworld", daily: "05:00", run: () => refresh(CACHE_KEYS.animeLists, TTL.animeLists, fetchAnimeLists, { throwOnError: true }) },
   { id: "spotify-now", label: "spotify: now playing (safety net, the live watcher does the real work)", every: 5 * MIN, run: pollSpotifyNow, since: spotifySince },
   { id: "spotify-history", label: "spotify: import plays into the log", every: 5 * MIN, run: importSpotifyHistory, since: spotifySince },
   { id: "spotify", label: "spotify: top tracks, artists, playlists", every: HOUR, run: () => (spotifyConnected() ? refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData, { throwOnError: true }) : Promise.resolve(null)), since: spotifySince },

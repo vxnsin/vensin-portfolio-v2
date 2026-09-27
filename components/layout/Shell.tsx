@@ -11,6 +11,7 @@ import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
 import { SeasonPicker } from "./SeasonPicker";
 import { resolveSeason } from "@/lib/season";
+import { VisitorCounter } from "./VisitorCounter";
 import { SeasonGreeting } from "./SeasonGreeting";
 import { AprilFools } from "@/components/decor/AprilFools";
 import { Window } from "./Window";
@@ -159,6 +160,7 @@ export async function Shell({ children }: { children: ReactNode }) {
                 </a>
                 . no cookies, no tracking.
               </div>
+              <VisitorCounter />
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
               <Link href="/contact" className="btn text-xs no-underline">

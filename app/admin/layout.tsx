@@ -12,6 +12,7 @@ const links = [
   { href: "/admin/guestbook", label: "guestbook" },
   { href: "/admin/gallery", label: "gallery" },
   { href: "/admin/projects", label: "projects" },
+  { href: "/admin/setup", label: "setup" },
   { href: "/admin/anime", label: "anime" },
   { href: "/admin/neighbors", label: "neighbors" },
   { href: "/admin/spotify", label: "spotify" },

@@ -30,6 +30,7 @@ import { jobs, runJob } from "@/lib/scheduler";
 import { deleteGuestbookEntry, setGuestbookStatus } from "@/lib/guestbook";
 import { isSeason, setSeasonSetting } from "@/lib/season";
 import { deleteProject, moveProject, saveProject, type ProjectLink, type ProjectStatus } from "@/lib/projects";
+import { deleteSetupItem, moveSetupItem, saveSetupItem } from "@/lib/setup";
 import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
 
 export type ActionState = { ok: boolean; error?: string } | null;
@@ -114,6 +115,62 @@ export async function moveProjectAction(formData: FormData) {
   moveProject(String(formData.get("id")), Number(formData.get("dir")) < 0 ? -1 : 1);
   revalidatePath("/projects");
   revalidatePath("/admin/projects");
+}
+
+/* ---------- setup ---------- */
+
+export async function saveSetupAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const str = (k: string, max = 300) => String(formData.get(k) ?? "").trim().slice(0, max);
+  const id = str("id") || undefined;
+  const name = str("name", 80);
+  const category = str("category", 30).toLowerCase();
+  if (!name || !category) return { ok: false, error: "name and category are needed" };
+  const url = str("url");
+  if (url && !/^https?:\/\//i.test(url)) return { ok: false, error: "the link must start with http(s)://" };
+  let image = str("image");
+  const file = formData.get("imageFile");
+  if (file instanceof File && file.size > 0) {
+    if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "max 30 MB per image" };
+    try {
+      const processed = await processUpload(file);
+      if (processed.kind !== "image") return { ok: false, error: "pictures only" };
+      const fileName = `${uid()}${processed.ext}`;
+      if (process.env.BLOB_READ_WRITE_TOKEN) {
+        image = (await put(`setup/${fileName}`, processed.buffer, { access: "public", addRandomSuffix: false, contentType: processed.contentType })).url;
+      } else {
+        await fs.mkdir(UPLOAD_DIR, { recursive: true });
+        await fs.writeFile(path.join(UPLOAD_DIR, fileName), processed.buffer);
+        image = `/uploads/${fileName}`;
+      }
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : "upload failed" };
+    }
+  }
+  try {
+    saveSetupItem({ name, category, note: str("note", 300), url: url || null, image: image || null }, id);
+    revalidatePath("/setup");
+    revalidatePath("/admin/setup");
+    if (!id) redirect("/admin/setup");
+    return { ok: true };
+  } catch (e) {
+    if (e && typeof e === "object" && "digest" in e) throw e;
+    return { ok: false, error: e instanceof Error ? e.message : "could not save" };
+  }
+}
+
+export async function deleteSetupAction(formData: FormData) {
+  await requireAdmin();
+  deleteSetupItem(String(formData.get("id")));
+  revalidatePath("/setup");
+  revalidatePath("/admin/setup");
+}
+
+export async function moveSetupAction(formData: FormData) {
+  await requireAdmin();
+  moveSetupItem(String(formData.get("id")), Number(formData.get("dir")) < 0 ? -1 : 1);
+  revalidatePath("/setup");
+  revalidatePath("/admin/setup");
 }
 
 /* ---------- seasons ---------- */
