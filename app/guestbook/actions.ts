@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { addGuestbookEntry, ipHash, isDuplicate, recentFromVisitor, screenEntry } from "@/lib/guestbook";
-import { notifyGuestbook } from "@/lib/discord-notify";
+import { notifyGuestbook, notifyGuestbookBlocked } from "@/lib/discord-notify";
 
 export type GuestbookState = { ok: boolean; pending?: boolean; error?: string } | null;
 
@@ -28,14 +28,20 @@ export async function signGuestbook(_prev: GuestbookState, formData: FormData): 
     website: formData.get("website") ?? "",
     company: formData.get("company") ?? "",
   });
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "local").split(",")[0].trim();
+  const userAgent = h.get("user-agent") ?? "";
+  const hash = ipHash(ip);
+
   if (!parsed.success) {
     const first = parsed.error.issues[0];
-    if (first?.path[0] === "company") return { ok: true }; // bot filled the honeypot: pretend it worked
+    if (first?.path[0] === "company") {
+      // bot filled the honeypot: pretend it worked, but log who it was
+      await notifyGuestbookBlocked({ name: String(formData.get("name") ?? ""), message: String(formData.get("message") ?? ""), website: null, reasons: ["honeypot filled"], ip, userAgent });
+      return { ok: true };
+    }
     return { ok: false, error: first?.message ?? "something's wrong with the form" };
   }
-
-  const ip = ((await headers()).get("x-forwarded-for") ?? "local").split(",")[0].trim();
-  const hash = ipHash(ip);
   if (recentFromVisitor(hash, 5 * 60_000) >= 1) return { ok: false, error: "you just signed. give it a few minutes." };
   if (recentFromVisitor(hash, 24 * 3600_000) >= 5) return { ok: false, error: "that's plenty for one day." };
 
@@ -44,7 +50,11 @@ export async function signGuestbook(_prev: GuestbookState, formData: FormData): 
   if (isDuplicate(message)) return { ok: true }; // already on the wall (or bot replay), nothing to add
 
   const screening = screenEntry({ name, message, website });
-  if (screening.verdict === "reject") return { ok: true }; // dropped quietly, no need to tell a spammer why
+  if (screening.verdict === "reject") {
+    // dropped quietly, no need to tell a spammer why; the channel gets the details so repeat offenders stand out
+    await notifyGuestbookBlocked({ name, message, website, reasons: screening.reasons, ip, userAgent });
+    return { ok: true };
+  }
 
   try {
     const entry = addGuestbookEntry({ name, message, website, status: screening.verdict === "approve" ? "approved" : "pending", reasons: screening.reasons, ipHash: hash });

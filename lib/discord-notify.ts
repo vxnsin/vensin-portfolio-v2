@@ -66,10 +66,32 @@ export function guestbookCard(e: GuestbookEntry, state: GuestbookEntry["status"]
   return { accent, blocks, buttons };
 }
 
+export type BlockedEntry = { name: string; message: string; website: string | null; reasons: string[]; ip: string; userAgent: string };
+
+/** an entry the filters threw away: no buttons, just who tried it (ip + browser) so repeat offenders are easy to spot */
+export function blockedCard(b: BlockedEntry): Card {
+  const who = b.website ? `**${clip(b.name, 40)}** · <${b.website}>` : `**${clip(b.name, 40)}**`;
+  return {
+    accent: COLORS.red,
+    blocks: [
+      "## 🚫 guestbook · blocked",
+      who,
+      `-# reason: ${b.reasons.join(", ")} · not stored, not shown`,
+      `-# ip ${b.ip} · ${clip(b.userAgent || "no user agent", 200)}`,
+      "---",
+      quote(b.message),
+    ],
+  };
+}
+
 /* ---------- senders (never throw) ---------- */
 
 export async function notifyNewMessage(m: Message): Promise<boolean> {
   return send(messageCard(m, "new"));
+}
+
+export async function notifyGuestbookBlocked(b: BlockedEntry): Promise<boolean> {
+  return send(blockedCard(b), "channel");
 }
 
 /** flagged entries need a decision, so they go to your dms; clean ones only need a glance and go to the guestbook channel (dm if none is set) */

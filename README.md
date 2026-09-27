@@ -98,7 +98,7 @@ Every night at 03:30 the scheduler takes a consistent copy of the sqlite file (s
 
 ## Guestbook & Discord buttons
 
-Entries that pass the screening (`lib/guestbook.ts`: no links, no spam words, not all caps, not a repeat, honeypot empty, rate limit per hashed IP) go straight to the wall. Anything flagged is stored as `pending` and only shows up after approval; slurs and keyboard mashing are dropped silently.
+Entries that pass the screening (`lib/guestbook.ts`: no links, no spam words, not all caps, not a repeat, honeypot empty, rate limit per hashed IP) go straight to the wall. Anything flagged is stored as `pending` and only shows up after approval; slurs, keyboard mashing and honeypot hits are dropped silently, but a "blocked" card with the sender's IP and user agent goes to the guestbook channel so repeat offenders are easy to spot.
 
 Flagged entries and every contact message are sent to your Discord DMs as a components-v2 card with buttons; entries that passed every filter go to `DISCORD_GUESTBOOK_CHANNEL_ID` (or `DISCORD_GUESTBOOK_WEBHOOK_URL`) instead, so your DMs only hold what needs a decision (approve / reject / take down / delete, mark read). For the buttons to work Discord has to reach the site:
 

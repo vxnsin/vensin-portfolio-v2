@@ -68,7 +68,10 @@ export default function PrivacyPage() {
         auf dieser Seite angezeigt (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;a DSGVO, deine Einwilligung durch das Absenden). Zum Schutz vor
         Spam wird ein gekürzter, nicht rückrechenbarer Hash der IP-Adresse zusammen mit dem Eintrag gespeichert; die IP-Adresse selbst
         wird nicht gespeichert. Einträge, die von einem automatischen Filter markiert werden, erscheinen erst nach Freigabe. Der Betreiber
-        wird über neue Einträge per Discord benachrichtigt; dabei werden Name, Nachricht und Website an Discord Inc. übermittelt. Du kannst
+        wird über neue Einträge per Discord benachrichtigt; dabei werden Name, Nachricht und Website an Discord Inc. übermittelt. Wird ein
+        Eintrag vom Filter als Missbrauch abgelehnt (etwa Beleidigungen oder automatisierte Eingaben), erhält der Betreiber zusätzlich die
+        IP-Adresse und die Browserkennung des Absenders, um wiederholten Missbrauch erkennen zu können (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f
+        DSGVO); der Eintrag selbst wird nicht gespeichert. Du kannst
         die Löschung deines Eintrags jederzeit über das Kontaktformular verlangen.
       </p>
 
