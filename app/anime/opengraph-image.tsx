@@ -12,7 +12,7 @@ export default async function Image() {
   const latest = recent[0];
   return ogImage({
     kicker: "anime",
-    title: latest ? `watching ${latest.title}` : "what i'm watching",
+    title: latest ? `watching ${latest.title.length > 30 ? latest.title.slice(0, 28) + "…" : latest.title}` : "what i'm watching",
     subtitle: `${favorites.length} all-time favorites · recently watched, posters via kitsu`,
     images: posters,
     accent: "#ff8fb4",

@@ -16,6 +16,7 @@ export default function Image() {
     title: `${projects.length} projects`,
     subtitle: `${active.length} active · ${techs} technologies · ${active.map((p) => p.name).slice(0, 3).join(", ")}`,
     images: thumbs,
+    imageShape: "landscape",
     accent: "#8fe36b",
   });
 }
