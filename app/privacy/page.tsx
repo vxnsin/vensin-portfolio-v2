@@ -61,6 +61,12 @@ export default function PrivacyPage() {
         erforderliche Cookies handelt, die du selbst durch deine Auswahl setzt, ist keine vorherige Einwilligung nötig. Du kannst deine
         Auswahl jederzeit über die Schalter im Fußbereich ändern oder die Cookies in deinem Browser löschen.
       </p>
+      <p>
+        Das kleine Klick-Spiel auf der Seite &quot;mochi&quot; speichert seinen Spielstand ausschließlich im lokalen Speicher deines Browsers
+        (localStorage); ebenso merkt sich der Browser dort, ob du die Katze per Tastatur-Code verwandelt hast. Diese Daten verlassen deinen
+        Browser nicht und lassen sich jederzeit über die Browser-Einstellungen löschen. An den Server geht aus dem Spiel nur eine anonyme
+        Anzahl von Klicks, die zu einem Gesamtzähler addiert wird; sie wird keiner Person und keiner IP-Adresse zugeordnet.
+      </p>
 
       <H>5. Kontaktformular</H>
       <p>

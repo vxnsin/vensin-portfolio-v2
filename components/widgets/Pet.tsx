@@ -1,14 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useLanyardContext } from "@/components/discord/LanyardProvider";
 import { resolveAll } from "@/components/discord/activities";
 import { isSeason, type Season } from "@/lib/season-data";
-import { CAPTION, FRAME_MS, FRAMES, Sprite, type Mood } from "./cat-frames";
+import { FRAME_MS, Sprite, captionFor, framesFor, type Mood } from "./cat-frames";
+import { readForm, subscribeForm } from "./mochi-form";
 
 // Mochi lives in the sidebar and reacts to the discord status: asleep when idle or offline, tapping away while coding,
 // bopping to music, wide-eyed during anime, stretching and flicking her tail otherwise, purring when poked.
-// She also dresses for the season (see the accessories in cat-frames.tsx).
+// She also dresses for the season (see the accessories in cat-frames.tsx). Clicking her counts as a poke and opens the clicker.
 
 function subscribeSeason(cb: () => void) {
   const obs = new MutationObserver(cb);
@@ -23,6 +25,7 @@ const readSeason = (): Season | null => {
 export function Pet({ initialPokes, season: initialSeason }: { initialPokes: number; season: Season }) {
   const { data } = useLanyardContext();
   const season = useSyncExternalStore(subscribeSeason, readSeason, () => initialSeason);
+  const form = useSyncExternalStore(subscribeForm, readForm, () => "cat" as const);
   const [frame, setFrame] = useState(0);
   const [poked, setPoked] = useState(false);
   const [pokes, setPokes] = useState(initialPokes);
@@ -71,17 +74,17 @@ export function Pet({ initialPokes, season: initialSeason }: { initialPokes: num
     } catch {}
   };
 
-  const frames = FRAMES[mood];
+  const frames = framesFor(form)[mood];
   return (
-    <button type="button" onClick={poke} className="w-full flex items-center gap-3 text-left cursor-pointer group" aria-label="poke the cat">
-      <span className="shrink-0 border border-dashed border-line bg-paper-2 p-1 group-hover:border-accent transition-colors">
-        <Sprite frame={frames[frame % frames.length]} season={season} />
+    <Link href="/mochi" onClick={poke} className="w-full flex items-center gap-3 text-left cursor-pointer group no-underline" aria-label="poke the cat and open the mochi clicker">
+      <span key={form} className="morph shrink-0 border border-dashed border-line bg-paper-2 p-1 group-hover:border-accent transition-colors">
+        <Sprite frame={frames[frame % frames.length]} season={season} scale={form === "catgirl" ? 4 : 5} />
       </span>
       <span className="min-w-0 text-[11px]">
         <span className="pixel text-ink block">mochi</span>
-        <span className="text-ink-soft block">{CAPTION[mood]}</span>
-        <span className="text-[10px] text-ink-soft block mt-0.5">poked {pokes.toLocaleString("en-US")} times · click to pet</span>
+        <span className="text-ink-soft block">{captionFor(form)[mood]}</span>
+        <span className="text-[10px] text-ink-soft block mt-0.5">poked {pokes.toLocaleString("en-US")} times · click to pet &amp; play</span>
       </span>
-    </button>
+    </Link>
   );
 }

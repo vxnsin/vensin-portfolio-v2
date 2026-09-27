@@ -16,6 +16,7 @@ import { Pet } from "@/components/widgets/Pet";
 import { kvGet } from "@/lib/db";
 import { SeasonGreeting } from "./SeasonGreeting";
 import { AprilFools } from "@/components/decor/AprilFools";
+import { Cheats } from "@/components/decor/Cheats";
 import { Window } from "./Window";
 import { LanyardProvider } from "@/components/discord/LanyardProvider";
 import { DiscordPresence } from "@/components/discord/DiscordPresence";
@@ -43,6 +44,7 @@ export async function Shell({ children }: { children: ReactNode }) {
   return (
     <LanyardProvider>
       <AprilFools />
+      <Cheats />
       <div
         id="top"
         className="relative z-10 mx-auto w-full max-w-[1040px] px-4 py-6 md:py-10"
@@ -91,7 +93,7 @@ export async function Shell({ children }: { children: ReactNode }) {
               </Window>
             )}
             <TodayCycle health={health} />
-            <Window title="mochi" right={<span className="text-[10px] text-ink-soft">pixel cat</span>}>
+            <Window title="mochi" right={<Link href="/mochi" className="text-[10px] no-underline text-ink-soft hover:text-accent">clicker →</Link>}>
               <Pet initialPokes={kvGet<number>("pet:pokes", 0)} season={season} />
             </Window>
             <Window title="latest">

@@ -2,14 +2,17 @@ import type { Season } from "@/lib/season-data";
 
 // Mochi, the pixel cat. Grids: k = outline, o = orange fur, w = cream, p = pink, n = note/gold, z = floating "z", h = heart, . = empty.
 // Accessories: r = red, v = purple, l = lavender, m = light lavender, b = black, s = scarf red, g = green, y = yellow.
-// Frames are grouped by mood; each frame knows where its head is, so a hat lands in the right place even while she sleeps.
+// Catgirl form: e = skin, d = hair shade. Frames are grouped by mood; each frame knows where its head (and, for the
+// catgirl, face and neck) is, so a hat or a scarf lands in the right place whatever she looks like right now.
 
 export type Mood = "sleep" | "code" | "music" | "watch" | "idle" | "poke" | "lost";
-export type Frame = { grid: string[]; head: [number, number] };
+export type Form = "cat" | "catgirl";
+export type Frame = { grid: string[]; head: [number, number]; face?: [number, number]; neck?: [number, number] };
 
 export const PIX: Record<string, string> = {
   k: "#3b2c3a", o: "#e9a552", w: "#fff4e6", p: "#ff8fb4", n: "#ffd54a", h: "#ff5f8a",
   r: "#d9453d", v: "#7d4fd6", l: "#b0a4ff", m: "#d6d0ff", b: "#1a1a1a", s: "#b8462f", g: "#2e9d5c", y: "#ffe066",
+  e: "#ffdcc2", d: "#c97f2e",
 };
 
 const W = 14;
@@ -109,23 +112,83 @@ export const CAPTION: Record<Mood, string> = {
   lost: "also has no idea where that page went",
 };
 
+/* ---------- catgirl form: same moods, a taller sprite. head origin is the ear row, face two rows lower, neck at the collar ---------- */
+
+const GIRL = pad([
+  "..k.......k...",
+  ".kok.....kok..",
+  ".kooooooooook.",
+  ".kooooooooook.",
+  ".koeeeeeeeeok.",
+  ".koewheewheok.",
+  ".koehheehheok.",
+  ".kopeekkeepok.",
+  ".kooeeeeeeook.",
+  ".kokkkkkkkkok.",
+  ".kd.kppppk.dk.",
+  ".kdkppppppkdkk",
+  "..kkpppppppkko",
+  "...kppppppppko",
+  "...kkkkkkkkkkk",
+  "....kek..kek..",
+  "....kkk..kkk..",
+]);
+const g = (grid: string[]): Frame => ({ grid, head: [1, 0], face: [1, 2], neck: [1, 4] });
+const GIRL_BLINK = row(GIRL, { 5: ".koeeeeeeeeok.", 6: ".koekkeekkeok." });
+const GIRL_TAIL = row(GIRL, { 11: ".kdkppppppkdk.", 12: "..kkpppppppkkk", 13: "...kppppppppko", 14: "...kkkkkkkkkko", 15: "....kek..kekk." });
+const GIRL_WAVE = row(GIRL, { 9: ".kokkkkkkkkokk", 10: ".kd.kppppk.dke", 11: ".kdkppppppkdkk" });
+const GIRL_SLEEP_A = row(GIRL_BLINK, { 0: "..k.......k.z." });
+const GIRL_SLEEP_B = row(GIRL_BLINK, { 0: "..k.......k..z", 1: ".kok.....kokz." });
+const GIRL_CODE_A = row(GIRL, { 5: ".koeeeeeeeeok.", 6: ".koehheehheok.", 12: "..kkpepppepkko" });
+const GIRL_CODE_B = row(GIRL, { 5: ".koeeeeeeeeok.", 6: ".koehheehheok.", 12: "..kkppeppeppko" });
+const GIRL_MUSIC_A = row(GIRL, { 0: "..k.......k.n.", 1: ".kok.....kokn." });
+const GIRL_MUSIC_B = row(GIRL_TAIL, { 0: "n.k.......k...", 1: "nkok.....kok.." });
+const GIRL_WATCH = row(GIRL, { 5: ".koewneewneok.", 6: ".koenneenneok." });
+const GIRL_POKE_A = row(GIRL, { 0: "..k..h....k...", 7: ".koppekkeppok." });
+const GIRL_POKE_B = row(GIRL, { 0: "h.k.......k.h.", 1: ".kok.....kok.h", 5: ".koeeeeeeeeok.", 6: ".koewweewweok.", 7: ".koppekkeppok." });
+const GIRL_LOST_A = row(GIRL, { 0: "..k.......k..?" });
+const GIRL_LOST_B = row(GIRL, { 5: ".koeewheewheok", 6: ".koeehheehheok" });
+
+export const GIRL_FRAMES: Record<Mood, Frame[]> = {
+  idle: [g(GIRL), g(GIRL), g(GIRL_TAIL), g(GIRL), g(GIRL_BLINK), g(GIRL), g(GIRL_TAIL), g(GIRL_WAVE), g(GIRL_WAVE), g(GIRL)],
+  sleep: [g(GIRL_BLINK), g(GIRL_SLEEP_A), g(GIRL_BLINK), g(GIRL_SLEEP_B), g(GIRL_BLINK), g(GIRL_SLEEP_A)],
+  code: [g(GIRL_CODE_A), g(GIRL_CODE_B), g(GIRL_CODE_A), g(GIRL_CODE_B), g(GIRL_BLINK), g(GIRL_CODE_B)],
+  music: [g(GIRL_MUSIC_A), g(GIRL_TAIL), g(GIRL_MUSIC_B), g(GIRL)],
+  watch: [g(GIRL_WATCH), g(GIRL_WATCH), g(GIRL_WATCH), g(GIRL_BLINK), g(GIRL_WATCH), g(GIRL_WATCH)],
+  poke: [g(GIRL_POKE_A), g(GIRL_POKE_B), g(GIRL_POKE_A), g(GIRL_POKE_B)],
+  lost: [g(GIRL_LOST_A), g(GIRL_LOST_A), g(GIRL_LOST_B), g(GIRL_LOST_B), g(GIRL), g(GIRL_LOST_A)],
+};
+
+export const GIRL_CAPTION: Record<Mood, string> = {
+  idle: "nya~ waiting for something to happen",
+  sleep: "nyzz… luis is away, so is the catgirl.",
+  code: "pair programming, nya",
+  music: "dancing along, nya",
+  watch: "watching anime, obviously",
+  poke: "nyaa~!",
+  lost: "nya? that page was here a second ago",
+};
+
+export const framesFor = (form: Form): Record<Mood, Frame[]> => (form === "catgirl" ? GIRL_FRAMES : FRAMES);
+export const captionFor = (form: Form): Record<Mood, string> => (form === "catgirl" ? GIRL_CAPTION : CAPTION);
+
 /* ---------- seasonal accessories, drawn over the frame relative to the head origin (row 0 = ear row, negative = above) ---------- */
 
-type Accessory = Array<[number, string]>; // [row relative to head, 14-wide pattern]
+type Accessory = { anchor?: "face" | "neck"; rows: Array<[number, string]> }; // [row relative to the anchor, 14-wide pattern]
 const TOP = 5; // rows of room above the head for hats
 
-const SANTA: Accessory = [[-3, "........ww...."], [-2, "......rrr....."], [-1, ".....rrrrr...."], [0, "..rrrrrrrr...."], [1, ".wwwwwwwwww..."]];
-const WITCH: Accessory = [[-4, "......k......."], [-3, ".....kkk......"], [-2, "....kkkkk....."], [-1, "....kkkkk....."], [0, "...vvvvvvv...."], [1, "kkkkkkkkkkkk.."]];
-const BEANIE: Accessory = [[-3, "......ww......"], [-2, "....llllll...."], [-1, "...llllllll..."], [0, "..llllllllll.."], [1, ".mmmmmmmmmm..."]];
-const SCARF: Accessory = [[6, ".ssssssssss..."], [7, "...ss.........."], [8, "...ss.........."]];
-const PARTY_GOLD: Accessory = [[-4, "......p......."], [-3, "......n......."], [-2, ".....pnp......"], [-1, ".....nnn......"], [0, "....pnpnp....."], [1, "....nnnnn....."]];
-const PARTY_PINK: Accessory = [[-4, "......y......."], [-3, "......p......."], [-2, ".....ypy......"], [-1, ".....ppp......"], [0, "....ypypy....."], [1, "....ppppp....."]];
-const CONFETTI: Accessory = [[-3, "n............p"], [-1, ".............y"], [2, "p............."], [5, ".............n"]];
-const SUNGLASSES: Accessory = [[3, "..bbbbbbbbb..."], [4, "..bbb...bbb..."]];
-const FLOWER: Accessory = [[0, ".p.p.........."], [1, "..p..........."], [2, ".p.p.........."]];
-const HEART: Accessory = [[-2, "...........h.h"], [-1, "...........hhh"], [0, "............h."]];
-const GROUCHO: Accessory = [[3, "..bbb.b.bbb..."], [4, "..b.b...b.b..."], [5, "...bbbbbb....."]];
-const HOLLY: Accessory = [[1, "..........gg.."], [2, ".........ggr.."]];
+const SANTA: Accessory = { rows: [[-3, "........ww...."], [-2, "......rrr....."], [-1, ".....rrrrr...."], [0, "..rrrrrrrr...."], [1, ".wwwwwwwwww..."]] };
+const WITCH: Accessory = { rows: [[-4, "......k......."], [-3, ".....kkk......"], [-2, "....kkkkk....."], [-1, "....kkkkk....."], [0, "...vvvvvvv...."], [1, "kkkkkkkkkkkk.."]] };
+const BEANIE: Accessory = { rows: [[-3, "......ww......"], [-2, "....llllll...."], [-1, "...llllllll..."], [0, "..llllllllll.."], [1, ".mmmmmmmmmm..."]] };
+const SCARF: Accessory = { anchor: "neck", rows: [[6, ".ssssssssss..."], [7, "...ss.........."], [8, "...ss.........."]] };
+const PARTY_GOLD: Accessory = { rows: [[-4, "......p......."], [-3, "......n......."], [-2, ".....pnp......"], [-1, ".....nnn......"], [0, "....pnpnp....."], [1, "....nnnnn....."]] };
+const PARTY_PINK: Accessory = { rows: [[-4, "......y......."], [-3, "......p......."], [-2, ".....ypy......"], [-1, ".....ppp......"], [0, "....ypypy....."], [1, "....ppppp....."]] };
+const CONFETTI: Accessory = { rows: [[-3, "n............p"], [-1, ".............y"], [2, "p............."], [5, ".............n"]] };
+const SUNGLASSES: Accessory = { anchor: "face", rows: [[3, "..bbbbbbbbb..."], [4, "..bbb...bbb..."]] };
+const FLOWER: Accessory = { rows: [[0, ".p.p.........."], [1, "..p..........."], [2, ".p.p.........."]] };
+const HEART: Accessory = { rows: [[-2, "...........h.h"], [-1, "...........hhh"], [0, "............h."]] };
+const GROUCHO: Accessory = { anchor: "face", rows: [[3, "..bbb.b.bbb..."], [4, "..b.b...b.b..."], [5, "...bbbbbb....."]] };
+const HOLLY: Accessory = { rows: [[1, "..........gg.."], [2, ".........ggr.."]] };
 
 export const ACCESSORIES: Partial<Record<Season, Accessory[]>> = {
   spring: [FLOWER],
@@ -145,9 +208,9 @@ export function compose(frame: Frame, season: Season | null): string[] {
   const rows = TOP + frame.grid.length;
   const canvas: string[][] = Array.from({ length: rows }, () => Array(W).fill("."));
   frame.grid.forEach((r, y) => [...r].forEach((c, x) => { if (c !== ".") canvas[y + TOP][x] = c; }));
-  const [dx, dy] = frame.head;
   for (const acc of (season && ACCESSORIES[season]) ?? []) {
-    for (const [rel, pattern] of acc) {
+    const [dx, dy] = (acc.anchor === "face" ? frame.face : acc.anchor === "neck" ? frame.neck : undefined) ?? frame.head;
+    for (const [rel, pattern] of acc.rows) {
       const y = TOP + dy + rel;
       if (y < 0 || y >= rows) continue;
       [...pattern].forEach((c, i) => {
@@ -160,11 +223,11 @@ export function compose(frame: Frame, season: Season | null): string[] {
 }
 
 /** renders one frame as crisp pixel rects; "z" and "?" are drawn as tiny text */
-export function Sprite({ frame, season = null, scale = 5 }: { frame: Frame; season?: Season | null; scale?: number }) {
+export function Sprite({ frame, season = null, scale = 5, className }: { frame: Frame; season?: Season | null; scale?: number; className?: string }) {
   const grid = compose(frame, season);
   const h = grid.length;
   return (
-    <svg viewBox={`0 0 ${W} ${h}`} width={W * scale} height={h * scale} shapeRendering="crispEdges" aria-hidden>
+    <svg viewBox={`0 0 ${W} ${h}`} width={W * scale} height={h * scale} shapeRendering="crispEdges" aria-hidden className={className}>
       {grid.flatMap((r, y) =>
         [...r].map((c, x) => {
           if (c === "z" || c === "?") {

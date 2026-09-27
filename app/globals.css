@@ -680,3 +680,29 @@ body::before {
 }
 .input:focus { border-color: var(--accent); box-shadow: 2px 2px 0 var(--accent-soft); }
 textarea.input { resize: vertical; min-height: 80px; }
+
+/* mochi clicker */
+.clicker-cat.bump { animation: bump 0.25s steps(2); }
+@keyframes bump { 50% { transform: scale(0.94) translateY(2px); } }
+.pop { position: absolute; pointer-events: none; transform: translate(-50%, -100%); animation: pop-up 0.9s ease-out forwards; }
+@keyframes pop-up { to { transform: translate(-50%, -260%); opacity: 0; } }
+.golden { animation: golden-bob 1.2s ease-in-out infinite; filter: drop-shadow(0 0 6px rgba(255, 213, 74, 0.8)); }
+@keyframes golden-bob { 50% { transform: translateY(-6px) rotate(6deg); } }
+.toast { animation: toast-in 0.3s steps(3) both; }
+@keyframes toast-in { from { transform: translateY(6px); opacity: 0; } }
+/* mochi changing shape: a quick flash */
+.morph { animation: morph 0.5s steps(4); }
+@keyframes morph { 25% { filter: brightness(3) saturate(0); } 50% { filter: brightness(1); } 75% { filter: brightness(3) saturate(0); } }
+.cheat-note { animation: toast-in 0.3s steps(3) both; }
+
+/* "moon": the site fades out and the sky takes over */
+:root[data-moon] body { overflow: hidden; }
+:root[data-moon] #top { opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+:root[data-moon] .particles, :root[data-moon] .sleigh-track { display: none; }
+.moon-scene { background: #0d0b16; animation: moon-fade 1.2s ease both; }
+@keyframes moon-fade { from { opacity: 0; } }
+.moon-star { position: absolute; background: #f4f1ff; border-radius: 50%; animation: moon-twinkle 2.4s ease-in-out infinite; }
+@keyframes moon-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+.moon-rise { animation: moon-rise 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes moon-rise { from { transform: translateY(70px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .moon-rise, .moon-star, .golden, .morph { animation: none; } }

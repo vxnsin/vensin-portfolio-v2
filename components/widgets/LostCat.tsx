@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { isSeason, type Season } from "@/lib/season-data";
-import { FRAME_MS, FRAMES, Sprite } from "./cat-frames";
+import { FRAME_MS, Sprite, framesFor } from "./cat-frames";
+import { readForm, subscribeForm } from "./mochi-form";
 
 function subscribeSeason(cb: () => void) {
   const obs = new MutationObserver(cb);
@@ -18,14 +19,15 @@ const readSeason = (): Season | null => {
 export function LostCat({ scale = 8 }: { scale?: number }) {
   const [frame, setFrame] = useState(0);
   const season = useSyncExternalStore(subscribeSeason, readSeason, () => null);
+  const form = useSyncExternalStore(subscribeForm, readForm, () => "cat" as const);
   useEffect(() => {
     const id = setInterval(() => setFrame((f) => f + 1), FRAME_MS.lost);
     return () => clearInterval(id);
   }, []);
-  const frames = FRAMES.lost;
+  const frames = framesFor(form).lost;
   return (
     <span className="inline-block border border-dashed border-line bg-paper-2 p-2">
-      <Sprite frame={frames[frame % frames.length]} season={season} scale={scale} />
+      <Sprite frame={frames[frame % frames.length]} season={season} scale={form === "catgirl" ? scale - 2 : scale} />
     </span>
   );
 }

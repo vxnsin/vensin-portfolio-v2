@@ -3,7 +3,7 @@ import { nav, site } from "@/data/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-  const pages = [...nav.map((n) => n.href), "/contact", "/privacy"];
+  const pages = [...nav.map((n) => n.href), "/contact", "/privacy", "/mochi"];
   return pages.map((href) => ({
     url: `${site.url}${href}`,
     lastModified: now,
