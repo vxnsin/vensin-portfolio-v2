@@ -136,7 +136,6 @@ export default async function AboutPage() {
             <>
               <blockquote className="pixel text-base text-ink">&ldquo;{quote.text}&rdquo;</blockquote>
               <p className="text-ink-soft mt-1">— {quote.by || "unknown"}</p>
-              {about.quotes.length > 1 && <p className="text-[10px] text-ink-soft mt-2">one of {about.quotes.length}. reload for another.</p>}
             </>
           ) : (
             <p className="text-ink-soft">no quotes yet.</p>
