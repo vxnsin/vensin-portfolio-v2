@@ -21,7 +21,9 @@ export const metadata: Metadata = {
     url: site.url,
     siteName: site.domain,
     type: "website",
+    locale: "en_US",
   },
+  twitter: { card: "summary_large_image", site: "@vxnsin", creator: "@vxnsin" },
 };
 
 export const viewport: Viewport = {
