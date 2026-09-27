@@ -4,6 +4,7 @@ import { cached } from "./cache";
 import { CACHE_KEYS, TTL } from "./jobs";
 import { kitsuByMalId, kitsuSearch } from "./kitsu";
 import { listFavorites } from "./store";
+import { recordWatched } from "./anime-log";
 
 export type WatchedAnime = {
   title: string;
@@ -45,11 +46,18 @@ export async function fetchRecentlyWatched(): Promise<WatchedAnime[] | null> {
   const seen = new Set<string>();
   const unique = out.filter((a) => (seen.has(a.title) ? false : (seen.add(a.title), true))).slice(0, 8);
 
+  const sources = new Map(unique.map((a) => [a.title, a.url]));
   for (const a of unique) {
     const k = await kitsuSearch(a.title);
     if (k?.poster) a.cover = k.poster;
     if (k?.url) a.url = k.url;
   }
+  // every episode seen goes into the watch log once (all of them, not only the de-duped shelf)
+  try {
+    await recordWatched(
+      out.map((a) => ({ title: a.title, season: a.season ? Number(a.season) : null, episode: a.episode ? Number(a.episode) : null, sourceUrl: sources.get(a.title) ?? a.url, url: unique.find((u) => u.title === a.title)?.url ?? a.url, cover: unique.find((u) => u.title === a.title)?.cover ?? null })),
+    );
+  } catch {}
   return unique;
 }
 export type ShelfAnime = { title: string; url: string; cover: string | null };

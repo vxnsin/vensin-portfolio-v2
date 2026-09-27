@@ -151,6 +151,14 @@ The footer odometer counts one visit per person per day: the proxy hashes ip + u
 
 `aniworld.to/user/profil/<name>/subscribed` is treated as "watched" and `/watchlist` as "not yet"; a daily job scrapes both (titles + links), posters come from Kitsu (cached per title for a week) and the anime page shows both shelves folded to twelve posters.
 
+## Watch log
+
+Every episode the hourly "recently watched" scrape sees is written to `anime_log` once. The anime page turns that into "this week / month / year", a year of weekly pixel bars and a "finished lately" row: a season counts as finished when the last logged episode equals the season's episode count (read from the series page, cached a week); those shows also get a "✓ done" badge on the shelf.
+
+## Pixel cat
+
+"mochi" in the sidebar reacts to the Discord status: asleep when idle or offline, taps away while coding, bops while music plays, wide-eyed during anime, purrs when clicked. Frames are pixel grids in `components/widgets/Pet.tsx`; pokes are counted in kv through `/api/pet`.
+
 ## Social previews
 
 Every main page has its own Open Graph image (`app/*/opengraph-image.tsx`, shared card in `lib/og.tsx`): the music card shows the current track, anime the latest posters, projects the count, guestbook the newest signature.

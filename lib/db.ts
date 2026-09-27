@@ -19,6 +19,7 @@ const SCHEMA = `
   create table if not exists guestbook (id text primary key, name text not null, message text not null, website text, created_at text not null, status text not null default 'approved', reasons text not null default '[]', ip_hash text not null default '');
   create index if not exists guestbook_status on guestbook (status, created_at desc);
   create table if not exists visits (day text not null, hash text not null, primary key (day, hash));
+  create table if not exists anime_log (title text not null, season integer, episode integer, url text not null default '', cover text, seen_at text not null, finished integer not null default 0, primary key (title, season, episode));
   create table if not exists setup_items (id text primary key, category text not null, name text not null, note text not null default '', url text, image text, position integer not null default 0, created_at text not null);
   create table if not exists projects (id text primary key, slug text not null unique, name text not null, tagline text not null default '', description text not null default '', tech text not null default '[]', thumbnail text not null default '', start integer not null, end integer, status text not null default 'active', role text not null default '', highlights text not null default '[]', links text not null default '[]', position integer not null default 0, created_at text not null);
   create index if not exists guestbook_ip on guestbook (ip_hash, created_at);

@@ -12,6 +12,8 @@ import { ThemeToggle } from "./ThemeToggle";
 import { SeasonPicker } from "./SeasonPicker";
 import { resolveSeason } from "@/lib/season";
 import { VisitorCounter } from "./VisitorCounter";
+import { Pet } from "@/components/widgets/Pet";
+import { kvGet } from "@/lib/db";
 import { SeasonGreeting } from "./SeasonGreeting";
 import { AprilFools } from "@/components/decor/AprilFools";
 import { Window } from "./Window";
@@ -88,6 +90,9 @@ export async function Shell({ children }: { children: ReactNode }) {
               </Window>
             )}
             <TodayCycle health={health} />
+            <Window title="mochi" right={<span className="text-[10px] text-ink-soft">pixel cat</span>}>
+              <Pet initialPokes={kvGet<number>("pet:pokes", 0)} />
+            </Window>
             <Window title="latest">
               <LatestBox
                 latest={latest}

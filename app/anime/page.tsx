@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { getAnimeLists, getFavorites, getRecentlyWatched } from "@/lib/anime";
 import { AnimeShelfGrid } from "@/components/anime/AnimeShelfGrid";
+import { WatchLog } from "@/components/anime/WatchLog";
+import { finishedTitles, watchLogStats } from "@/lib/anime-log";
 import { Window } from "@/components/layout/Window";
 import { FavoritesShelf } from "@/components/anime/FavoritesShelf";
 
 export const metadata: Metadata = { title: "anime" };
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 function Poster({ src, alt }: { src: string | null; alt: string }) {
   return (
@@ -22,6 +24,8 @@ function Poster({ src, alt }: { src: string | null; alt: string }) {
 
 export default async function AnimePage() {
   const [recent, favorites, lists] = await Promise.all([getRecentlyWatched(), getFavorites(), getAnimeLists()]);
+  const log = watchLogStats();
+  const finished = finishedTitles();
 
   return (
     <div className="grid gap-5">
@@ -47,6 +51,11 @@ export default async function AnimePage() {
                         {a.season && `S${a.season}`} {a.episode && `E${a.episode}`}
                       </span>
                     )}
+                    {finished.has(a.title) && (
+                      <span className="absolute top-1 right-1 chip text-[9px] px-1.5 bg-paper text-accent" title="season finished">
+                        ✓ done
+                      </span>
+                    )}
                   </div>
                   <div className="mt-1 truncate text-ink group-hover:text-accent">{a.title}</div>
                   {a.genre && <div className="text-[9px] text-ink-soft truncate">{a.genre}</div>}
@@ -57,9 +66,13 @@ export default async function AnimePage() {
         )}
       </Window>
 
+      <Window title="watch log" dashed>
+        <WatchLog stats={log} />
+      </Window>
+
       {lists && lists.watched.length > 0 && (
         <Window title={`watched · ${lists.watched.length}`} dashed>
-          <p className="text-[10px] text-ink-soft mb-2">everything i&apos;ve followed on aniworld, which is my way of saying &quot;seen it&quot;. newest first.</p>
+          <p className="text-[10px] text-ink-soft mb-2">everything i&apos;ve seen, newest first.</p>
           <AnimeShelfGrid items={lists.watched} />
         </Window>
       )}
