@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 import type { WatchLogStats } from "@/lib/anime-log";
 
 /** episodes per week for the last year as pixel bars, a few counters, and the seasons finished lately */
@@ -30,23 +29,6 @@ export function WatchLog({ stats }: { stats: WatchLogStats }) {
           <span>this week</span>
         </div>
       </div>
-      {stats.finished.length > 0 && (
-        <div>
-          <div className="text-[10px] uppercase tracking-wide text-ink-soft mb-1">finished lately</div>
-          <ul className="flex gap-2 flex-wrap">
-            {stats.finished.slice(0, 12).map((f) => (
-              <li key={`${f.title}-${f.season}`}>
-                <a href={f.url} target="_blank" rel="noreferrer" className="chip no-underline text-ink hover:text-accent">
-                  {f.cover && <img src={f.cover} alt="" className="w-4 h-6 object-cover border border-line" />}
-                  <span className="truncate max-w-[10rem]">{f.title}</span>
-                  <span className="text-ink-soft">{f.season ? `S${f.season}` : ""} ✓</span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          {stats.finished.length > 12 && <p className="text-[10px] text-ink-soft mt-1">and {stats.finished.length - 12} more seasons finished before that.</p>}
-        </div>
-      )}
     </div>
   );
 }

@@ -134,8 +134,8 @@ export async function importWatchedHistory(items: WatchedEpisode[]): Promise<{ a
   return { added, finished };
 }
 
-/** the latest logged episode per title, to badge "finished" on the recently watched shelf */
-export function finishedTitles(): Set<string> {
-  const rows = getDb().prepare("select distinct title from anime_log where finished = 1").all() as Array<{ title: string }>;
-  return new Set(rows.map((r) => r.title));
+/** finished seasons as "title|season", to badge the recently watched shelf (a finished s1 says nothing about a running s2) */
+export function finishedSeasons(): Set<string> {
+  const rows = getDb().prepare("select distinct title, season from anime_log where finished = 1 and season is not null").all() as Array<{ title: string; season: number }>;
+  return new Set(rows.map((r) => `${r.title}|${r.season}`));
 }

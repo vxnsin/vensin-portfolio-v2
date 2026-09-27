@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getAnimeLists, getFavorites, getRecentlyWatched } from "@/lib/anime";
 import { AnimeShelfGrid } from "@/components/anime/AnimeShelfGrid";
 import { WatchLog } from "@/components/anime/WatchLog";
-import { finishedTitles, watchLogStats } from "@/lib/anime-log";
+import { finishedSeasons, watchLogStats } from "@/lib/anime-log";
 import { Window } from "@/components/layout/Window";
 import { FavoritesShelf } from "@/components/anime/FavoritesShelf";
 
@@ -25,7 +25,7 @@ function Poster({ src, alt }: { src: string | null; alt: string }) {
 export default async function AnimePage() {
   const [recent, favorites, lists] = await Promise.all([getRecentlyWatched(), getFavorites(), getAnimeLists()]);
   const log = watchLogStats();
-  const finished = finishedTitles();
+  const finished = finishedSeasons();
 
   return (
     <div className="grid gap-5">
@@ -51,7 +51,7 @@ export default async function AnimePage() {
                         {a.season && `S${a.season}`} {a.episode && `E${a.episode}`}
                       </span>
                     )}
-                    {finished.has(a.title) && (
+                    {a.season && finished.has(`${a.title}|${Number(a.season)}`) && (
                       <span className="absolute top-1 right-1 chip text-[9px] px-1.5 bg-paper text-accent" title="season finished">
                         ✓ done
                       </span>
