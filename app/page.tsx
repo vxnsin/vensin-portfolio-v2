@@ -74,9 +74,6 @@ export default async function Home() {
         </Link>
       </div>
 
-      <p className="text-[11px] text-ink-soft text-center">
-        this site uses javascript and looks best on a screen that is not upside down. updates whenever i feel like it.
-      </p>
     </div>
   );
 }
