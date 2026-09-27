@@ -62,8 +62,9 @@ export default function PrivacyPage() {
       <H>5. Kontaktformular</H>
       <p>
         Wenn du das Kontaktformular nutzt, werden dein Name, deine E-Mail-Adresse, deine Nachricht und der Zeitpunkt auf dem Server
-        gespeichert, damit die Anfrage beantwortet werden kann (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;b DSGVO). Zum Schutz vor Spam wird die
-        IP-Adresse kurzzeitig im Arbeitsspeicher gehalten, aber nicht dauerhaft gespeichert.
+        gespeichert, damit die Anfrage beantwortet werden kann (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;b DSGVO). Zum Schutz vor Spam wird ein
+        gekürzter, nicht rückrechenbarer Hash der IP-Adresse zusammen mit der Nachricht gespeichert (höchstens zwei Nachrichten pro Tag
+        und Absender); die IP-Adresse im Klartext wird nicht gespeichert.
       </p>
       <p className="mt-2">
         Um eingehende Nachrichten zeitnah zu bemerken und bearbeiten zu können, nutzt der Betreiber eine Benachrichtigung über Discord.

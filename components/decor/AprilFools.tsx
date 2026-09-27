@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { IdiotWindow } from "./IdiotWindow";
 
 // April 1st: a bundle of harmless pranks. Everything still works, it just misbehaves a little first.
 
@@ -59,6 +60,9 @@ const isFools = () =>
 export function AprilFools() {
   const active = useSyncExternalStore(subscribe, isFools, () => false);
   const [cookies, setCookies] = useState(false);
+  // the classic: appears once per session, closing the first one spawns two more, then they stay closed
+  const [idiots, setIdiots] = useState<number[]>([]);
+  const [idiotSpawns, setIdiotSpawns] = useState(0);
   const [update, setUpdate] = useState<"hidden" | "downloading" | "jk">(
     "hidden",
   );
@@ -126,6 +130,12 @@ export function AprilFools() {
       );
     }
 
+    let idiot = false;
+    try {
+      idiot = !sessionStorage.getItem("fools:idiot");
+    } catch {}
+    if (idiot) timers.push(window.setTimeout(() => setIdiots([1]), 35_000));
+
     console.log(
       "%c nothing to see here. definitely not an april fools joke. ",
       "background:#c7f000;color:#1a1a1a;font-weight:bold;padding:4px 8px",
@@ -141,6 +151,22 @@ export function AprilFools() {
 
   if (!active) return null;
 
+  const closeIdiot = (id: number) => {
+    setIdiots((list) => {
+      const rest = list.filter((i) => i !== id);
+      if (idiotSpawns === 0) {
+        setIdiotSpawns(1);
+        return [...rest, id * 10 + 1, id * 10 + 2];
+      }
+      if (rest.length === 0) {
+        try {
+          sessionStorage.setItem("fools:idiot", "1");
+        } catch {}
+      }
+      return rest;
+    });
+  };
+
   const dismissCookies = () => {
     setCookies(false);
     try {
@@ -150,6 +176,9 @@ export function AprilFools() {
 
   return (
     <>
+      {idiots.map((id) => (
+        <IdiotWindow key={id} seed={id} onClose={() => closeIdiot(id)} />
+      ))}
       {cookies && (
         <div
           className="fools-ui fixed bottom-4 right-4 z-50 max-w-[280px] text-xs"

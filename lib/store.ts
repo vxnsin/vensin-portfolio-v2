@@ -56,10 +56,16 @@ const toMessage = (r: MessageRow): Message => ({ id: r.id, name: r.name, email: 
 export async function listMessages(): Promise<Message[]> {
   return (getDb().prepare("select * from messages order by created_at desc limit 500").all() as MessageRow[]).map(toMessage);
 }
-export async function addMessage(m: Omit<Message, "id" | "createdAt" | "read">): Promise<Message> {
+export async function addMessage(m: Omit<Message, "id" | "createdAt" | "read">, ipHash = ""): Promise<Message> {
   const msg: Message = { id: uid(), createdAt: new Date().toISOString(), read: false, ...m };
-  getDb().prepare("insert into messages (id, name, email, message, created_at, read) values (?, ?, ?, ?, ?, 0)").run(msg.id, msg.name, msg.email, msg.message, msg.createdAt);
+  getDb().prepare("insert into messages (id, name, email, message, created_at, read, ip_hash) values (?, ?, ?, ?, ?, 0, ?)").run(msg.id, msg.name, msg.email, msg.message, msg.createdAt, ipHash);
   return msg;
+}
+/** how many messages this sender left in the last `ms` milliseconds (survives restarts, unlike an in-memory counter) */
+export function messagesFromSender(ipHash: string, ms: number): number {
+  const since = new Date(Date.now() - ms).toISOString();
+  const r = getDb().prepare("select count(*) n from messages where ip_hash = ? and created_at >= ?").get(ipHash, since) as { n: number };
+  return r.n;
 }
 export async function updateMessage(id: string, patch: Partial<Message>) {
   if (typeof patch.read === "boolean") getDb().prepare("update messages set read = ? where id = ?").run(patch.read ? 1 : 0, id);
