@@ -1,6 +1,7 @@
 import { site } from "@/data/site";
 import type { Message } from "./store";
 import type { GuestbookEntry } from "./guestbook";
+import { kvGet, kvSet } from "./db";
 
 // Notifications go to the owner's Discord DMs as "components v2" containers: a coloured card with text blocks,
 // separators and buttons. Button clicks come back through /api/discord/interactions.
@@ -90,14 +91,20 @@ export async function notifyNewMessage(m: Message): Promise<boolean> {
   return send(messageCard(m, "new"));
 }
 
-export async function notifyGuestbookBlocked(b: BlockedEntry): Promise<boolean> {
-  return send(blockedCard(b), "channel");
-}
-
 /** flagged entries need a decision, so they go to your dms; clean ones only need a glance and go to the guestbook channel (dm if none is set) */
 export async function notifyGuestbook(e: GuestbookEntry): Promise<boolean> {
   const quiet = e.status === "approved" && guestbookChannelConfigured();
   return send(guestbookCard(e), quiet ? "channel" : "dm");
+}
+
+/** blocked attempts carry a plain ip, so the card is remembered and deleted again after BLOCKED_RETENTION_DAYS */
+export async function notifyGuestbookBlocked(b: BlockedEntry): Promise<boolean> {
+  const ref = await deliver(blockedCard(b), "channel");
+  if (!ref) return false;
+  const list = kvGet<StoredRef[]>(BLOCKED_KEY, []);
+  list.push({ ...ref, at: Date.now() });
+  kvSet(BLOCKED_KEY, list.slice(-500));
+  return true;
 }
 
 /** an activity the widget has no dedicated handler for — includes the raw payload so a handler can be written */
@@ -114,54 +121,113 @@ export async function notifyUnknownActivity(activity: unknown, name: string): Pr
   });
 }
 
+/* ---------- retention for blocked cards ---------- */
+
+export const BLOCKED_RETENTION_DAYS = Math.max(1, Number(process.env.BLOCKED_RETENTION_DAYS ?? 14));
+const BLOCKED_KEY = "blocked:cards";
+type Ref = { via: "bot"; channel: string; id: string } | { via: "hook"; url: string; id: string };
+type StoredRef = Ref & { at: number };
+
+/** deletes blocked cards older than the retention period from discord (runs nightly) */
+export async function purgeBlockedCards(): Promise<{ deleted: number; kept: number }> {
+  const cutoff = Date.now() - BLOCKED_RETENTION_DAYS * 86_400_000;
+  const list = kvGet<StoredRef[]>(BLOCKED_KEY, []);
+  const keep: StoredRef[] = [];
+  let deleted = 0;
+  for (const ref of list) {
+    if (ref.at > cutoff) {
+      keep.push(ref);
+      continue;
+    }
+    const gone = await deleteMessage(ref);
+    if (gone) deleted++;
+    else keep.push(ref); // discord was unreachable: try again tomorrow
+  }
+  kvSet(BLOCKED_KEY, keep);
+  return { deleted, kept: keep.length };
+}
+
+async function deleteMessage(ref: Ref): Promise<boolean> {
+  try {
+    if (ref.via === "bot") {
+      const token = process.env.DISCORD_BOT_TOKEN;
+      if (!token) return false;
+      const res = await fetch(`${API}/channels/${ref.channel}/messages/${ref.id}`, { method: "DELETE", headers: { authorization: `Bot ${token}` } });
+      return res.ok || res.status === 404;
+    }
+    const res = await fetch(`${ref.url.split("?")[0]}/messages/${ref.id}`, { method: "DELETE" });
+    return res.ok || res.status === 404;
+  } catch {
+    return false;
+  }
+}
+
+/* ---------- transport ---------- */
+
 let dmChannel: string | null = null;
 
-async function send(card: Card, to: "dm" | "channel" = "dm"): Promise<boolean> {
+async function postBot(channel: string, payload: unknown): Promise<Ref | null> {
+  const token = process.env.DISCORD_BOT_TOKEN;
+  if (!token) return null;
+  try {
+    const res = await fetch(`${API}/channels/${channel}/messages`, { method: "POST", headers: { authorization: `Bot ${token}`, "content-type": "application/json" }, body: JSON.stringify(payload) });
+    if (!res.ok) return null;
+    const { id } = (await res.json()) as { id: string };
+    return { via: "bot", channel, id };
+  } catch {
+    return null;
+  }
+}
+
+async function postHook(url: string, payload: unknown): Promise<Ref | null> {
+  try {
+    const full = url + (url.includes("?") ? "&" : "?") + "with_components=true&wait=true";
+    const res = await fetch(full, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+    if (!res.ok) return null;
+    const { id } = (await res.json()) as { id: string };
+    return { via: "hook", url, id };
+  } catch {
+    return null;
+  }
+}
+
+async function dmChannelId(): Promise<string | null> {
+  if (dmChannel) return dmChannel;
   const token = process.env.DISCORD_BOT_TOKEN;
   const owner = process.env.DISCORD_OWNER_ID ?? site.discordUserId;
+  if (!token) return null;
+  try {
+    const ch = await fetch(`${API}/users/@me/channels`, { method: "POST", headers: { authorization: `Bot ${token}`, "content-type": "application/json" }, body: JSON.stringify({ recipient_id: owner }) });
+    if (ch.ok) dmChannel = (await ch.json()).id;
+  } catch {}
+  return dmChannel;
+}
 
+/** posts a card: bot first, webhook second (webhook cards keep only link buttons, their other buttons would be dead). Channel delivery falls back to the dm so nothing gets lost. */
+async function deliver(card: Card, to: "dm" | "channel"): Promise<Ref | null> {
   if (to === "channel") {
     const channel = process.env.DISCORD_GUESTBOOK_CHANNEL_ID;
-    if (token && channel) {
-      try {
-        const res = await fetch(`${API}/channels/${channel}/messages`, { method: "POST", headers: { authorization: `Bot ${token}`, "content-type": "application/json" }, body: JSON.stringify(cardPayload(card)) });
-        if (res.ok) return true;
-      } catch {}
+    if (channel) {
+      const ref = await postBot(channel, cardPayload(card));
+      if (ref) return ref;
     }
     const hook = process.env.DISCORD_GUESTBOOK_WEBHOOK_URL;
     if (hook) {
-      try {
-        const url = hook + (hook.includes("?") ? "&" : "?") + "with_components=true";
-        const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(cardPayload(card, { interactive: false })) });
-        if (res.ok) return true;
-      } catch {}
+      const ref = await postHook(hook, cardPayload(card, { interactive: false }));
+      if (ref) return ref;
     }
-    // channel not reachable: fall through to the dm so nothing gets lost
   }
-
-  if (token) {
-    try {
-      const headers = { authorization: `Bot ${token}`, "content-type": "application/json" };
-      if (!dmChannel) {
-        const ch = await fetch(`${API}/users/@me/channels`, { method: "POST", headers, body: JSON.stringify({ recipient_id: owner }) });
-        if (ch.ok) dmChannel = (await ch.json()).id;
-      }
-      if (dmChannel) {
-        const res = await fetch(`${API}/channels/${dmChannel}/messages`, { method: "POST", headers, body: JSON.stringify(cardPayload(card)) });
-        if (res.ok) return true;
-        if (res.status === 404 || res.status === 403) dmChannel = null;
-      }
-    } catch {}
+  const dm = await dmChannelId();
+  if (dm) {
+    const ref = await postBot(dm, cardPayload(card));
+    if (ref) return ref;
+    dmChannel = null;
   }
-
-  // webhooks can show the card but their buttons would be dead, so only link buttons are kept
   const webhook = process.env.DISCORD_WEBHOOK_URL;
-  if (webhook) {
-    try {
-      const url = webhook + (webhook.includes("?") ? "&" : "?") + "with_components=true";
-      const res = await fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(cardPayload(card, { interactive: false })) });
-      return res.ok;
-    } catch {}
-  }
-  return false;
+  if (webhook) return postHook(webhook, cardPayload(card, { interactive: false }));
+  return null;
+}
+
+async function send(card: Card, to: "dm" | "channel" = "dm"): Promise<boolean> {
+  return (await deliver(card, to)) !== null;
 }

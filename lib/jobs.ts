@@ -4,6 +4,7 @@ import { fetchRecentlyWatched } from "./anime";
 import { fetchWeather } from "./weather";
 import { refreshLatest } from "./latest";
 import { runBackup } from "./backup";
+import { purgeBlockedCards } from "./discord-notify";
 import { fetchNowPlaying, fetchRecentPlays, fetchSpotifyData, spotifyConnected, SPOTIFY_CACHE_KEY, SPOTIFY_NOW_KEY, SPOTIFY_NOW_TTL, SPOTIFY_TTL } from "./spotify";
 import { importPlays } from "./listens";
 import { getLatest, saveLatest } from "./store";
@@ -66,4 +67,5 @@ export const jobs: Job[] = [
   { id: "github-stats", label: "github: followers & repos", daily: "00:00", run: () => refresh(CACHE_KEYS.githubStats, TTL.githubStats, fetchGithubStats, { throwOnError: true }) },
   { id: "github-contributions", label: "github: contribution graph", daily: "00:05", run: () => refresh(CACHE_KEYS.githubContributions, TTL.githubContributions, fetchContributionYears, { throwOnError: true }) },
   { id: "backup", label: "backup: sqlite → backups/ + discord", daily: "03:30", run: runBackup },
+  { id: "blocked-cleanup", label: "guestbook: delete blocked cards past retention", daily: "04:00", run: purgeBlockedCards },
 ];
