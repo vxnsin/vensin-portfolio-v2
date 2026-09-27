@@ -5,6 +5,8 @@ export async function register() {
     if (process.env.SCHEDULER !== "off") {
       const { startScheduler } = await import("./lib/scheduler");
       startScheduler();
+      const { startSpotifyLive } = await import("./lib/spotify-live");
+      startSpotifyLive();
     }
   }
 }

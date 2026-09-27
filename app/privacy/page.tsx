@@ -123,8 +123,9 @@ export default function PrivacyPage() {
         </li>
       </ul>
       <p className="mt-2">
-        Schriftarten werden lokal von dieser Seite ausgeliefert, es findet keine Verbindung zu Google Fonts statt. Wetter- und
-        GitHub-Daten werden ausschließlich serverseitig abgerufen; dein Browser stellt dazu keine Verbindung zu Open-Meteo oder GitHub her.
+        Schriftarten werden lokal von dieser Seite ausgeliefert, es findet keine Verbindung zu Google Fonts statt. Wetter-,
+        GitHub- und Liedtext-Daten (LRCLIB) werden ausschließlich serverseitig abgerufen; dein Browser stellt dazu keine Verbindung zu
+        Open-Meteo, GitHub oder LRCLIB her.
       </p>
 
       <H>7. Fotos und Videos</H>

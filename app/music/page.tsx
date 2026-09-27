@@ -10,7 +10,7 @@ import { TopLists } from "@/components/music/TopLists";
 import { ListeningClock } from "@/components/music/ListeningClock";
 
 export const metadata: Metadata = { title: "music" };
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function MusicPage() {
   const connected = spotifyConnected();

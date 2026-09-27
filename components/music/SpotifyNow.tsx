@@ -1,9 +1,11 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useLanyardContext } from "@/components/discord/LanyardProvider";
 import type { NowPlaying } from "@/lib/spotify";
 import { relativeTime } from "@/lib/time";
+import { Lyrics } from "./Lyrics";
 
 type Last = { song: string; artist: string; art: string | null; trackId: string | null; at: string } | null;
 
@@ -13,30 +15,79 @@ const fmt = (ms: number) => {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 };
 
-/** Now playing straight from the Spotify API. Polls /api/spotify/now and interpolates the progress bar in between. */
+/**
+ * Now playing straight from the Spotify API. Listens to /api/spotify/stream (server-sent events) and interpolates the
+ * progress bar in between; polls instead where the stream is unavailable. Asks for a fresh look the moment the track
+ * should have ended and whenever discord reports a different track, so changes show up within a second or two.
+ */
 export function SpotifyNow({ initial, last, variant = "sidebar" }: { initial: NowPlaying | null; last?: Last; variant?: "sidebar" | "hero" }) {
   const [now, setNow] = useState<NowPlaying | null>(initial);
   // starts at the snapshot time so server and client render the same elapsed value; the clock takes over after mount
   const [tick, setTick] = useState(() => (initial ? new Date(initial.fetchedAt).getTime() : 0));
+  const { data: lanyard } = useLanyardContext();
+  const lanyardTrack = lanyard?.spotify?.track_id ?? null;
+  const alive = useRef(true);
+
+  const load = useCallback(async (fresh = false) => {
+    try {
+      const res = await fetch(fresh ? "/api/spotify/now?fresh=1" : "/api/spotify/now", { cache: "no-store" });
+      if (!res.ok) return;
+      const j = await res.json();
+      if (alive.current && j.connected) setNow(j as NowPlaying);
+    } catch {}
+  }, []);
 
   useEffect(() => {
-    let alive = true;
-    const load = async () => {
-      try {
-        const res = await fetch("/api/spotify/now", { cache: "no-store" });
-        if (!res.ok) return;
-        const j = await res.json();
-        if (alive && j.connected) setNow(j as NowPlaying);
-      } catch {}
+    alive.current = true;
+    let es: EventSource | null = null;
+    let poll: ReturnType<typeof setInterval> | null = null;
+    const startPolling = () => {
+      if (!poll) poll = setInterval(() => load(), POLL_MS);
     };
-    const poll = setInterval(load, POLL_MS);
+    const stopPolling = () => {
+      if (poll) clearInterval(poll);
+      poll = null;
+    };
+    if (typeof EventSource !== "undefined") {
+      es = new EventSource("/api/spotify/stream");
+      es.addEventListener("now", (e) => {
+        if (!alive.current) return;
+        try {
+          setNow(JSON.parse((e as MessageEvent).data) as NowPlaying);
+          stopPolling(); // the stream is back, no need to poll
+        } catch {}
+      });
+      // no long-lived server (or a hiccup): poll until the stream delivers again; EventSource keeps reconnecting on its own
+      es.onerror = startPolling;
+    } else {
+      startPolling();
+    }
     const clock = setInterval(() => setTick(Date.now()), 1000);
     return () => {
-      alive = false;
-      clearInterval(poll);
+      alive.current = false;
+      es?.close();
+      stopPolling();
       clearInterval(clock);
     };
-  }, []);
+  }, [load]);
+
+  // the track should be over: look again right away (the server itself never polls more often than every few seconds)
+  useEffect(() => {
+    if (!now?.playing || !now.track) return;
+    const endsAt = new Date(now.fetchedAt).getTime() + (now.track.durationMs - now.progressMs);
+    const wait = endsAt - Date.now() < -3_000 ? 3_000 : Math.max(500, endsAt - Date.now() + 800);
+    const t = setTimeout(() => load(true), wait);
+    return () => clearTimeout(t);
+  }, [now, load]);
+
+  // discord already knows about a new track: ask spotify right now instead of waiting for the next poll
+  const currentId = now?.playing ? (now.track?.id ?? null) : null;
+  useEffect(() => {
+    if (!lanyardTrack || lanyardTrack === currentId) return;
+    const t = setTimeout(() => load(true), 0);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lanyardTrack, load]);
 
   const track = now?.playing ? now.track : null;
   const elapsed = track && now ? Math.min(track.durationMs, now.progressMs + (tick - new Date(now.fetchedAt).getTime())) : 0;
@@ -71,6 +122,7 @@ export function SpotifyNow({ initial, last, variant = "sidebar" }: { initial: No
               <span>{fmt(track.durationMs)}</span>
             </div>
           </div>
+          {hero && <Lyrics now={now} />}
         </div>
       </div>
     );
