@@ -15,8 +15,7 @@ const num = z.preprocess((v) => {
   let t = String(v).trim().replace(/[^\d,.\-]/g, "");
   if (!t) return 0;
   if (t.includes(",") && t.includes(".")) t = t.lastIndexOf(",") > t.lastIndexOf(".") ? t.replace(/\./g, "").replace(",", ".") : t.replace(/,/g, ""); // 1.234,5 → 1234.5 · 1,234.5 → 1234.5
-  else if (t.includes(",") && !/^\d{1,3}(,\d{3})+$/.test(t)) t = t.replace(",", "."); // 512,3 → 512.3
-  else if (t.includes(",")) t = t.replace(/,/g, ""); // 10,400 → 10400
+  else if (t.includes(",")) t = t.replace(/,/g, "."); // the phone runs in german: a lone comma is a decimal comma, 512,3 → 512.3, 57,419 → 57.419
   else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, ""); // 1.234 → 1234
   const n = Number(t);
   return Number.isFinite(n) ? n : 0;
