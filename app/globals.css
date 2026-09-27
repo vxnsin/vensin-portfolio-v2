@@ -625,6 +625,9 @@ body::before {
   .particles, .sleigh-track { display: none; }
 }
 
+/* footer hit counter: a digit rolls in from below when it changes */
+@keyframes odometer { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
 /* misc */
 .dotted-hr { border: 0; border-top: 1.5px dashed var(--line); margin: 10px 0; }
 .chip {
