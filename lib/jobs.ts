@@ -66,6 +66,6 @@ export const jobs: Job[] = [
   { id: "spotify", label: "spotify: top tracks, artists, playlists", every: HOUR, run: () => (spotifyConnected() ? refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData, { throwOnError: true }) : Promise.resolve(null)), since: spotifySince },
   { id: "github-stats", label: "github: followers & repos", daily: "00:00", run: () => refresh(CACHE_KEYS.githubStats, TTL.githubStats, fetchGithubStats, { throwOnError: true }) },
   { id: "github-contributions", label: "github: contribution graph", daily: "00:05", run: () => refresh(CACHE_KEYS.githubContributions, TTL.githubContributions, fetchContributionYears, { throwOnError: true }) },
-  { id: "backup", label: "backup: sqlite → backups/ + discord", daily: "03:30", run: runBackup },
+  { id: "backup", label: `backup: sqlite → backups/ + ${process.env.BACKUP_UPLOAD === "catbox" && process.env.BACKUP_PASSPHRASE ? "catbox (encrypted), link in discord" : "file in discord"}`, daily: "03:30", run: runBackup },
   { id: "blocked-cleanup", label: "guestbook: delete blocked cards past retention", daily: "04:00", run: purgeBlockedCards },
 ];
