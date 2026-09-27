@@ -15,9 +15,9 @@ const COL: Record<string, string> = {
   // right: pale hair with a highlight and pink tips, skin, white jacket with a pink mark
   L: "#f3e8f4", l: "#ffffff", T: "#ff8fb4", S: "#f5e0cf", Q: "#ff8fb4",
   // moon: face, dark patches, crater floors, rim, highlight
-  M: "#e9f4f7", m: "#a8cfe0", c: "#7fb0c6", r: "#6d9fb8", i: "#ffffff",
-  // ground, bright edge to dark (cool cyan, matching the sprite that sits on it)
-  A: "#b9f0ff", B: "#3f8fb0", C: "#1f4a63", E: "#12293a",
+  M: "#e4f5f3", m: "#9fd3e0", c: "#6fa9bd", r: "#5f94ab", i: "#ffffff",
+  // ground, bright edge to dark: the cyan and navy of the sprite that sits on it
+  A: "#93e9f6", B: "#4d577a", C: "#2f3752", E: "#1c2033",
 };
 
 const LEFT = [
@@ -167,12 +167,30 @@ const gridCells = (grid: string[]): Array<[number, number, string]> => grid.flat
 const LEFT_CELLS = gridCells(LEFT);
 const RIGHT_CELLS = gridCells(RIGHT);
 
+/** whole-number zoom for a pixel sprite so no row or column gets dropped or doubled unevenly; smooth shrink only if it is too tall */
+function fitSprite(img: HTMLImageElement): { width: number; height: number; smooth: boolean } {
+  const room = window.innerHeight * 0.44;
+  const scale = Math.floor(room / img.naturalHeight);
+  if (scale >= 1) return { width: img.naturalWidth * scale, height: img.naturalHeight * scale, smooth: false };
+  const f = room / img.naturalHeight;
+  return { width: Math.round(img.naturalWidth * f), height: Math.round(room), smooth: true };
+}
+
 export function MoonScene({ onClose }: { onClose: () => void }) {
   // a sprite of your own at public/moon/couple.png replaces the built-in pair
   const [custom, setCustom] = useState<boolean | null>(null);
+  const [fit, setFit] = useState<{ width: number; height: number; smooth: boolean } | null>(null);
   useEffect(() => {
     document.documentElement.setAttribute("data-moon", "");
-    return () => document.documentElement.removeAttribute("data-moon");
+    const onResize = () => {
+      const img = document.querySelector<HTMLImageElement>(".moon-pair img");
+      if (img?.naturalHeight) setFit(fitSprite(img));
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      document.documentElement.removeAttribute("data-moon");
+      window.removeEventListener("resize", onResize);
+    };
   }, []);
   return (
     <div className="moon-scene fixed inset-0 z-[100] overflow-hidden cursor-pointer" onClick={onClose} role="button" tabIndex={0} aria-label="back to the site">
@@ -188,12 +206,22 @@ export function MoonScene({ onClose }: { onClose: () => void }) {
         <Cells cells={GROUND} />
       </svg>
       <div className="moon-pair">
+        <i className="moon-shadow" aria-hidden />
         {custom !== false && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src="/moon/couple.png" alt="" onLoad={() => setCustom(true)} onError={() => setCustom(false)} style={{ imageRendering: "pixelated", height: "100%", width: "auto", display: custom ? "block" : "none" }} />
+          <img
+            src="/moon/couple.png"
+            alt=""
+            onLoad={(e) => {
+              setFit(fitSprite(e.currentTarget));
+              setCustom(true);
+            }}
+            onError={() => setCustom(false)}
+            style={{ imageRendering: fit?.smooth ? "auto" : "pixelated", width: fit?.width, height: fit?.height, display: custom && fit ? "block" : "none" }}
+          />
         )}
         {custom === false && (
-          <svg viewBox={`0 0 ${FIG_W} ${FIG_H}`} shapeRendering="crispEdges" aria-label="two people sitting on the ground, looking at the moon" style={{ height: "100%", width: "auto" }}>
+          <svg viewBox={`0 0 ${FIG_W} ${FIG_H}`} shapeRendering="crispEdges" aria-label="two people sitting on the ground, looking at the moon" style={{ height: "38vh", width: "auto" }}>
             <Cells cells={LEFT_CELLS} />
             <Cells cells={RIGHT_CELLS} dx={27} dy={1} />
           </svg>
