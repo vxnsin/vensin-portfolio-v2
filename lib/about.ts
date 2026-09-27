@@ -27,6 +27,9 @@ export const DEFAULT_ABOUT: AboutContent = {
   askMeAbout: ["next.js", "minecraft server setups", "discord bots", "which anime to watch next", "motorcycles"],
 };
 
+/** index of a random quote, picked fresh on every page load (kept out of the component so the render itself stays pure) */
+export const randomQuoteIndex = (about: AboutContent) => (about.quotes.length ? Math.floor(Math.random() * about.quotes.length) : 0);
+
 /** a random quote, picked fresh on every page load */
 export function randomQuote(about: AboutContent): { text: string; by: string } | null {
   if (about.quotes.length === 0) return null;

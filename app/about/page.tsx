@@ -4,7 +4,8 @@ import Link from "next/link";
 import { site, socials } from "@/data/site";
 import { techstack } from "@/data/techstack";
 import { getGithubStats } from "@/lib/github";
-import { getAbout, randomQuote } from "@/lib/about";
+import { getAbout, randomQuoteIndex } from "@/lib/about";
+import { QuoteJar } from "@/components/about/QuoteJar";
 import { getLatest } from "@/lib/store";
 import { getRecentlyWatched } from "@/lib/anime";
 import { listProjects } from "@/lib/projects";
@@ -19,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AboutPage() {
   const about = getAbout();
-  const quote = randomQuote(about);
+  const quoteIndex = randomQuoteIndex(about);
   const [gh, latest, recent] = await Promise.all([getGithubStats(), getLatest(), getRecentlyWatched()]);
   const projects = listProjects();
   const anime = watchLogStats();
@@ -132,14 +133,7 @@ export default async function AboutPage() {
           </p>
         </Window>
         <Window title="a quote" dashed bodyClassName="text-xs">
-          {quote ? (
-            <>
-              <blockquote className="pixel text-base text-ink">&ldquo;{quote.text}&rdquo;</blockquote>
-              <p className="text-ink-soft mt-1">— {quote.by || "unknown"}</p>
-            </>
-          ) : (
-            <p className="text-ink-soft">no quotes yet.</p>
-          )}
+          <QuoteJar quotes={about.quotes} initial={quoteIndex} />
         </Window>
       </div>
 
