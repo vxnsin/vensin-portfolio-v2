@@ -9,7 +9,7 @@ export function WatchLog({ stats }: { stats: WatchLogStats }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
         <Stat value={stats.thisWeek} label="episodes this week" />
         <Stat value={stats.thisMonth} label="this month" />
-        <Stat value={stats.thisYear} label="this year" />
+        <Stat value={stats.total} label="all time" />
         <Stat value={stats.finished.length} label="seasons finished" />
       </div>
       <div>
