@@ -114,18 +114,18 @@ export const CAPTION: Record<Mood, string> = {
 type Accessory = Array<[number, string]>; // [row relative to head, 14-wide pattern]
 const TOP = 5; // rows of room above the head for hats
 
-const SANTA: Accessory = [[-4, "........ww...."], [-3, "......rrr....."], [-2, ".....rrrrr...."], [-1, "...rrrrrrr...."], [0, ".wwwwwwwwww..."]];
-const WITCH: Accessory = [[-5, "......k......."], [-4, ".....kkk......"], [-3, "....kkkkk....."], [-2, "....kkkkk....."], [-1, "...vvvvvvv...."], [0, "kkkkkkkkkkkk.."]];
-const BEANIE: Accessory = [[-4, "......ww......"], [-3, "....llllll...."], [-2, "...llllllll..."], [-1, "...llllllll..."], [0, "..mmmmmmmmmm.."]];
+const SANTA: Accessory = [[-3, "........ww...."], [-2, "......rrr....."], [-1, ".....rrrrr...."], [0, "..rrrrrrrr...."], [1, ".wwwwwwwwww..."]];
+const WITCH: Accessory = [[-4, "......k......."], [-3, ".....kkk......"], [-2, "....kkkkk....."], [-1, "....kkkkk....."], [0, "...vvvvvvv...."], [1, "kkkkkkkkkkkk.."]];
+const BEANIE: Accessory = [[-3, "......ww......"], [-2, "....llllll...."], [-1, "...llllllll..."], [0, "..llllllllll.."], [1, ".mmmmmmmmmm..."]];
 const SCARF: Accessory = [[6, ".ssssssssss..."], [7, "...ss.........."], [8, "...ss.........."]];
-const PARTY_GOLD: Accessory = [[-5, "......p......."], [-4, "......n......."], [-3, ".....pnp......"], [-2, ".....nnn......"], [-1, "....pnpnp....."], [0, "....nnnnn....."]];
-const PARTY_PINK: Accessory = [[-5, "......y......."], [-4, "......p......."], [-3, ".....ypy......"], [-2, ".....ppp......"], [-1, "....ypypy....."], [0, "....ppppp....."]];
+const PARTY_GOLD: Accessory = [[-4, "......p......."], [-3, "......n......."], [-2, ".....pnp......"], [-1, ".....nnn......"], [0, "....pnpnp....."], [1, "....nnnnn....."]];
+const PARTY_PINK: Accessory = [[-4, "......y......."], [-3, "......p......."], [-2, ".....ypy......"], [-1, ".....ppp......"], [0, "....ypypy....."], [1, "....ppppp....."]];
 const CONFETTI: Accessory = [[-3, "n............p"], [-1, ".............y"], [2, "p............."], [5, ".............n"]];
-const SUNGLASSES: Accessory = [[3, "..bbbb.bbbbb.."], [2, "......b......."]];
-const FLOWER: Accessory = [[-1, ".p.p.........."], [0, "..p..........."], [1, ".p.p.........."]];
+const SUNGLASSES: Accessory = [[3, "..bbbbbbbbb..."], [4, "..bbb...bbb..."]];
+const FLOWER: Accessory = [[0, ".p.p.........."], [1, "..p..........."], [2, ".p.p.........."]];
 const HEART: Accessory = [[-2, "...........h.h"], [-1, "...........hhh"], [0, "............h."]];
-const GROUCHO: Accessory = [[2, "..bbb...bbb..."], [3, "..b.b.b.b.b..."], [4, "..bbb.b.bbb..."], [5, "....bbbbbb...."]];
-const HOLLY: Accessory = [[0, "..........gg.."], [1, ".........ggr.."]];
+const GROUCHO: Accessory = [[3, "..bbb.b.bbb..."], [4, "..b.b...b.b..."], [5, "...bbbbbb....."]];
+const HOLLY: Accessory = [[1, "..........gg.."], [2, ".........ggr.."]];
 
 export const ACCESSORIES: Partial<Record<Season, Accessory[]>> = {
   spring: [FLOWER],
