@@ -1,6 +1,8 @@
 import { DAY, HOUR, MIN, refresh } from "./cache";
 import { fetchContributionYears, fetchGithubStats, fetchLatestGithubActivity } from "./github";
-import { fetchAnimeLists, fetchRecentlyWatched } from "./anime";
+import { fetchAnimeLists, fetchRecentlyWatched, scrapeWatched } from "./anime";
+import { importWatchedHistory } from "./anime-log";
+import { kitsuSearch } from "./kitsu";
 import { fetchWeather } from "./weather";
 import { refreshLatest } from "./latest";
 import { runBackup } from "./backup";
@@ -19,6 +21,21 @@ async function importSpotifyHistory() {
   const plays = await fetchRecentPlays();
   if (!plays) return null;
   return importPlays(plays.map((p) => ({ trackId: p.track.id, song: p.track.name, artist: p.track.artists.join(", "), album: p.track.album, art: p.track.art, playedAt: p.playedAt, durationMs: p.track.durationMs })));
+}
+
+/** the whole watched history from the profile into the log; posters via kitsu, cached per title */
+async function importAnimeHistory() {
+  const all = await scrapeWatched();
+  if (!all) throw new Error("could not read the watched page");
+  const posters = new Map<string, { cover: string | null; url: string | null }>();
+  for (const a of all) {
+    if (posters.has(a.title)) continue;
+    const k = await kitsuSearch(a.title);
+    posters.set(a.title, { cover: k?.poster ?? null, url: k?.url ?? null });
+  }
+  return importWatchedHistory(
+    all.map((a) => ({ title: a.title, season: a.season ? Number(a.season) : null, episode: a.episode ? Number(a.episode) : null, sourceUrl: a.url, url: posters.get(a.title)?.url ?? a.url, cover: posters.get(a.title)?.cover ?? null })),
+  );
 }
 
 /** currently playing from the spotify api; feeds the listening log and the "latest" box without needing discord */
@@ -64,6 +81,7 @@ export const jobs: Job[] = [
   { id: "github-activity", label: "github: latest commit", every: HOUR, run: () => refresh(CACHE_KEYS.githubActivity, TTL.githubActivity, fetchLatestGithubActivity, { throwOnError: true }) },
   { id: "anime-recent", label: "anime: recently watched", every: HOUR, run: () => refresh(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched, { throwOnError: true }) },
   { id: "anime-lists", label: "anime: watched + watchlist from aniworld", daily: "05:00", run: () => refresh(CACHE_KEYS.animeLists, TTL.animeLists, fetchAnimeLists, { throwOnError: true }) },
+  { id: "anime-history", label: "anime: whole watched history into the log", daily: "05:30", run: importAnimeHistory },
   { id: "spotify-now", label: "spotify: now playing (safety net, the live watcher does the real work)", every: 5 * MIN, run: pollSpotifyNow, since: spotifySince },
   { id: "spotify-history", label: "spotify: import plays into the log", every: 5 * MIN, run: importSpotifyHistory, since: spotifySince },
   { id: "spotify", label: "spotify: top tracks, artists, playlists", every: HOUR, run: () => (spotifyConnected() ? refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData, { throwOnError: true }) : Promise.resolve(null)), since: spotifySince },

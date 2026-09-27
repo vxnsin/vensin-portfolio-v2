@@ -153,7 +153,7 @@ The footer odometer counts one visit per person per day: the proxy hashes ip + u
 
 ## Watch log
 
-Every episode the hourly "recently watched" scrape sees is written to `anime_log` once. The anime page turns that into "this week / month / year", a year of weekly pixel bars and a "finished lately" row: a season counts as finished when the last logged episode equals the season's episode count (read from the series page, cached a week); those shows also get a "✓ done" badge on the shelf.
+Every episode the hourly "recently watched" scrape sees is written to `anime_log` once. The anime page turns that into "this week / month / year", a year of weekly pixel bars and a "finished lately" row: a season counts as finished when the last logged episode equals the season's episode count (read from the series page, cached a week); those shows also get a "✓ done" badge on the shelf. A daily job also pulls the profile's whole watched history (about a thousand episodes, no dates) into the log with the "imported" flag: they count in totals and finished checks, not in the weekly bars.
 
 ## Pixel cat
 

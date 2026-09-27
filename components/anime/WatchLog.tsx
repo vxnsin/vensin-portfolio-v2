@@ -23,7 +23,10 @@ export function WatchLog({ stats }: { stats: WatchLogStats }) {
         </div>
         <div className="flex justify-between text-[10px] text-ink-soft mt-1">
           <span>a year ago</span>
-          <span>{since ? `logging since ${since}` : "nothing logged yet"}</span>
+          <span>
+            {stats.total} episodes on record{stats.imported ? ` · ${stats.imported} from before the log started` : ""}
+            {since ? ` · dated since ${since}` : ""}
+          </span>
           <span>this week</span>
         </div>
       </div>
@@ -31,7 +34,7 @@ export function WatchLog({ stats }: { stats: WatchLogStats }) {
         <div>
           <div className="text-[10px] uppercase tracking-wide text-ink-soft mb-1">finished lately</div>
           <ul className="flex gap-2 flex-wrap">
-            {stats.finished.slice(0, 6).map((f) => (
+            {stats.finished.slice(0, 12).map((f) => (
               <li key={`${f.title}-${f.season}`}>
                 <a href={f.url} target="_blank" rel="noreferrer" className="chip no-underline text-ink hover:text-accent">
                   {f.cover && <img src={f.cover} alt="" className="w-4 h-6 object-cover border border-line" />}
@@ -41,6 +44,7 @@ export function WatchLog({ stats }: { stats: WatchLogStats }) {
               </li>
             ))}
           </ul>
+          {stats.finished.length > 12 && <p className="text-[10px] text-ink-soft mt-1">and {stats.finished.length - 12} more seasons finished before that.</p>}
         </div>
       )}
     </div>

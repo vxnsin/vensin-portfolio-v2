@@ -55,6 +55,8 @@ function migrate(db: Database.Database) {
   if (!cols.includes("played_at")) db.exec("alter table listens add column played_at text");
   if (!cols.includes("source")) db.exec("alter table listens add column source text not null default 'poll'");
   db.exec("create unique index if not exists listens_played_at on listens (played_at) where played_at is not null");
+  const logCols = (db.prepare("pragma table_info(anime_log)").all() as Array<{ name: string }>).map((c) => c.name);
+  if (!logCols.includes("imported")) db.exec("alter table anime_log add column imported integer not null default 0");
   const msgCols = (db.prepare("pragma table_info(messages)").all() as Array<{ name: string }>).map((c) => c.name);
   if (!msgCols.includes("ip_hash")) db.exec("alter table messages add column ip_hash text not null default ''");
 }

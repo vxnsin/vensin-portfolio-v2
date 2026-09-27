@@ -14,6 +14,8 @@ export type WatchLogStats = {
   thisMonth: number;
   thisYear: number;
   total: number;
+  /** rows pulled from the profile history without a date (everything before the log started) */
+  imported: number;
   /** episodes per iso week for the last 52 weeks, oldest first */
   weekly: number[];
   finished: Finished[];
@@ -79,8 +81,12 @@ export function watchLogStats(): WatchLogStats {
   const monthStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
   const yearStart = Date.UTC(now.getUTCFullYear(), 0, 1);
   const weekly = new Array<number>(52).fill(0);
-  let thisWeek = 0, thisMonth = 0, thisYear = 0;
+  let thisWeek = 0, thisMonth = 0, thisYear = 0, imported = 0;
   for (const r of rows) {
+    if (r.seen_at === IMPORT_DATE) {
+      imported++;
+      continue;
+    }
     const t = new Date(r.seen_at).getTime();
     if (t >= weekStart) thisWeek++;
     if (t >= monthStart) thisMonth++;
@@ -91,9 +97,41 @@ export function watchLogStats(): WatchLogStats {
   const finished: Finished[] = rows
     .filter((r) => r.finished === 1)
     .map((r) => ({ title: r.title, season: r.season, episodes: r.episode ?? 0, at: r.seen_at, url: r.url, cover: r.cover }))
-    .reverse()
-    .slice(0, 12);
-  return { thisWeek, thisMonth, thisYear, total: rows.length, weekly, finished, since: rows[0]?.seen_at ?? null };
+    .reverse();
+  const dated = rows.find((r) => r.seen_at !== IMPORT_DATE);
+  return { thisWeek, thisMonth, thisYear, total: rows.length, imported, weekly, finished, since: dated?.seen_at ?? null };
+}
+
+/** placeholder date for history rows: they count in totals and finished checks, but not in the weekly bars */
+export const IMPORT_DATE = "2024-01-01T00:00:00.000Z";
+
+/**
+ * pulls the whole watched history from the profile (newest first, no dates) into the log. rows already there are left alone,
+ * new ones get the placeholder date and the imported flag. then every (title, season) is checked for "finished".
+ */
+export async function importWatchedHistory(items: WatchedEpisode[]): Promise<{ added: number; finished: number }> {
+  const db = getDb();
+  const ins = db.prepare("insert or ignore into anime_log (title, season, episode, url, cover, seen_at, finished, imported) values (?, ?, ?, ?, ?, ?, 0, 1)");
+  let added = 0;
+  db.transaction(() => {
+    for (const it of items) {
+      if (!it.title) continue;
+      added += ins.run(it.title, it.season, it.episode, it.url, it.cover, IMPORT_DATE).changes;
+    }
+  })();
+  const latest = db.prepare("select title, season, max(episode) episode from anime_log where season is not null and episode is not null group by title, season").all() as Array<{ title: string; season: number; episode: number }>;
+  const upd = db.prepare("update anime_log set finished = ? where title = ? and season = ? and episode = ?");
+  let finished = 0;
+  for (const row of latest) {
+    const src = items.find((i) => i.title === row.title)?.sourceUrl;
+    if (!src) continue;
+    const count = await seasonEpisodeCount(src, row.season);
+    if (!count) continue;
+    const done = row.episode >= count ? 1 : 0;
+    upd.run(done, row.title, row.season, row.episode);
+    finished += done;
+  }
+  return { added, finished };
 }
 
 /** the latest logged episode per title, to badge "finished" on the recently watched shelf */

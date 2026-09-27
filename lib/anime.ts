@@ -17,16 +17,15 @@ export type WatchedAnime = {
 
 const ANIWORLD = "https://aniworld.to";
 
-/** Recently watched episodes from the public aniworld.to profile, covers + links upgraded via Kitsu. */
-export async function fetchRecentlyWatched(): Promise<WatchedAnime[] | null> {
+/** the watched page, newest first: every episode the profile lists (capped by the site at about a thousand) */
+export async function scrapeWatched(limit = Infinity): Promise<WatchedAnime[] | null> {
   const res = await fetch(`${ANIWORLD}/user/profil/${aniworldProfile}/watched`, {
     headers: { "user-agent": "Mozilla/5.0 (compatible; vensin.dev)" },
     cache: "no-store",
   });
   if (!res.ok) return null;
   const root = parse(await res.text());
-  const items = root.querySelectorAll(".coverListItem").slice(0, 12);
-
+  const items = root.querySelectorAll(".coverListItem").slice(0, limit);
   const out: WatchedAnime[] = [];
   for (const el of items) {
     const link = el.querySelector("a")?.getAttribute("href") ?? "";
@@ -41,6 +40,13 @@ export async function fetchRecentlyWatched(): Promise<WatchedAnime[] | null> {
       episode: link.match(/episode-(\d+)/)?.[1] ?? null,
     });
   }
+  return out;
+}
+
+/** Recently watched episodes, covers + links upgraded via Kitsu. */
+export async function fetchRecentlyWatched(): Promise<WatchedAnime[] | null> {
+  const out = await scrapeWatched(12);
+  if (!out) return null;
 
   // de-dupe by title (several episodes of the same show), keep newest
   const seen = new Set<string>();
