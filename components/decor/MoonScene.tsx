@@ -169,7 +169,7 @@ const RIGHT_CELLS = gridCells(RIGHT);
 
 /** whole-number zoom for a pixel sprite so no row or column gets dropped or doubled unevenly; smooth shrink only if it is too tall */
 function fitSprite(img: HTMLImageElement): { width: number; height: number; smooth: boolean } {
-  const room = window.innerHeight * 0.44;
+  const room = window.innerHeight * 0.5;
   const scale = Math.floor(room / img.naturalHeight);
   if (scale >= 1) return { width: img.naturalWidth * scale, height: img.naturalHeight * scale, smooth: false };
   const f = room / img.naturalHeight;
