@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { getDb, kvGet, kvSet } from "./db";
+import { limited } from "./ratelimit";
 
 // Old-web visitor counter without cookies: one visit per person per day, recognised by a hash of ip + user agent + the day.
 // The hash is salted with the day, so nothing links two days together, and rows older than two days are thrown away.
@@ -16,6 +17,7 @@ export function recordVisit(ip: string, userAgent: string): boolean {
   const day = today();
   const r = db.prepare("insert or ignore into visits (day, hash) values (?, ?)").run(day, visitorHash(ip, userAgent, day));
   if (r.changes === 0) return false;
+  if (limited(`visit-ip:${ip}:${day}`, 3, 36 * 3600_000)) return false; // three browsers per ip and day is people, more is a script
   kvSet("visits:total", kvGet<number>("visits:total", 0) + 1);
   // keep only today and yesterday; the day boundary is utc, so yesterday still matters for a while
   db.prepare("delete from visits where day < date('now', '-1 day')").run();

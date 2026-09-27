@@ -95,6 +95,23 @@ Two sources, both optional:
 
 The palette, the window frames and the particles follow the calendar (`lib/season.ts`): spring (sakura petals), summer (fireflies, sunny stripes), autumn (tumbling leaves), winter (pixel snow with snow caps on every window), and from Dec 18 to 27 a christmas special that visitors can't pick themselves: santa's sleigh with two reindeer crosses the sky, presents tumble down between the snow, fairy lights run along every title bar, and santa has "just signed" the guestbook at the top of page one (rendered, not stored). Halloween (Oct 15 – Nov 2: ghosts, bats, a cobweb) is a special too. Two more specials: new year (Dec 31 – Jan 1, fireworks and gold dust, "happy new year" under the title) Luis' birthday (Apr 10, confetti, balloons, "it's my birthday today!"), valentine's day (Feb 14, pixel hearts) and april fools (Apr 1: question marks rain down, the title and the tab title hang upside down, the tabs wobble, the marquee runs backwards, the cursor is a rubber duck, buttons dodge the mouse once, the date says march 32nd, the tagline talks nonsense, a chocolate-chip cookie banner shows up, a fake update gets stuck at 99 %, a flashing "You are an idiot!" window bounces around after half a minute and closing it spawns two more, and the website signs its own guestbook). `/admin/seasons` shows every look with dates, texts, a live preview (`/?season=<name>`, honoured only for a logged-in admin) and a pin button. Special days also get a personal note on the home page (`seasonNote` in `lib/season-data.ts`). Light and dark mode each have their own set. Visitors can pick a season in the footer (cookie `season`, "auto" removes it); on special days the picker is locked and the cookie is ignored. `/admin/seasons` sets the default for everyone else.
 
+## Abuse limits
+
+Everything public has a ceiling, all in-memory per process (`lib/ratelimit.ts`), on top of whatever Cloudflare does in front:
+
+| what | limit |
+|---|---|
+| page requests (proxy) | 120 per 30 s per ip → 429; public POST bodies over 2 MB → 413 |
+| admin login, maintenance unlock | 5 tries per 10 min per ip, a wrong password costs a second |
+| contact form | 2 messages per 24 h per hashed ip (counted in sqlite) |
+| guestbook | 1 entry per 5 min, 5 per day per hashed ip, honeypot, word filters |
+| pokes | 1 per second, 40 per minute per ip |
+| now playing / lyrics / visits / latest | 120 / 30 / 60 / 10 per minute per ip |
+| event stream | 200 open streams overall, 4 per ip |
+| visitor counter | at most 3 new "people" per ip per day |
+
+Admin-only routes check the session cookie, the health endpoint its bearer token, the Discord endpoint the Ed25519 signature and the owner id. All sql goes through prepared statements, uploads are re-encoded by sharp and stored under random names, react escapes everything it renders.
+
 ## Backups
 
 Every night at 03:30 the scheduler takes a consistent copy of the sqlite file (sqlite's online backup, safe while the site runs), gzips it into `<DATA_DIR>/backups/` and keeps the last `BACKUP_KEEP` (default 14). With `DISCORD_BACKUP_CHANNEL_ID` (bot) or `DISCORD_BACKUP_WEBHOOK_URL` set, the copy also goes off-site, so a dead SD card on the pi is a five-minute problem:
@@ -162,6 +179,10 @@ Every episode the hourly "recently watched" scrape sees is written to `anime_log
 ## Social previews
 
 Every main page has its own Open Graph image (`app/*/opengraph-image.tsx`, shared card in `lib/og.tsx`): the music card shows the current track, anime the latest posters, projects the count, guestbook the newest signature.
+
+## About page
+
+`/admin/about` edits every word on `/about`: intro paragraphs, what you're learning, a jar of quotes (one shown per day), likes, dislikes and "ask me about" chips (`lib/about.ts` holds the defaults). The page adds a "right now" box from the live data (listening, watching, coding, playing) and the tech stack.
 
 ## Projects
 

@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { clientIp, limited, tooManyResponse } from "@/lib/ratelimit";
 import { refreshLatest } from "@/lib/latest";
 import { getLatest } from "@/lib/store";
 
@@ -6,7 +7,8 @@ import { getLatest } from "@/lib/store";
 // look at the widget, and the server refreshes the "latest" box at most once a minute.
 const MIN_INTERVAL_MS = 60_000;
 
-export async function POST() {
+export async function POST(req: NextRequest) {
+  if (limited(`latest:${clientIp(req.headers)}`, 10, 60_000)) return tooManyResponse();
   const current = await getLatest();
   if (current.checkedAt && Date.now() - new Date(current.checkedAt).getTime() < MIN_INTERVAL_MS) {
     return NextResponse.json({ ok: true, skipped: "fresh" });

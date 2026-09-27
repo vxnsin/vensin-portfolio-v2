@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { clientIp, limited } from "@/lib/ratelimit";
 import { revalidatePath } from "next/cache";
 import { put, del } from "@vercel/blob";
 import { promises as fs } from "fs";
@@ -31,6 +33,7 @@ import { deleteGuestbookEntry, setGuestbookStatus } from "@/lib/guestbook";
 import { isSeason, setSeasonSetting } from "@/lib/season";
 import { deleteProject, moveProject, saveProject, type ProjectLink, type ProjectStatus } from "@/lib/projects";
 import { deleteSetupItem, moveSetupItem, saveSetupItem } from "@/lib/setup";
+import { saveAbout } from "@/lib/about";
 import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
 
 export type ActionState = { ok: boolean; error?: string } | null;
@@ -115,6 +118,28 @@ export async function moveProjectAction(formData: FormData) {
   moveProject(String(formData.get("id")), Number(formData.get("dir")) < 0 ? -1 : 1);
   revalidatePath("/projects");
   revalidatePath("/admin/projects");
+}
+
+/* ---------- about page ---------- */
+
+export async function saveAboutAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const str = (k: string, max = 4000) => String(formData.get(k) ?? "").trim().slice(0, max);
+  const lines = (k: string, max = 20) => str(k).split("\n").map((l) => l.trim()).filter(Boolean).slice(0, max);
+  const intro = str("intro", 6000).split(/\n\s*\n/).map((p) => p.replace(/\s+/g, " ").trim()).filter(Boolean).slice(0, 6);
+  if (intro.length === 0) return { ok: false, error: "the intro needs at least one paragraph" };
+  const quotes = lines("quotes", 60).map((l) => {
+    const [text = "", ...rest] = l.split("|");
+    return { text: text.trim().slice(0, 200), by: rest.join("|").trim().slice(0, 80) };
+  }).filter((q) => q.text);
+  try {
+    saveAbout({ intro, learning: str("learning", 140), quotes, likes: lines("likes"), dislikes: lines("dislikes"), askMeAbout: lines("askMeAbout") });
+    revalidatePath("/about");
+    revalidatePath("/admin/about");
+    return { ok: true };
+  } catch {
+    return { ok: false, error: "could not save" };
+  }
 }
 
 /* ---------- setup ---------- */
@@ -205,8 +230,13 @@ export async function deleteGuestbookAction(formData: FormData) {
 /* ---------- auth ---------- */
 
 export async function loginAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  const ip = clientIp(await headers());
+  if (limited(`login:${ip}`, 5, 10 * 60_000)) return { ok: false, error: "too many tries. come back in ten minutes." };
   const ok = await login(String(formData.get("password") ?? ""));
-  if (!ok) return { ok: false, error: "nope." };
+  if (!ok) {
+    await new Promise((r) => setTimeout(r, 1000)); // brute force gets slow, humans barely notice
+    return { ok: false, error: "nope." };
+  }
   redirect("/admin");
 }
 

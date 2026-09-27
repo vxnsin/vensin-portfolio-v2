@@ -1,38 +1,82 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { site } from "@/data/site";
+import Link from "next/link";
+import { site, socials } from "@/data/site";
 import { techstack } from "@/data/techstack";
 import { getGithubStats } from "@/lib/github";
+import { getAbout, quoteOfTheDay } from "@/lib/about";
+import { getLatest } from "@/lib/store";
+import { getRecentlyWatched } from "@/lib/anime";
+import { listProjects } from "@/lib/projects";
+import { watchLogStats } from "@/lib/anime-log";
+import { listenStats } from "@/lib/listens";
+import { relativeTime } from "@/lib/time";
 import { Window } from "@/components/layout/Window";
+import { PixelIcon } from "@/components/icons/PixelIcon";
 
 export const metadata: Metadata = { title: "about" };
+export const dynamic = "force-dynamic";
 
 export default async function AboutPage() {
-  const gh = await getGithubStats();
+  const about = getAbout();
+  const quote = quoteOfTheDay(about);
+  const [gh, latest, recent] = await Promise.all([getGithubStats(), getLatest(), getRecentlyWatched()]);
+  const projects = listProjects();
+  const anime = watchLogStats();
+  const music = listenStats();
   const years = new Date().getFullYear() - site.codingSince;
+  const items = latest.items ?? {};
+
+  const now: Array<{ label: string; value: string; href?: string | null; at?: string }> = [];
+  if (items.listening) now.push({ label: "listening", value: items.listening.value, href: items.listening.href, at: items.listening.at });
+  if (recent[0]) now.push({ label: "watching", value: `${recent[0].title}${recent[0].season ? ` · S${recent[0].season}` : ""}${recent[0].episode ? ` E${recent[0].episode}` : ""}`, href: recent[0].url });
+  if (items.coding) now.push({ label: "coding", value: items.coding.value, href: items.coding.href, at: items.coding.at });
+  if (items.played) now.push({ label: "playing", value: items.played.value, href: items.played.href, at: items.played.at });
+  now.push({ label: "learning", value: about.learning });
 
   return (
     <div className="grid gap-5">
       <div>
         <h2 className="pixel text-lg text-accent mb-2">about.</h2>
-        <p className="mb-3">
-          Hi, my name is Luis, online mostly known as <span className="text-accent-2">vensin</span>. I&apos;m a developer from
-          Germany. I started programming with Java because of Minecraft, and somehow never stopped. These days I mostly build
-          things for the web with TypeScript and Next.js, and I still like running game servers on the side.
-        </p>
-        <p className="mb-3">
-          Outside of code I ride my motorcycle whenever the weather allows, watch a lot of anime, listen to music basically all
-          day, and hang out with friends. I like making things that feel a bit personal instead of another generic template.
-          This site is one of those things.
+        {about.intro.map((p, i) => (
+          <p key={i} className="mb-3">
+            {p}
+          </p>
+        ))}
+        <p className="text-ink-soft text-xs">
+          the short version: {site.tagline}. the long version is below, the live version is in the sidebar.
         </p>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
         <Stat value={`${years}+`} label="years coding" />
-        <Stat value={String(site.codingSince)} label="started with java" />
-        <Stat value={gh ? String(gh.repos) : "?"} label="public repos" />
-        <Stat value={gh ? String(gh.followers) : "?"} label="github followers" />
+        <Stat value={String(projects.length)} label="projects built" />
+        <Stat value={String(anime.total)} label="anime episodes on record" />
+        <Stat value={music.minutesTotal >= 60 ? `${Math.round(music.minutesTotal / 60)}h` : `${Math.round(music.minutesTotal)}m`} label="music logged" />
       </div>
+
+      <Window title="right now" dashed bodyClassName="text-xs">
+        <ul className="grid gap-1.5 sm:grid-cols-2">
+          {now.map((n) => (
+            <li key={n.label} className="flex items-baseline gap-2 min-w-0">
+              <span className="text-ink-soft w-16 shrink-0">{n.label}</span>
+              <span className="truncate">
+                {n.href ? (
+                  <a href={n.href} target="_blank" rel="noreferrer">
+                    {n.value}
+                  </a>
+                ) : (
+                  n.value
+                )}
+                {n.at && <span className="text-ink-soft text-[10px]"> · {relativeTime(n.at)}</span>}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="text-[10px] text-ink-soft mt-2">
+          fed by spotify, my watch history, github and discord. <Link href="/music">music</Link> and <Link href="/anime">anime</Link> have the long versions.
+        </p>
+      </Window>
 
       <Window title="tech stack" dashed>
         <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
@@ -52,36 +96,74 @@ export default async function AboutPage() {
             </li>
           ))}
         </ul>
+        <p className="text-[10px] text-ink-soft mt-2">
+          {gh ? `${gh.repos} public repos · ${gh.followers} followers on github` : "github stats are taking a nap"}
+        </p>
       </Window>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Window title="likes" dashed bodyClassName="text-xs">
           <ul className="list-disc pl-4 grid gap-1">
-            <li>anime (obviously)</li>
-            <li>music, all day, every day</li>
-            <li>minecraft servers &amp; the tech behind them</li>
-            <li>motorcycle rides, especially at golden hour</li>
-            <li>clean uis with a bit of personality</li>
-            <li>late night coding sessions</li>
+            {about.likes.map((l) => (
+              <li key={l}>{l}</li>
+            ))}
           </ul>
         </Window>
         <Window title="dislikes" dashed bodyClassName="text-xs">
           <ul className="list-disc pl-4 grid gap-1">
-            <li>bugs that only appear in production</li>
-            <li>cliffhanger season finales with no s2 announced</li>
-            <li>mondays</li>
-            <li>servers getting nuked</li>
+            {about.dislikes.map((l) => (
+              <li key={l}>{l}</li>
+            ))}
           </ul>
         </Window>
       </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Window title="ask me about" dashed bodyClassName="text-xs">
+          <div className="flex flex-wrap gap-1.5">
+            {about.askMeAbout.map((a) => (
+              <span key={a} className="chip">
+                {a}
+              </span>
+            ))}
+          </div>
+          <p className="text-[10px] text-ink-soft mt-2">
+            <Link href="/contact">contact</Link> or <Link href="/guestbook">guestbook</Link>, whichever feels right.
+          </p>
+        </Window>
+        <Window title="quote of the day" dashed bodyClassName="text-xs">
+          {quote ? (
+            <>
+              <blockquote className="pixel text-base text-ink">&ldquo;{quote.text}&rdquo;</blockquote>
+              <p className="text-ink-soft mt-1">— {quote.by || "unknown"}</p>
+              {about.quotes.length > 1 && <p className="text-[10px] text-ink-soft mt-2">one of {about.quotes.length}. a new one every day.</p>}
+            </>
+          ) : (
+            <p className="text-ink-soft">no quotes yet.</p>
+          )}
+        </Window>
+      </div>
+
+      <Window title="find me" dashed bodyClassName="text-xs">
+        <ul className="flex flex-wrap gap-2">
+          {socials.map((s) => (
+            <li key={s.id}>
+              <a href={s.url} target="_blank" rel="noreferrer" className="chip no-underline text-ink hover:text-accent">
+                <PixelIcon name={s.id} size={14} />
+                {s.label} <span className="text-ink-soft">{s.handle}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </Window>
     </div>
   );
 }
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="win-dashed border border-line bg-paper-2 py-2">
-      <div className="pixel text-2xl text-accent-2">{value}</div>
+    <div className="win-dashed border border-line bg-paper-2 py-2 px-1 min-w-0">
+      <div className="pixel text-2xl text-accent-2 truncate">{value}</div>
       <div className="text-[11px] text-ink-soft">{label}</div>
     </div>
   );

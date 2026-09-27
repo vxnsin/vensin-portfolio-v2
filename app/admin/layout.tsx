@@ -13,6 +13,7 @@ const links = [
   { href: "/admin/gallery", label: "gallery" },
   { href: "/admin/projects", label: "projects" },
   { href: "/admin/setup", label: "setup" },
+  { href: "/admin/about", label: "about" },
   { href: "/admin/anime", label: "anime" },
   { href: "/admin/neighbors", label: "neighbors" },
   { href: "/admin/spotify", label: "spotify" },
