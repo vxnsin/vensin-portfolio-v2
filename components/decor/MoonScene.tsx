@@ -15,9 +15,9 @@ const COL: Record<string, string> = {
   // right: pale hair with a highlight and pink tips, skin, white jacket with a pink mark
   L: "#f3e8f4", l: "#ffffff", T: "#ff8fb4", S: "#f5e0cf", Q: "#ff8fb4",
   // moon: face, dark patches, crater floors, rim, highlight
-  M: "#e6edf3", m: "#b9cad8", c: "#8fa8bb", r: "#7d9bb0", i: "#f7fafc",
-  // ground, bright edge to dark
-  A: "#9fdff0", B: "#3d7d95", C: "#1e3d50", E: "#142b3a",
+  M: "#e9f4f7", m: "#a8cfe0", c: "#7fb0c6", r: "#6d9fb8", i: "#ffffff",
+  // ground, bright edge to dark (cool cyan, matching the sprite that sits on it)
+  A: "#b9f0ff", B: "#3f8fb0", C: "#1f4a63", E: "#12293a",
 };
 
 const LEFT = [
