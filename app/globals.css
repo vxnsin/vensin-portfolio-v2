@@ -695,14 +695,23 @@ textarea.input { resize: vertical; min-height: 80px; }
 @keyframes morph { 25% { filter: brightness(3) saturate(0); } 50% { filter: brightness(1); } 75% { filter: brightness(3) saturate(0); } }
 .cheat-note { animation: toast-in 0.3s steps(3) both; }
 
-/* "moon": the site fades out and the sky takes over */
+/* "moon": the site fades out and the sky takes over. plays in order: stars, the moon flies in, the ground lights up, the two sit down */
 :root[data-moon] body { overflow: hidden; }
 :root[data-moon] #top { opacity: 0; transition: opacity 1s ease; pointer-events: none; }
 :root[data-moon] .particles, :root[data-moon] .sleigh-track { display: none; }
-.moon-scene { background: #0d0b16; animation: moon-fade 1.2s ease both; }
+.moon-scene { background: radial-gradient(ellipse at 50% 120%, #17203a 0%, #0d0b16 55%); animation: moon-fade 1s ease both; }
 @keyframes moon-fade { from { opacity: 0; } }
 .moon-star { position: absolute; background: #f4f1ff; border-radius: 50%; animation: moon-twinkle 2.4s ease-in-out infinite; }
-@keyframes moon-twinkle { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
-.moon-rise { animation: moon-rise 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-@keyframes moon-rise { from { transform: translateY(70px); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .moon-rise, .moon-star, .golden, .morph { animation: none; } }
+@keyframes moon-twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+.moon-shooting { position: absolute; top: 12%; left: 70%; width: 90px; height: 2px; background: linear-gradient(90deg, #fff, transparent); transform: rotate(160deg); opacity: 0; animation: moon-shoot 9s linear 5s infinite; }
+@keyframes moon-shoot { 0% { opacity: 0; transform: translate(0, 0) rotate(160deg); } 3% { opacity: 1; } 12% { opacity: 0; transform: translate(-40vw, 22vh) rotate(160deg); } 100% { opacity: 0; transform: translate(-40vw, 22vh) rotate(160deg); } }
+.moon-body { position: absolute; left: 50%; top: 0; width: 96vmin; height: 96vmin; transform: translate(-50%, -52%); animation: moon-fly 2.8s cubic-bezier(0.18, 0.85, 0.25, 1) 0.4s both; filter: drop-shadow(0 0 24px rgba(190, 215, 240, 0.45)); }
+@keyframes moon-fly { from { transform: translate(30vw, -160vh) scale(0.25) rotate(18deg); } to { transform: translate(-50%, -52%) scale(1) rotate(0deg); } }
+.moon-glow { position: absolute; left: 50%; top: -20vmin; width: 140vmin; height: 110vmin; transform: translateX(-50%); background: radial-gradient(ellipse at 50% 40%, rgba(190, 215, 240, 0.28), transparent 60%); animation: moon-glow 2s ease 2.4s both; pointer-events: none; }
+@keyframes moon-glow { from { opacity: 0; } }
+.moon-ground { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 22vh; animation: moon-ground 1.2s ease 2.6s both; }
+@keyframes moon-ground { from { transform: translateY(30px); opacity: 0; } }
+.moon-pair { position: absolute; left: 50%; bottom: 16vh; height: 38vh; transform: translateX(-50%); animation: moon-pair 1.4s ease 3.3s both; }
+@keyframes moon-pair { from { transform: translateX(-50%) translateY(24px); opacity: 0; } }
+.moon-caption { position: absolute; left: 0; right: 0; bottom: 3vh; animation: moon-fade 1.5s ease 4.6s both; text-shadow: 0 1px 0 #000; }
+@media (prefers-reduced-motion: reduce) { .moon-body, .moon-glow, .moon-ground, .moon-pair, .moon-caption, .moon-star, .moon-shooting, .golden, .morph { animation: none; } .moon-shooting { display: none; } }
