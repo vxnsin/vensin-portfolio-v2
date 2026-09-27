@@ -69,7 +69,7 @@ export function ProjectGrid({ projects }: { projects: Project[] }) {
               </div>
 
               <div className="relative aspect-[16/9] border-b border-line bg-paper-2 overflow-hidden">
-                <Image src={p.thumbnail} alt={p.name} fill sizes="(max-width: 640px) 100vw, 340px" className="object-cover" />
+                <Image src={p.thumbnail} alt={p.name} fill sizes="(max-width: 640px) 100vw, 340px" className="object-cover" unoptimized={!p.thumbnail.startsWith("/") && !p.thumbnail.includes("opengraph.githubassets.com")} />
                 <span className="absolute top-1.5 left-1.5 chip text-[10px] bg-paper">
                   <span className="status-dot" style={{ background: st.color, borderWidth: 0, width: 7, height: 7 }} />
                   {st.label}

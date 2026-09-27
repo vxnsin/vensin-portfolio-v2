@@ -29,9 +29,92 @@ import {
 import { jobs, runJob } from "@/lib/scheduler";
 import { deleteGuestbookEntry, setGuestbookStatus } from "@/lib/guestbook";
 import { isSeason, setSeasonSetting } from "@/lib/season";
+import { deleteProject, moveProject, saveProject, type ProjectLink, type ProjectStatus } from "@/lib/projects";
 import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
 
 export type ActionState = { ok: boolean; error?: string } | null;
+
+/* ---------- projects ---------- */
+
+const LINK_TYPES = ["github", "website", "discord"] as const;
+const PROJECT_STATUSES: ProjectStatus[] = ["active", "archived", "shut down"];
+
+export async function saveProjectAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const str = (k: string, max = 200) => String(formData.get(k) ?? "").trim().slice(0, max);
+  const id = str("id") || undefined;
+  const name = str("name", 80);
+  const tagline = str("tagline", 120);
+  const description = str("description", 1200);
+  if (!name || !tagline || !description) return { ok: false, error: "name, tagline and description are needed" };
+  const start = Number(formData.get("start"));
+  const endRaw = str("end", 4);
+  const end = endRaw ? Number(endRaw) : undefined;
+  if (!Number.isInteger(start) || start < 2000 || start > 2100) return { ok: false, error: "start year looks off" };
+  if (end !== undefined && (!Number.isInteger(end) || end < start)) return { ok: false, error: "end year must be after the start year" };
+  const statusRaw = str("status", 20);
+  const status = PROJECT_STATUSES.includes(statusRaw as ProjectStatus) ? (statusRaw as ProjectStatus) : "active";
+  const tech = str("tech", 400).split(",").map((t) => t.trim()).filter(Boolean).slice(0, 20);
+  const highlights = str("highlights", 2000).split("\n").map((l) => l.trim()).filter(Boolean).slice(0, 10);
+  const links: ProjectLink[] = [];
+  for (const line of str("links", 2000).split("\n")) {
+    const [typeRaw = "", labelRaw = "", urlRaw = ""] = line.split("|").map((x) => x.trim());
+    if (!line.trim()) continue;
+    const type = typeRaw.toLowerCase() as ProjectLink["type"];
+    if (!LINK_TYPES.includes(type)) return { ok: false, error: `link type "${typeRaw}" is not github, website or discord` };
+    if (!/^https?:\/\//i.test(urlRaw)) return { ok: false, error: `link url "${urlRaw}" must start with http(s)://` };
+    links.push({ type, url: urlRaw, ...(labelRaw ? { label: labelRaw } : {}) });
+  }
+
+  let thumbnail = str("thumbnail", 500);
+  const file = formData.get("thumbnailFile");
+  if (file instanceof File && file.size > 0) {
+    if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "max 30 MB per image" };
+    try {
+      const processed = await processUpload(file);
+      if (processed.kind !== "image") return { ok: false, error: "thumbnails have to be images" };
+      const fileName = `${uid()}${processed.ext}`;
+      if (process.env.BLOB_READ_WRITE_TOKEN) {
+        thumbnail = (await put(`projects/${fileName}`, processed.buffer, { access: "public", addRandomSuffix: false, contentType: processed.contentType })).url;
+      } else {
+        await fs.mkdir(UPLOAD_DIR, { recursive: true });
+        await fs.writeFile(path.join(UPLOAD_DIR, fileName), processed.buffer);
+        thumbnail = `/uploads/${fileName}`;
+      }
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : "thumbnail upload failed" };
+    }
+  }
+  if (!thumbnail) {
+    const gh = links.find((l) => l.type === "github")?.url.match(/github\.com\/([^/]+)\/([^/#?]+)/);
+    thumbnail = gh ? `https://opengraph.githubassets.com/1/${gh[1]}/${gh[2]}` : "/projects/thumbnails/portfolio.png";
+  }
+
+  try {
+    saveProject({ slug: str("slug", 60) || undefined, name, tagline, description, tech, thumbnail, start, end, status, role: str("role", 60) || "design + code", highlights, links }, id);
+    revalidatePath("/projects");
+    revalidatePath("/admin/projects");
+    if (!id) redirect("/admin/projects");
+    return { ok: true };
+  } catch (e) {
+    if (e && typeof e === "object" && "digest" in e) throw e; // next's redirect
+    return { ok: false, error: e instanceof Error ? e.message : "could not save" };
+  }
+}
+
+export async function deleteProjectAction(formData: FormData) {
+  await requireAdmin();
+  deleteProject(String(formData.get("id")));
+  revalidatePath("/projects");
+  revalidatePath("/admin/projects");
+}
+
+export async function moveProjectAction(formData: FormData) {
+  await requireAdmin();
+  moveProject(String(formData.get("id")), Number(formData.get("dir")) < 0 ? -1 : 1);
+  revalidatePath("/projects");
+  revalidatePath("/admin/projects");
+}
 
 /* ---------- seasons ---------- */
 

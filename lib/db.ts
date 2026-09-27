@@ -18,6 +18,7 @@ const SCHEMA = `
   create table if not exists listens (id integer primary key autoincrement, track_id text, song text not null, artist text not null, album text, art text, at text not null);
   create table if not exists guestbook (id text primary key, name text not null, message text not null, website text, created_at text not null, status text not null default 'approved', reasons text not null default '[]', ip_hash text not null default '');
   create index if not exists guestbook_status on guestbook (status, created_at desc);
+  create table if not exists projects (id text primary key, slug text not null unique, name text not null, tagline text not null default '', description text not null default '', tech text not null default '[]', thumbnail text not null default '', start integer not null, end integer, status text not null default 'active', role text not null default '', highlights text not null default '[]', links text not null default '[]', position integer not null default 0, created_at text not null);
   create index if not exists guestbook_ip on guestbook (ip_hash, created_at);
   create index if not exists listens_at on listens (at);
   create index if not exists listens_track on listens (track_id);

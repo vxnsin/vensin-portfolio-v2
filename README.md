@@ -58,7 +58,7 @@ Every job can be triggered from the admin dashboard ("run now"). On a serverless
 | `/guestbook` | public guestbook with spam screening; flagged entries wait for a Discord button click or the admin |
 | `/impressum` | forwards to the external impressum service (`IMPRESSUM_URL`) |
 | `/privacy` | Datenschutzerklärung |
-| `/admin` | login-protected panel: messages, uploads, favorites, update log, marquee, maintenance mode |
+| `/admin` | login-protected panel: messages, guestbook, uploads, projects, favorites, seasons, update log, marquee, maintenance mode |
 
 ## Maintenance mode
 
@@ -141,6 +141,10 @@ iPhone setup (Shortcuts app):
 ## Gallery uploads
 
 Photos are rotated by EXIF, resized to max 2200px and saved as WebP. HEIC/HEIF from iPhone is converted automatically. GIFs stay GIFs. Videos (mp4, mov, webm) are stored as-is; mp4/H.264 plays everywhere, HEVC `.mov` does not play in every browser.
+
+## Projects
+
+`/admin/projects` adds, edits, reorders and deletes projects (name, tagline, description, tech, years, status, role, highlights, links, thumbnail by url or upload). They live in sqlite; `data/projects.ts` only seeds an empty database. A project with a GitHub link and no thumbnail gets the repo's social image automatically.
 
 ## Where to edit content
 

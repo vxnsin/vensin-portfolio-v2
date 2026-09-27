@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { projects } from "@/data/projects";
+import { listProjects } from "@/lib/projects";
 import { ProjectGrid } from "@/components/projects/ProjectGrid";
 
 export const metadata: Metadata = { title: "projects" };
+export const dynamic = "force-dynamic";
 
 export default function ProjectsPage() {
+  const projects = listProjects();
   const active = projects.filter((p) => p.status === "active").length;
   const first = Math.min(...projects.map((p) => p.start));
   const techs = new Set(projects.flatMap((p) => p.tech)).size;

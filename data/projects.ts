@@ -22,6 +22,7 @@ export type Project = {
   links: ProjectLink[];
 };
 
+/** seed for a fresh database; the live list is edited in /admin/projects and lives in sqlite */
 export const projects: Project[] = [
   {
     slug: "vensin-v2",
