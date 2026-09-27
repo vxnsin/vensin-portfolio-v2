@@ -90,7 +90,7 @@ export async function Shell({ children }: { children: ReactNode }) {
             )}
             <TodayCycle health={health} />
             <Window title="mochi" right={<span className="text-[10px] text-ink-soft">pixel cat</span>}>
-              <Pet initialPokes={kvGet<number>("pet:pokes", 0)} />
+              <Pet initialPokes={kvGet<number>("pet:pokes", 0)} season={season} />
             </Window>
             <Window title="latest">
               <LatestBox

@@ -1,15 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useLanyardContext } from "@/components/discord/LanyardProvider";
 import { resolveAll } from "@/components/discord/activities";
+import { isSeason, type Season } from "@/lib/season-data";
 import { CAPTION, FRAME_MS, FRAMES, Sprite, type Mood } from "./cat-frames";
 
 // Mochi lives in the sidebar and reacts to the discord status: asleep when idle or offline, tapping away while coding,
 // bopping to music, wide-eyed during anime, stretching and flicking her tail otherwise, purring when poked.
+// She also dresses for the season (see the accessories in cat-frames.tsx).
 
-export function Pet({ initialPokes }: { initialPokes: number }) {
+function subscribeSeason(cb: () => void) {
+  const obs = new MutationObserver(cb);
+  obs.observe(document.documentElement, { attributes: true, attributeFilter: ["data-season"] });
+  return () => obs.disconnect();
+}
+const readSeason = (): Season | null => {
+  const v = document.documentElement.getAttribute("data-season");
+  return isSeason(v) ? v : null;
+};
+
+export function Pet({ initialPokes, season: initialSeason }: { initialPokes: number; season: Season }) {
   const { data } = useLanyardContext();
+  const season = useSyncExternalStore(subscribeSeason, readSeason, () => initialSeason);
   const [frame, setFrame] = useState(0);
   const [poked, setPoked] = useState(false);
   const [pokes, setPokes] = useState(initialPokes);
@@ -62,7 +75,7 @@ export function Pet({ initialPokes }: { initialPokes: number }) {
   return (
     <button type="button" onClick={poke} className="w-full flex items-center gap-3 text-left cursor-pointer group" aria-label="poke the cat">
       <span className="shrink-0 border border-dashed border-line bg-paper-2 p-1 group-hover:border-accent transition-colors">
-        <Sprite grid={frames[frame % frames.length]} />
+        <Sprite frame={frames[frame % frames.length]} season={season} />
       </span>
       <span className="min-w-0 text-[11px]">
         <span className="pixel text-ink block">mochi</span>
