@@ -29,6 +29,25 @@ export function Pet({ initialPokes }: { initialPokes: number }) {
     return () => clearInterval(id);
   }, [mood]);
 
+  // other people poke her too: keep the number moving while the page is open
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/pet", { cache: "no-store" });
+        if (res.ok) {
+          const j = (await res.json()) as { pokes: number };
+          if (alive) setPokes((n) => Math.max(n, j.pokes));
+        }
+      } catch {}
+    };
+    const id = setInterval(load, 30_000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+
   const poke = async () => {
     setPoked(true);
     setPokes((n) => n + 1);
