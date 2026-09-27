@@ -15,9 +15,8 @@ export const metadata: Metadata = {
   title: { default: `${site.domain} — home`, template: `${site.domain} — %s` },
   description: "vensin's cozy corner of the internet: projects, anime, and what I'm up to right now.",
   keywords: ["vensin", "vxnsin", "vensin.dev", "portfolio", "developer", "anime"],
+  // no fixed title or description here: every page's own title flows into the card
   openGraph: {
-    title: site.domain,
-    description: "vensin's cozy corner of the internet: projects, anime, and what I'm up to right now.",
     url: site.url,
     siteName: site.domain,
     type: "website",
