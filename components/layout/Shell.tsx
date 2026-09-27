@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { site } from "@/data/site";
-import { build } from "@/lib/build";
 import { getHealth, getLatest, getSettings } from "@/lib/store";
 import { getNowPlaying, spotifyConnected } from "@/lib/spotify";
 import { listenStats } from "@/lib/listens";
@@ -119,52 +118,7 @@ export async function Shell({ children }: { children: ReactNode }) {
           <div className="win-body grid gap-3 sm:grid-cols-[1fr_auto] items-center text-xs">
             <div className="grid gap-1">
               <div className="pixel text-ink text-sm"><Wordmark /></div>
-              <div className="text-ink-soft">
-                © {year} luis. all the bugs are mine.
-              </div>
-              <div className="text-ink-soft">
-                hand-built with next.js, coffee and anime osts.{" "}
-                <a
-                  href={build.repo}
-                  target="_blank"
-                  rel="noreferrer"
-                  title="source code"
-                >
-                  build {build.sha}
-                </a>{" "}
-                · {build.date}
-              </div>
-              <div className="text-ink-soft">
-                status widget by{" "}
-                <a
-                  href="https://github.com/Phineas/lanyard"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  lanyard
-                </a>
-                , posters by{" "}
-                <a href="https://kitsu.app" target="_blank" rel="noreferrer">
-                  kitsu
-                </a>
-                , pixel icons by{" "}
-                <a
-                  href="https://pixelarticons.com"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  pixelarticons
-                </a>{" "}
-                and{" "}
-                <a
-                  href="https://github.com/YukiPixels/Pixel-Art-Icons"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  yukipixels
-                </a>
-                . no cookies, no tracking.
-              </div>
+              <div className="text-ink-soft">© {year} luis. all the bugs are mine. no cookies, no tracking.</div>
               <VisitorCounter />
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
@@ -187,6 +141,9 @@ export async function Shell({ children }: { children: ReactNode }) {
               )}
               <Link href="/privacy" className="btn text-xs no-underline">
                 privacy
+              </Link>
+              <Link href="/credits" className="btn text-xs no-underline">
+                credits
               </Link>
               <SeasonPicker fallback={fallbackSeason} locked={seasonLocked} />
               <ThemeToggle />
