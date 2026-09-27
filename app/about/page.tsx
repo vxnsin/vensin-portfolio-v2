@@ -7,7 +7,7 @@ import { getGithubStats } from "@/lib/github";
 import { getAbout, randomQuoteIndex } from "@/lib/about";
 import { QuoteJar } from "@/components/about/QuoteJar";
 import { getLatest } from "@/lib/store";
-import { getRecentlyWatched } from "@/lib/anime";
+import { getProfileStats, getRecentlyWatched } from "@/lib/anime";
 import { listProjects } from "@/lib/projects";
 import { watchLogStats } from "@/lib/anime-log";
 import { listenStats } from "@/lib/listens";
@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 export default async function AboutPage() {
   const about = getAbout();
   const quoteIndex = randomQuoteIndex(about);
-  const [gh, latest, recent] = await Promise.all([getGithubStats(), getLatest(), getRecentlyWatched()]);
+  const [gh, latest, recent, profile] = await Promise.all([getGithubStats(), getLatest(), getRecentlyWatched(), getProfileStats()]);
   const projects = listProjects();
   const anime = watchLogStats();
   const music = listenStats();
@@ -52,7 +52,7 @@ export default async function AboutPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
         <Stat value={`${years}+`} label="years coding" />
         <Stat value={String(projects.length)} label="projects built" />
-        <Stat value={String(anime.total)} label="anime episodes on record" />
+        <Stat value={String(Math.max(anime.total, profile?.episodes ?? 0))} label="anime episodes watched" />
         <Stat value={music.minutesTotal >= 60 ? `${Math.round(music.minutesTotal / 60)}h` : `${Math.round(music.minutesTotal)}m`} label="music logged" />
       </div>
 

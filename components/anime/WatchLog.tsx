@@ -1,7 +1,8 @@
 import type { WatchLogStats } from "@/lib/anime-log";
 
 /** episodes per week for the last year as pixel bars, a few counters, and the seasons finished lately */
-export function WatchLog({ stats }: { stats: WatchLogStats }) {
+export function WatchLog({ stats, profileEpisodes }: { stats: WatchLogStats; profileEpisodes: number | null }) {
+  const allTime = Math.max(stats.total, profileEpisodes ?? 0);
   const max = Math.max(1, ...stats.weekly);
   const since = stats.since ? new Date(stats.since).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }) : null;
   return (
@@ -9,7 +10,7 @@ export function WatchLog({ stats }: { stats: WatchLogStats }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
         <Stat value={stats.thisWeek} label="episodes this week" />
         <Stat value={stats.thisMonth} label="this month" />
-        <Stat value={stats.total} label="all time" />
+        <Stat value={allTime} label="all time" />
         <Stat value={stats.finished.length} label="seasons finished" />
       </div>
       <div>
@@ -23,7 +24,8 @@ export function WatchLog({ stats }: { stats: WatchLogStats }) {
         <div className="flex justify-between text-[10px] text-ink-soft mt-1">
           <span>a year ago</span>
           <span>
-            {stats.total} episodes on record{stats.imported ? ` · ${stats.imported} from before the log started` : ""}
+            {profileEpisodes && profileEpisodes > stats.total ? `${allTime} watched in total, ${stats.total} listed in detail` : `${stats.total} episodes on record`}
+            {stats.imported ? ` · ${stats.imported} from before the log started` : ""}
             {since ? ` · dated since ${since}` : ""}
           </span>
           <span>this week</span>

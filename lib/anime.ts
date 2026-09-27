@@ -100,6 +100,20 @@ export async function getAnimeLists(): Promise<AnimeLists | null> {
   return cached(CACHE_KEYS.animeLists, TTL.animeLists, fetchAnimeLists);
 }
 
+export type ProfileStats = { episodes: number; fetchedAt: string };
+
+/** "<n> Episoden" from the profile header: the true all-time count, unlike the capped watched list */
+export async function fetchProfileStats(): Promise<ProfileStats | null> {
+  const res = await fetch(`${ANIWORLD}/user/profil/${aniworldProfile}`, { headers: { "user-agent": "Mozilla/5.0 (compatible; vensin.dev)" }, cache: "no-store" });
+  if (!res.ok) return null;
+  const m = (await res.text()).match(/<span>\s*([\d.]+)\s*<\/span>\s*Episoden/);
+  if (!m) return null;
+  return { episodes: Number(m[1].replace(/\./g, "")), fetchedAt: new Date().toISOString() };
+}
+export async function getProfileStats(): Promise<ProfileStats | null> {
+  return cached(CACHE_KEYS.animeProfile, TTL.animeProfile, fetchProfileStats);
+}
+
 export async function getRecentlyWatched(): Promise<WatchedAnime[]> {
   return (await cached(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched)) ?? [];
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAnimeLists, getFavorites, getRecentlyWatched } from "@/lib/anime";
+import { getAnimeLists, getFavorites, getProfileStats, getRecentlyWatched } from "@/lib/anime";
 import { AnimeShelfGrid } from "@/components/anime/AnimeShelfGrid";
 import { WatchLog } from "@/components/anime/WatchLog";
 import { finishedSeasons, watchLogStats } from "@/lib/anime-log";
@@ -23,7 +23,7 @@ function Poster({ src, alt }: { src: string | null; alt: string }) {
 }
 
 export default async function AnimePage() {
-  const [recent, favorites, lists] = await Promise.all([getRecentlyWatched(), getFavorites(), getAnimeLists()]);
+  const [recent, favorites, lists, profile] = await Promise.all([getRecentlyWatched(), getFavorites(), getAnimeLists(), getProfileStats()]);
   const log = watchLogStats();
   const finished = finishedSeasons();
 
@@ -67,7 +67,7 @@ export default async function AnimePage() {
       </Window>
 
       <Window title="watch log" dashed>
-        <WatchLog stats={log} />
+        <WatchLog stats={log} profileEpisodes={profile?.episodes ?? null} />
       </Window>
 
       {lists && lists.watched.length > 0 && (

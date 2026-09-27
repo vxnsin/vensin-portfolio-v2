@@ -1,6 +1,6 @@
 import { DAY, HOUR, MIN, refresh } from "./cache";
 import { fetchContributionYears, fetchGithubStats, fetchLatestGithubActivity } from "./github";
-import { fetchAnimeLists, fetchRecentlyWatched, scrapeWatched } from "./anime";
+import { fetchAnimeLists, fetchProfileStats, fetchRecentlyWatched, scrapeWatched } from "./anime";
 import { importWatchedHistory } from "./anime-log";
 import { kitsuSearch } from "./kitsu";
 import { fetchWeather } from "./weather";
@@ -63,6 +63,7 @@ export const CACHE_KEYS = {
   githubContributions: "github:contributions",
   animeRecent: "anime:recent",
   animeLists: "anime:lists",
+  animeProfile: "anime:profile",
   weather: "weather",
 } as const;
 
@@ -72,6 +73,7 @@ export const TTL = {
   githubContributions: 2 * DAY,
   animeRecent: 3 * HOUR,
   animeLists: 2 * DAY,
+  animeProfile: 2 * DAY,
   weather: 30 * MIN,
 } as const;
 
@@ -82,6 +84,7 @@ export const jobs: Job[] = [
   { id: "anime-recent", label: "anime: recently watched", every: HOUR, run: () => refresh(CACHE_KEYS.animeRecent, TTL.animeRecent, fetchRecentlyWatched, { throwOnError: true }) },
   { id: "anime-lists", label: "anime: watched + watchlist from aniworld", daily: "05:00", run: () => refresh(CACHE_KEYS.animeLists, TTL.animeLists, fetchAnimeLists, { throwOnError: true }) },
   { id: "anime-history", label: "anime: whole watched history into the log", daily: "05:30", run: importAnimeHistory },
+  { id: "anime-profile", label: "anime: all-time episode count from the profile", every: 6 * HOUR, run: () => refresh(CACHE_KEYS.animeProfile, TTL.animeProfile, fetchProfileStats, { throwOnError: true }) },
   { id: "spotify-now", label: "spotify: now playing (safety net, the live watcher does the real work)", every: 5 * MIN, run: pollSpotifyNow, since: spotifySince },
   { id: "spotify-history", label: "spotify: import plays into the log", every: 5 * MIN, run: importSpotifyHistory, since: spotifySince },
   { id: "spotify", label: "spotify: top tracks, artists, playlists", every: HOUR, run: () => (spotifyConnected() ? refresh(SPOTIFY_CACHE_KEY, SPOTIFY_TTL, fetchSpotifyData, { throwOnError: true }) : Promise.resolve(null)), since: spotifySince },
