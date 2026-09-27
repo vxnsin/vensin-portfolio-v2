@@ -37,7 +37,7 @@ export function SeasonPicker({ fallback, locked = false }: { fallback: Season; l
 
   return (
     <label className="btn text-xs cursor-pointer" aria-label="season">
-      <select value={choice ?? "auto"} onChange={(e) => pick(e.target.value as SeasonSetting)} className="bg-transparent text-ink cursor-pointer outline-none" disabled={choice === null}>
+      <select value={choice ?? "auto"} onChange={(e) => pick(e.target.value as SeasonSetting)} className="bg-transparent text-ink cursor-pointer outline-none">
         <option value="auto">{ICON[fallback]} auto</option>
         {SEASONS.map((s) => (
           <option key={s} value={s}>
