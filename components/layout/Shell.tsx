@@ -10,6 +10,7 @@ import { Marquee } from "./Marquee";
 import { ThemeToggle } from "./ThemeToggle";
 import { SeasonPicker } from "./SeasonPicker";
 import { resolveSeason } from "@/lib/season";
+import { serverNow } from "@/lib/time";
 import { VisitorCounter } from "./VisitorCounter";
 import { Pet } from "@/components/widgets/Pet";
 import { kvGet } from "@/lib/db";
@@ -37,6 +38,7 @@ export async function Shell({ children }: { children: ReactNode }) {
   ]);
   const lastPlayed = spotify ? listenStats().lastPlayed : null;
   const { season, fallback: fallbackSeason, locked: seasonLocked } = await resolveSeason();
+  const renderedAt = serverNow();
 
   return (
     <LanyardProvider>
@@ -94,6 +96,7 @@ export async function Shell({ children }: { children: ReactNode }) {
             </Window>
             <Window title="latest">
               <LatestBox
+                now={renderedAt}
                 latest={latest}
                 apiListening={
                   now?.playing && now.track

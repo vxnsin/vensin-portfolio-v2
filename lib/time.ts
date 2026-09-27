@@ -11,3 +11,6 @@ export function relativeTime(iso: string) {
   const mo = Math.floor(d / 30);
   return mo < 12 ? `${mo}mo ago` : `${Math.floor(mo / 12)}y ago`;
 }
+
+/** the request's clock, handed to client components so "x min ago" hydrates with the same value it was rendered with */
+export const serverNow = () => Date.now();

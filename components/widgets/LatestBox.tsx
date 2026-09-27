@@ -1,11 +1,19 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { useLanyardContext } from "@/components/discord/LanyardProvider";
 import { KIND_LABEL, KIND_ORDER, resolveAll, type Kind } from "@/components/discord/activities";
 import type { Latest } from "@/lib/store";
 
-function ago(iso: string) {
-  const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+// "13 min ago" must read the same on the server and during hydration: the server's clock is passed in and used until the page is live,
+// then the browser's clock takes over and the labels tick every half minute
+function subscribeClock(cb: () => void) {
+  const id = setInterval(cb, 30_000);
+  return () => clearInterval(id);
+}
+
+function ago(iso: string, now: number) {
+  const m = Math.floor((now - new Date(iso).getTime()) / 60000);
   if (m < 2) return "just now";
   if (m < 60) return `${m} min ago`;
   const h = Math.floor(m / 60);
@@ -17,8 +25,9 @@ function ago(iso: string) {
 type Row = { kind: Kind; label: string; value: string; live: boolean; at?: string; href?: string | null };
 
 /** what's running right now, otherwise the last thing that was. */
-export function LatestBox({ latest, apiListening }: { latest: Latest; apiListening?: { value: string; href: string | null } | null }) {
+export function LatestBox({ latest, apiListening, now }: { latest: Latest; apiListening?: { value: string; href: string | null } | null; now: number }) {
   const { data } = useLanyardContext();
+  const nowMs = useSyncExternalStore(subscribeClock, () => Date.now(), () => now);
   const live = data ? resolveAll(data.activities) : [];
 
   const rows: Row[] = [];
@@ -59,7 +68,7 @@ export function LatestBox({ latest, apiListening }: { latest: Latest; apiListeni
                 </span>
               )}
             </div>
-            {!r.live && r.at && <div className="text-[10px] text-ink-soft">{ago(r.at)}</div>}
+            {!r.live && r.at && <div className="text-[10px] text-ink-soft">{ago(r.at, nowMs)}</div>}
           </dd>
         </div>
       ))}
