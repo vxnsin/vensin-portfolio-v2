@@ -6,9 +6,9 @@ import type { NowPlaying } from "@/lib/spotify";
 type Line = { t: number; text: string };
 type Payload = { id: string; synced: Line[] | null; plain: string | null; instrumental: boolean };
 
-const CHAR_MS = 38; // typewriter speed for the current line
+const CHAR_MS = 38; // typewriter speed, slowed down for lines that have to fit into a short gap
 
-/** the current lyric line, typed out in time with the track; the line before and after sit dimmed around it */
+/** the current lyric line only, typed out in time with the track, terminal style */
 export function Lyrics({ now }: { now: NowPlaying | null }) {
   const track = now?.playing ? now.track : null;
   const trackId = track?.id ?? null;
@@ -47,19 +47,21 @@ export function Lyrics({ now }: { now: NowPlaying | null }) {
   let idx = -1;
   for (let i = 0; i < lines.length; i++) if (lines[i].t <= ms) idx = i;
   const cur = idx >= 0 ? lines[idx] : null;
-  const prev = idx > 0 ? lines[idx - 1] : null;
-  const next = idx + 1 < lines.length ? lines[idx + 1] : null;
-  const typed = cur ? cur.text.slice(0, Math.max(0, Math.floor((ms - cur.t) / CHAR_MS))) : "";
+  const nextAt = idx + 1 < lines.length ? lines[idx + 1].t : (track.durationMs ?? Infinity);
+  // the whole line should be on screen after ~60 % of its time slot, even if that means typing faster than usual
+  const slot = cur ? Math.max(400, nextAt - cur.t) : 0;
+  const charMs = cur ? Math.min(CHAR_MS, (slot * 0.6) / Math.max(1, cur.text.length)) : CHAR_MS;
+  const typed = cur ? cur.text.slice(0, Math.max(0, Math.floor((ms - cur.t) / charMs))) : "";
   const done = cur ? typed.length >= cur.text.length : false;
 
   return (
-    <div className="mt-3 border-t border-dashed border-line pt-2 text-xs leading-relaxed min-h-[4.5rem]" aria-live="polite">
-      <div className="text-ink-soft/60 truncate">{prev?.text ?? (cur ? "" : "♪")}</div>
-      <div className="pixel text-base text-ink">
-        {cur ? typed : "…"}
-        {cur && !done && <span className="text-accent">▌</span>}
-      </div>
-      <div className="text-ink-soft/60 truncate">{next?.text ?? ""}</div>
+    <div className="mt-3 border-t border-dashed border-line pt-2 flex items-baseline gap-2 min-h-[2.4rem]" aria-live="polite">
+      <span className="text-accent-2 text-xs shrink-0">♪</span>
+      <span className="pixel text-base text-ink leading-snug">
+        {cur ? typed : ""}
+        <span className={`text-accent ${done || !cur ? "animate-pulse" : ""}`}>▌</span>
+      </span>
+      <span className="ml-auto text-[10px] text-ink-soft shrink-0 tabular-nums">{idx + 1}/{lines.length}</span>
     </div>
   );
 }

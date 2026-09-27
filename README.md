@@ -96,7 +96,12 @@ The palette, the window frames and the particles follow the calendar (`lib/seaso
 
 ## Backups
 
-Every night at 03:30 the scheduler takes a consistent copy of the sqlite file (sqlite's online backup, safe while the site runs), gzips it into `<DATA_DIR>/backups/` and keeps the last `BACKUP_KEEP` (default 14). If `DISCORD_BACKUP_CHANNEL_ID` (bot) or `DISCORD_BACKUP_WEBHOOK_URL` is set, the file is also posted to that private channel, so a dead SD card on the pi is a five-minute problem. `/admin` lists the local copies and has a "backup now" button.
+Every night at 03:30 the scheduler takes a consistent copy of the sqlite file (sqlite's online backup, safe while the site runs), gzips it into `<DATA_DIR>/backups/` and keeps the last `BACKUP_KEEP` (default 14). With `DISCORD_BACKUP_CHANNEL_ID` (bot) or `DISCORD_BACKUP_WEBHOOK_URL` set, the copy also goes off-site, so a dead SD card on the pi is a five-minute problem:
+
+- `BACKUP_UPLOAD=discord` (default): the .sqlite.gz is attached to a message in that private channel.
+- `BACKUP_UPLOAD=catbox`: the file is encrypted (aes-256-gcm, key derived from `BACKUP_PASSPHRASE` with scrypt), uploaded to [catbox.moe](https://catbox.moe) (`CATBOX_USERHASH` optional) and only the link plus a checksum is posted to the channel. Catbox links are public, so this mode refuses to run without a passphrase; if catbox is down the encrypted file is attached to the message instead. `node scripts/decrypt-backup.mjs <file.enc> <passphrase>` turns it back into the .sqlite.gz.
+
+`/admin` lists the local copies and has a "backup now" button.
 
 **Restore:** stop the site, `gunzip` the file, place it as `<DATA_DIR>/vensin.sqlite`, delete `vensin.sqlite-wal` and `vensin.sqlite-shm` if they exist, start the site. Gallery uploads live in `public/uploads` (or Vercel Blob) and are not part of the backup.
 

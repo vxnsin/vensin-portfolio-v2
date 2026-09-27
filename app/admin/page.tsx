@@ -6,7 +6,7 @@ import { guestbookCounts } from "@/lib/guestbook";
 import { jobs, CACHE_KEYS } from "@/lib/jobs";
 import { peek } from "@/lib/cache";
 import { getMaintenance } from "@/lib/maintenance";
-import { backupToDiscordConfigured, listBackups, BACKUP_DIR } from "@/lib/backup";
+import { backupUploadMode, listBackups, BACKUP_DIR } from "@/lib/backup";
 import { relativeTime } from "@/lib/time";
 import { runJobAction } from "./actions";
 import { Window } from "@/components/layout/Window";
@@ -41,7 +41,13 @@ export default async function AdminHome() {
     { label: "discord notify", ok: discordNotifyConfigured(), note: process.env.DISCORD_BOT_TOKEN ? "bot dm" : process.env.DISCORD_WEBHOOK_URL ? "webhook" : "not configured" },
     { label: "discord buttons", ok: discordButtonsConfigured(), note: discordButtonsConfigured() ? "interactions endpoint ready (/api/discord/interactions)" : "set DISCORD_PUBLIC_KEY + interactions url in the developer portal" },
     { label: "weather", ok: Boolean(process.env.WEATHER_LAT && process.env.WEATHER_LON), note: "env coords" },
-    { label: "backups", ok: backups.length > 0 && Boolean(lastBackup?.ok), note: backups.length ? `${backups.length} local${backupToDiscordConfigured() ? " + discord upload" : " only (set DISCORD_BACKUP_CHANNEL_ID or DISCORD_BACKUP_WEBHOOK_URL)"}` : "none yet — runs nightly at 03:30" },
+    {
+      label: "backups",
+      ok: backups.length > 0 && Boolean(lastBackup?.ok),
+      note: backups.length
+        ? `${backups.length} local${backupUploadMode() === "catbox" ? " + encrypted copy on catbox, link in discord" : backupUploadMode() === "discord" ? " + file in discord" : " only (set DISCORD_BACKUP_CHANNEL_ID or DISCORD_BACKUP_WEBHOOK_URL)"}`
+        : "none yet — runs nightly at 03:30",
+    },
     {
       label: "ios shortcut",
       ok: Boolean(process.env.HEALTH_TOKEN) && Boolean(health),
@@ -121,8 +127,13 @@ export default async function AdminHome() {
       <Window title="backups" dashed bodyClassName="text-xs">
         <p className="text-ink-soft mb-2">
           a gzipped copy of the sqlite file every night at 03:30, kept in <code>{BACKUP_DIR}</code> (last {process.env.BACKUP_KEEP ?? 14})
-          {backupToDiscordConfigured() ? " and posted to your discord backup channel" : ". add DISCORD_BACKUP_CHANNEL_ID (bot) or DISCORD_BACKUP_WEBHOOK_URL to get a copy on discord too"}. to restore: stop the
-          site, gunzip the file, put it in place as vensin.sqlite, delete the -wal and -shm files next to it, start again.
+          {backupUploadMode() === "catbox"
+            ? ", encrypted with BACKUP_PASSPHRASE and uploaded to catbox, link posted to your backup channel"
+            : backupUploadMode() === "discord"
+              ? " and posted as a file to your discord backup channel (set BACKUP_UPLOAD=catbox plus BACKUP_PASSPHRASE for an encrypted off-site copy with just a link in discord)"
+              : ". add DISCORD_BACKUP_CHANNEL_ID (bot) or DISCORD_BACKUP_WEBHOOK_URL to get a copy off-site too"}
+          . to restore: stop the site, gunzip the file (decrypt first with scripts/decrypt-backup.mjs if it came from catbox), put it in place as
+          vensin.sqlite, delete the -wal and -shm files next to it, start again.
         </p>
         {backups.length === 0 ? (
           <p className="text-ink-soft">no backups yet.</p>
