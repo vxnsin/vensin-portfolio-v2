@@ -1,5 +1,6 @@
 import { site } from "@/data/site";
 import { getMaintenance } from "@/lib/maintenance";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,8 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 // Standalone maintenance page (no sidebar, no widgets). The proxy rewrites every public route here while maintenance is on.
 export async function GET() {
   const m = getMaintenance();
+  const flag = (await cookies()).get("vd_unlock")?.value;
+  const error = flag === "wrong" ? "nope, that's not it." : flag === "slow" ? "too many tries, wait ten minutes." : "";
   const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -42,6 +45,17 @@ export async function GET() {
   a { color: var(--accent2); text-decoration: underline dotted; text-underline-offset: 3px; }
   a:hover { color: var(--accent); }
   .foot { border-top: 1.5px dashed var(--line); padding: 8px 10px; font-size: 12px; color: var(--soft); display: flex; justify-content: space-between; }
+  details { border-top: 1.5px dashed var(--line); padding: 6px 10px; font-size: 12px; color: var(--soft); }
+  summary { cursor: pointer; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "▸ "; }
+  details[open] summary::before { content: "▾ "; }
+  form { display: flex; gap: 6px; margin-top: 8px; }
+  input { flex: 1; min-width: 0; background: var(--paper2); border: 1px solid var(--line); color: var(--ink); padding: 5px 8px; font: inherit; }
+  input:focus { outline: none; border-color: var(--accent); }
+  button { background: var(--paper2); border: 1px solid var(--line); color: var(--ink); padding: 5px 10px; font: inherit; cursor: pointer; box-shadow: 2px 2px 0 var(--line); }
+  button:hover { color: var(--accent); }
+  .err { color: #f23f43; margin: 6px 0 0; }
 </style>
 </head>
 <body>
@@ -55,8 +69,18 @@ export async function GET() {
       <p><a href="https://github.com/${esc(site.githubUser)}" rel="noopener">github</a> · <a href="https://discord.gg/velane" rel="noopener">discord</a></p>
     </div>
     <div class="foot"><span>${m.since ? `since ${esc(m.since.slice(0, 16).replace("T", " "))} utc` : ""}</span><span>${esc(site.name)}</span></div>
+    <details${error ? " open" : ""}>
+      <summary>owner?</summary>
+      <form method="post" action="/api/maintenance/unlock" autocomplete="off">
+        <input type="password" name="password" placeholder="password" autocomplete="current-password" required />
+        <button type="submit">let me in</button>
+      </form>
+      ${error ? `<p class="err">${esc(error)}</p>` : ""}
+    </details>
   </div>
 </body>
 </html>`;
-  return new Response(html, { status: 503, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "retry-after": "3600" } });
+  const headers = new Headers({ "content-type": "text/html; charset=utf-8", "cache-control": "no-store", "retry-after": "3600" });
+  if (flag) headers.append("set-cookie", "vd_unlock=; Path=/; Max-Age=0; SameSite=Lax; HttpOnly"); // the error shows once
+  return new Response(html, { status: 503, headers });
 }

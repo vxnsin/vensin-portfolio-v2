@@ -38,16 +38,20 @@ export async function requireAdmin() {
   if (!(await isAdmin())) redirect("/admin/login");
 }
 
+/** a fresh session cookie value plus the options it should be set with */
+export function issueAdminCookie() {
+  const exp = String(Date.now() + TTL_MS);
+  return {
+    name: ADMIN_COOKIE,
+    value: `${exp}.${sign(exp)}`,
+    options: { httpOnly: true, sameSite: "lax" as const, secure: process.env.NODE_ENV === "production", path: "/", maxAge: TTL_MS / 1000 },
+  };
+}
+
 export async function login(password: string): Promise<boolean> {
   if (!checkPassword(password)) return false;
-  const exp = String(Date.now() + TTL_MS);
-  (await cookies()).set(ADMIN_COOKIE, `${exp}.${sign(exp)}`, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: TTL_MS / 1000,
-  });
+  const c = issueAdminCookie();
+  (await cookies()).set(c.name, c.value, c.options);
   return true;
 }
 
