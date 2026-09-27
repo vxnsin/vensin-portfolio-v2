@@ -72,7 +72,7 @@ Every job can be triggered from the admin dashboard ("run now"). On a serverless
 
 ## Discord widget: adding a service
 
-Every activity is rendered from a small handler in `components/discord/activities/` (`match` + `info`). Built in: Spotify, editors (VSCord), anime (AniWorld), YouTube, GitHub, generic browsing (PreMiD), games. To add one, create `activities/<name>.ts` exporting an `ActivityHandler` and register it in `activities/index.ts` above the fallbacks. Unknown PreMiD sites are shown as "browsing" and the server DMs you the raw payload once, so you know what to match on.
+Every activity is rendered from a small handler in `components/discord/activities/` (`match` + `info`). Built in: Spotify, editors (VSCord), anime (AniWorld), YouTube, GitHub, generic browsing (PreMiD), games. To add one, create `activities/<name>.ts` exporting an `ActivityHandler` and register it in `activities/index.ts` above the fallbacks. Unknown PreMiD sites are shown as "browsing" and the server sends you the raw payload once (to `DISCORD_ACTIVITY_CHANNEL_ID` if set, otherwise as a DM), so you know what to match on.
 
 ## Anime favorites
 
