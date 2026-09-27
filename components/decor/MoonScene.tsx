@@ -130,20 +130,22 @@ function moonCells(): Array<[number, number, string]> {
 }
 const MOON = moonCells();
 
-/* ---------- the ground: a wide, slightly hilly strip lit from above ---------- */
+/* ---------- the ground: a flat ledge with a bright edge, lit brightest right under the two and fading to the sides ---------- */
 const GW = 192;
 const GH = 26;
+const GROUND_TOP = 6;
 function groundCells(): Array<[number, number, string]> {
   const out: Array<[number, number, string]> = [];
   for (let x = 0; x < GW; x++) {
-    const top = 5 + Math.round(2 * Math.sin(x / 13) + Math.sin(x / 5));
-    for (let y = top; y < GH; y++) {
-      const depth = y - top;
-      let c = depth === 0 ? "A" : depth < 3 ? "B" : depth < 8 ? "C" : "E";
-      if (depth > 0 && hash(x, y) > 0.9) c = depth < 3 ? "A" : depth < 8 ? "B" : "C";
+    const centre = 1 - Math.min(1, Math.abs(x - GW / 2) / (GW / 2)); // 1 in the middle, 0 at the edges
+    for (let y = GROUND_TOP; y < GH; y++) {
+      const depth = y - GROUND_TOP;
+      let c = depth === 0 ? "A" : depth < 3 ? "B" : depth < 9 ? "C" : "E";
+      // the moonlight pools under the two: more bright specks near the middle, fewer further out and deeper down
+      const chance = 0.08 + centre * 0.35 - depth * 0.025;
+      if (depth > 0 && hash(x, y) < chance) c = depth < 3 ? "A" : depth < 9 ? "B" : "C";
       out.push([x, y, c]);
     }
-    if (hash(x, 99) > 0.8) out.push([x, top - 1, "A"]); // blades of grass
   }
   return out;
 }
