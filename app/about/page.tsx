@@ -4,7 +4,7 @@ import Link from "next/link";
 import { site, socials } from "@/data/site";
 import { techstack } from "@/data/techstack";
 import { getGithubStats } from "@/lib/github";
-import { getAbout, quoteOfTheDay } from "@/lib/about";
+import { getAbout, randomQuote } from "@/lib/about";
 import { getLatest } from "@/lib/store";
 import { getRecentlyWatched } from "@/lib/anime";
 import { listProjects } from "@/lib/projects";
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 export default async function AboutPage() {
   const about = getAbout();
-  const quote = quoteOfTheDay(about);
+  const quote = randomQuote(about);
   const [gh, latest, recent] = await Promise.all([getGithubStats(), getLatest(), getRecentlyWatched()]);
   const projects = listProjects();
   const anime = watchLogStats();
@@ -131,12 +131,12 @@ export default async function AboutPage() {
             <Link href="/contact">contact</Link> or <Link href="/guestbook">guestbook</Link>, whichever feels right.
           </p>
         </Window>
-        <Window title="quote of the day" dashed bodyClassName="text-xs">
+        <Window title="a quote" dashed bodyClassName="text-xs">
           {quote ? (
             <>
               <blockquote className="pixel text-base text-ink">&ldquo;{quote.text}&rdquo;</blockquote>
               <p className="text-ink-soft mt-1">— {quote.by || "unknown"}</p>
-              {about.quotes.length > 1 && <p className="text-[10px] text-ink-soft mt-2">one of {about.quotes.length}. a new one every day.</p>}
+              {about.quotes.length > 1 && <p className="text-[10px] text-ink-soft mt-2">one of {about.quotes.length}. reload for another.</p>}
             </>
           ) : (
             <p className="text-ink-soft">no quotes yet.</p>

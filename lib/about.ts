@@ -5,7 +5,7 @@ import { kvGet, kvSet } from "./db";
 export type AboutContent = {
   intro: string[];
   learning: string;
-  /** one is shown per day, in order */
+  /** one is shown per page load, at random */
   quotes: Array<{ text: string; by: string }>;
   likes: string[];
   dislikes: string[];
@@ -27,11 +27,10 @@ export const DEFAULT_ABOUT: AboutContent = {
   askMeAbout: ["next.js", "minecraft server setups", "discord bots", "which anime to watch next", "motorcycles"],
 };
 
-/** today's quote: the list rotates once a day so every quote gets its turn */
-export function quoteOfTheDay(about: AboutContent): { text: string; by: string } | null {
+/** a random quote, picked fresh on every page load */
+export function randomQuote(about: AboutContent): { text: string; by: string } | null {
   if (about.quotes.length === 0) return null;
-  const day = Math.floor(Date.now() / 86_400_000);
-  return about.quotes[day % about.quotes.length];
+  return about.quotes[Math.floor(Math.random() * about.quotes.length)];
 }
 
 const KEY = "about";

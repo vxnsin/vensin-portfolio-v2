@@ -182,7 +182,7 @@ Every main page has its own Open Graph image (`app/*/opengraph-image.tsx`, share
 
 ## About page
 
-`/admin/about` edits every word on `/about`: intro paragraphs, what you're learning, a jar of quotes (one shown per day), likes, dislikes and "ask me about" chips (`lib/about.ts` holds the defaults). The page adds a "right now" box from the live data (listening, watching, coding, playing) and the tech stack.
+`/admin/about` edits every word on `/about`: intro paragraphs, what you're learning, a jar of quotes (a random one per page load), likes, dislikes and "ask me about" chips (`lib/about.ts` holds the defaults). The page adds a "right now" box from the live data (listening, watching, coding, playing) and the tech stack.
 
 ## Projects
 
