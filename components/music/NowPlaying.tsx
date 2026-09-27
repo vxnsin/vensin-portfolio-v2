@@ -34,7 +34,7 @@ export function NowPlaying({ last }: { last: Last }) {
     return (
       <div className="flex gap-4 items-center">
         <div className="relative shrink-0">
-          {live.image ? <img src={live.image} alt="" className="w-24 h-24 sm:w-28 sm:h-28 object-cover border-2 border-line" /> : <div className="w-24 h-24 border border-dashed border-line" />}
+          {live.image ? <img src={live.image} alt={`cover of ${live.title}`} className="w-24 h-24 sm:w-28 sm:h-28 object-cover border-2 border-line" /> : <div className="w-24 h-24 border border-dashed border-line" />}
         </div>
         <div className="min-w-0 flex-1">
           <div className="text-[11px] uppercase tracking-wide text-ink-soft">♪ playing right now</div>
@@ -68,7 +68,7 @@ export function NowPlaying({ last }: { last: Last }) {
   if (last) {
     return (
       <div className="flex gap-4 items-center">
-        {last.art ? <img src={last.art} alt="" className="w-20 h-20 object-cover border-2 border-line opacity-80" /> : <div className="w-20 h-20 border border-dashed border-line" />}
+        {last.art ? <img src={last.art} alt={`cover of ${last.song}`} loading="lazy" className="w-20 h-20 object-cover border-2 border-line opacity-80" /> : <div className="w-20 h-20 border border-dashed border-line" />}
         <div className="min-w-0">
           <div className="text-[11px] uppercase tracking-wide text-ink-soft">nothing playing · last heard {relativeTime(last.at)}</div>
           <div className="pixel text-lg truncate mt-1">

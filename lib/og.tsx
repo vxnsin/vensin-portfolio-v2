@@ -6,7 +6,7 @@ import { site } from "@/data/site";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 
-export type OgCard = { title: string; subtitle?: string; kicker?: string; images?: string[]; accent?: string };
+export type OgCard = { title: string; subtitle?: string; kicker?: string; images?: string[]; accent?: string; /** an svg data uri drawn instead of images, pixel-crisp */ sprite?: { src: string; width: number; height: number } };
 
 export function ogImage(card: OgCard) {
   const accent = card.accent ?? "#ff8fb4";
@@ -29,7 +29,13 @@ export function ogImage(card: OgCard) {
               <div style={{ display: "flex", fontSize: 64, lineHeight: 1.1, color: accent, fontWeight: 700 }}>{card.title}</div>
               {card.subtitle && <div style={{ display: "flex", marginTop: 20, fontSize: 30, color: "#b39fb0", lineHeight: 1.35 }}>{card.subtitle}</div>}
             </div>
-            {images.length > 0 && (
+            {card.sprite && (
+              <div style={{ display: "flex", flexShrink: 0, padding: 18, border: "3px dashed #5c4a62", background: "#291f32" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={card.sprite.src} alt="" width={card.sprite.width} height={card.sprite.height} />
+              </div>
+            )}
+            {!card.sprite && images.length > 0 && (
               <div style={{ display: "flex", gap: 14, flexShrink: 0 }}>
                 {images.map((src, i) => (
                   // eslint-disable-next-line @next/next/no-img-element

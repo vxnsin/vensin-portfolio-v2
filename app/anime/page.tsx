@@ -14,7 +14,7 @@ function Poster({ src, alt }: { src: string | null; alt: string }) {
     <div className="relative aspect-[2/3] border border-line bg-paper-2 overflow-hidden">
       {src ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={src} alt={alt} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+        <img src={src} alt={`poster of ${alt}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async" width={284} height={402} />
       ) : (
         <div className="grid place-items-center h-full text-[10px] text-ink-soft">no cover</div>
       )}

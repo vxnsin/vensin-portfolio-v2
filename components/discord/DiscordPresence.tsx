@@ -93,7 +93,7 @@ function ActivityCard({ info }: { info: ActivityInfo }) {
       <div className="flex gap-3 py-2">
         <div className="relative shrink-0 w-11 h-11">
           {info.image ? (
-            <img src={info.image} alt="" width={44} height={44} className="block w-11 h-11 object-cover border border-line" />
+            <img src={info.image} alt={info.title} width={44} height={44} className="block w-11 h-11 object-cover border border-line" />
           ) : (
             <div className="w-11 h-11 border border-dashed border-line grid place-items-center text-ink-soft">?</div>
           )}
@@ -159,7 +159,7 @@ export function DiscordPresence({ hideSpotify = false }: { hideSpotify?: boolean
     <div>
       <div className="flex items-center gap-3">
         <div className="relative shrink-0">
-          <img src={avatarUrl(data.discord_user)} alt="" width={48} height={48} className="w-12 h-12 border border-line" />
+          <img src={avatarUrl(data.discord_user)} alt="vensin's discord avatar" width={48} height={48} className="w-12 h-12 border border-line" />
           <span className="status-dot absolute -bottom-1 -right-1" style={{ background: status.color }} title={status.label} />
         </div>
         <div className="min-w-0">

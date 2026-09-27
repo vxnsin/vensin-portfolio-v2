@@ -21,9 +21,9 @@ export function WatchLog({ stats, profileEpisodes }: { stats: WatchLogStats; pro
             </div>
           ))}
         </div>
-        <div className="flex justify-between text-[10px] text-ink-soft mt-1">
+        <div className="flex flex-wrap justify-between gap-x-3 text-[10px] text-ink-soft mt-1">
           <span>a year ago</span>
-          <span>
+          <span className="order-last w-full text-center sm:order-none sm:w-auto">
             {profileEpisodes && profileEpisodes > stats.total ? `${allTime} watched in total, ${stats.total} listed in detail` : `${stats.total} episodes on record`}
             {stats.imported ? ` · ${stats.imported} from before the log started` : ""}
             {since ? ` · dated since ${since}` : ""}

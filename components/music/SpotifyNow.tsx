@@ -99,7 +99,7 @@ export function SpotifyNow({ initial, last, variant = "sidebar" }: { initial: No
       <div className={`flex items-center ${hero ? "gap-4" : "gap-3"}`}>
         <div className="relative shrink-0">
           {track.art ? (
-            <img src={track.art} alt="" className={`${hero ? "w-24 h-24 sm:w-28 sm:h-28 border-2" : "w-14 h-14 border"} object-cover border-line`} />
+            <img src={track.art} alt={`cover of ${track.album}`} className={`${hero ? "w-24 h-24 sm:w-28 sm:h-28 border-2" : "w-14 h-14 border"} object-cover border-line`} />
           ) : (
             <div className={`${hero ? "w-24 h-24" : "w-14 h-14"} border border-dashed border-line`} />
           )}
@@ -131,7 +131,7 @@ export function SpotifyNow({ initial, last, variant = "sidebar" }: { initial: No
   if (last) {
     return (
       <div className={`flex items-center ${hero ? "gap-4" : "gap-3"}`}>
-        {last.art ? <img src={last.art} alt="" className={`${hero ? "w-20 h-20 border-2" : "w-12 h-12 border"} object-cover border-line opacity-80`} /> : <div className="w-12 h-12 border border-dashed border-line" />}
+        {last.art ? <img src={last.art} alt={`cover of ${last.song}`} loading="lazy" className={`${hero ? "w-20 h-20 border-2" : "w-12 h-12 border"} object-cover border-line opacity-80`} /> : <div className="w-12 h-12 border border-dashed border-line" />}
         <div className="min-w-0">
           <div className="text-[10px] uppercase tracking-wide text-ink-soft">paused · last heard {relativeTime(last.at)}</div>
           <div className={`${hero ? "pixel text-lg mt-1" : "text-xs font-semibold"} truncate`}>

@@ -21,7 +21,7 @@ function Row({ n, art, round, title, sub, right, href }: { n: number; art: strin
   const inner = (
     <>
       <span className="pixel text-accent-2 w-5 text-right shrink-0">{n}</span>
-      <span className={`w-10 h-10 shrink-0 overflow-hidden border border-line bg-paper-2 ${round ? "rounded-full" : ""}`}>{art && <img src={art} alt="" className="w-full h-full object-cover" loading="lazy" />}</span>
+      <span className={`w-10 h-10 shrink-0 overflow-hidden border border-line bg-paper-2 ${round ? "rounded-full" : ""}`}>{art && <img src={art} alt={title} className="w-full h-full object-cover" loading="lazy" decoding="async" />}</span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-ink group-hover:text-accent">{title}</span>
         {sub && <span className="block truncate text-ink-soft text-[11px]">{sub}</span>}
@@ -58,7 +58,7 @@ export function TopLists({
   const artists = range === "year" ? null : (spotifyArtists?.[range] ?? []).slice(0, 5);
 
   return (
-    <div className="grid gap-3 text-xs">
+    <div className="grid gap-3 text-xs min-w-0">
       {ranges.length > 1 && (
         <div className="flex flex-wrap items-center gap-1.5">
           {ranges.map((r) => (
@@ -77,8 +77,8 @@ export function TopLists({
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
+      <div className="grid gap-4 sm:grid-cols-2 min-w-0">
+        <div className="min-w-0">
           <div className="pixel text-ink-soft mb-1">top tracks</div>
           {range === "year" ? (
             logTracks.length ? (
@@ -92,7 +92,7 @@ export function TopLists({
             <p className="text-ink-soft">no data for this range yet.</p>
           )}
         </div>
-        <div>
+        <div className="min-w-0">
           <div className="pixel text-ink-soft mb-1">top artists</div>
           {range === "year" ? (
             logArtists.length ? (

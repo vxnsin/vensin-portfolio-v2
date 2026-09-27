@@ -55,7 +55,7 @@ export async function fetchRecentlyWatched(): Promise<WatchedAnime[] | null> {
   const sources = new Map(unique.map((a) => [a.title, a.url]));
   for (const a of unique) {
     const k = await kitsuSearch(a.title);
-    if (k?.poster) a.cover = k.poster;
+    if (k?.posterSmall ?? k?.poster) a.cover = k.posterSmall ?? k.poster;
     if (k?.url) a.url = k.url;
   }
   // every episode seen goes into the watch log once (all of them, not only the de-duped shelf)
@@ -91,7 +91,7 @@ export async function fetchAnimeLists(): Promise<AnimeLists | null> {
   if (!watched || !watchlist) return null;
   for (const a of [...watched, ...watchlist]) {
     const k = await kitsuSearch(a.title);
-    if (k?.poster) a.cover = k.poster;
+    if (k?.posterSmall ?? k?.poster) a.cover = k.posterSmall ?? k.poster;
     if (k?.url) a.url = k.url;
   }
   return { watched, watchlist, fetchedAt: new Date().toISOString() };

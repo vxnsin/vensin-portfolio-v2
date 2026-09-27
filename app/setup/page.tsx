@@ -26,7 +26,7 @@ export default function SetupPage() {
             {g.items.map((it) => (
               <li key={it.id} className="flex gap-3 border border-dashed border-line bg-paper-2 p-2.5 text-xs">
                 {it.image ? (
-                  <img src={it.image} alt="" className="w-16 h-16 object-cover border border-line shrink-0" loading="lazy" />
+                  <img src={it.image} alt={it.name} className="w-16 h-16 object-cover border border-line shrink-0" loading="lazy" />
                 ) : (
                   <div className="w-16 h-16 border border-dashed border-line shrink-0 grid place-items-center text-ink-soft text-[10px]">no pic</div>
                 )}

@@ -176,6 +176,10 @@ Every episode the hourly "recently watched" scrape sees is written to `anime_log
 
 "mochi" in the sidebar reacts to the Discord status: asleep when idle or offline, taps away while coding, bops while music plays, wide-eyed during anime, purrs when clicked. Frames are pixel grids in `components/widgets/Pet.tsx`; pokes are counted in kv through `/api/pet`.
 
+## Icons
+
+`app/icon.tsx` and `app/apple-icon.tsx` draw mochi's face (`lib/cat-face.ts`) as the tab icon and the iphone home screen icon; the home page's social card carries her too.
+
 ## Social previews
 
 Every main page has its own Open Graph image (`app/*/opengraph-image.tsx`, shared card in `lib/og.tsx`): the music card shows the current track, anime the latest posters, projects the count, guestbook the newest signature.

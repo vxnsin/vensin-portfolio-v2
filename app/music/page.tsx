@@ -32,7 +32,7 @@ export default async function MusicPage() {
   );
 
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-5 min-w-0">
       <div>
         <h2 className="pixel text-lg text-accent mb-2">music.</h2>
         <p className="text-xs text-ink-soft">
@@ -64,7 +64,7 @@ export default async function MusicPage() {
               <li key={p.id}>
                 <a href={p.url} target="_blank" rel="noreferrer" className="block no-underline group">
                   <div className="aspect-square border border-line bg-paper-2 overflow-hidden">
-                    {p.image ? <img src={p.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" /> : null}
+                    {p.image ? <img src={p.image} alt={`cover of the playlist ${p.name}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" /> : null}
                   </div>
                   <div className="mt-1 truncate text-ink group-hover:text-accent">{p.name}</div>
                   <div className="text-[10px] text-ink-soft">{p.tracks} tracks</div>
@@ -80,7 +80,7 @@ export default async function MusicPage() {
           <ul>
             {recent.slice(0, 10).map((r, i) => (
               <li key={`${r.id}-${i}`} className="flex items-center gap-3 py-1 border-b border-dashed border-line last:border-0">
-                {r.art ? <img src={r.art} alt="" className="w-8 h-8 object-cover border border-line" loading="lazy" /> : <span className="w-8 h-8" />}
+                {r.art ? <img src={r.art} alt={`cover of ${r.name}`} decoding="async" className="w-8 h-8 object-cover border border-line" loading="lazy" /> : <span className="w-8 h-8" />}
                 {r.url ? (
                   <a href={r.url} target="_blank" rel="noreferrer" className="min-w-0 flex-1 truncate no-underline text-ink hover:text-accent">
                     {r.name} <span className="text-ink-soft">· {r.artists}</span>
