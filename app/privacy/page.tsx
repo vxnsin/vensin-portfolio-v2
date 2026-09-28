@@ -4,7 +4,7 @@ import { BLOCKED_RETENTION_DAYS } from "@/lib/discord-notify";
 
 export const metadata: Metadata = { title: "datenschutz", description: "Datenschutzerklärung für vensin.dev" };
 
-const UPDATED = "27.09.2026";
+const UPDATED = "28.09.2026";
 
 function H({ children }: { children: React.ReactNode }) {
   return <h3 className="pixel text-ink mt-4 mb-1">{children}</h3>;
@@ -26,10 +26,10 @@ export default function PrivacyPage() {
 
       <H>1. Verantwortlicher</H>
       <p>
-        Verantwortlich für die Datenverarbeitung auf dieser Website ist Luis (online: vensin), Betreiber von vensin.dev. Die ladungsfähige
-        Anschrift wird aus Gründen des persönlichen Schutzes über einen Impressum-Dienst bereitgestellt und ist über das {impressumLink}{" "}
-        abrufbar. Du erreichst den Verantwortlichen direkt über das <Link href="/contact">Kontaktformular</Link> oder die im Impressum
-        genannte E-Mail-Adresse.
+        Verantwortlich für die Datenverarbeitung auf dieser Website ist Luis Kanzewitsch (online: vensin), Betreiber von vensin.dev. Die
+        ladungsfähige Anschrift ist aus Gründen des persönlichen Schutzes eine c/o-Anschrift eines Impressum-Dienstes und im{" "}
+        {impressumLink} angegeben. Du erreichst den Verantwortlichen direkt über das <Link href="/contact">Kontaktformular</Link> oder
+        die im Impressum genannte E-Mail-Adresse.
       </p>
 
       <H>2. Was diese Seite ist</H>
@@ -43,12 +43,12 @@ export default function PrivacyPage() {
 
       <H>3. Hosting und Server-Logs</H>
       <p>
-        Die Website wird auf eigener Hardware betrieben und über Cloudflare (Cloudflare, Inc., 101 Townsend St, San Francisco, CA 94107,
-        USA) als Reverse-Proxy ausgeliefert. Beim Aufruf werden technisch notwendige Verbindungsdaten (IP-Adresse, Zeitpunkt, aufgerufene
-        URL, User-Agent) durch Cloudflare und den Webserver verarbeitet, um die Seite auszuliefern und Angriffe abzuwehren
+        Die Website wird auf eigener Hardware in Deutschland betrieben und direkt von dort ausgeliefert; es ist kein externer
+        Hosting-Anbieter oder CDN zwischengeschaltet. Beim Aufruf werden technisch notwendige Verbindungsdaten (IP-Adresse, Zeitpunkt,
+        aufgerufene URL, User-Agent) durch den Webserver verarbeitet, um die Seite auszuliefern und Angriffe abzuwehren
         (Art.&nbsp;6 Abs.&nbsp;1 lit.&nbsp;f DSGVO). Server-Logs werden nicht dauerhaft gespeichert und nicht mit anderen Daten
-        zusammengeführt. Cloudflare ist unter dem EU-US Data Privacy Framework zertifiziert; zusätzlich gelten die
-        EU-Standardvertragsklauseln, um ein angemessenes Datenschutzniveau bei einer Verarbeitung in den USA sicherzustellen.
+        zusammengeführt. Das TLS-Zertifikat wird bei Let&apos;s Encrypt (Internet Security Research Group, USA) bezogen; dabei werden keine
+        Besucherdaten übermittelt.
       </p>
 
       <H>4. Cookies und lokale Speicherung</H>
