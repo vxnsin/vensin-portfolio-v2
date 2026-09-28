@@ -30,8 +30,8 @@ export const projects: Project[] = [
     tagline: "this very site",
     description:
       "A cozy old-web style portfolio rebuilt from scratch: live Discord presence, anime shelf, day/night theme and a layout that also works on a phone.",
-    tech: ["TypeScript", "Next.js", "React", "Tailwind", "Vercel"],
-    thumbnail: "/projects/thumbnails/portfolio.png",
+    tech: ["TypeScript", "Next.js", "React", "Tailwind", "SQLite", "Raspberry Pi"],
+    thumbnail: "/projects/thumbnails/vensin_v2.png",
     start: 2026,
     status: "active",
     role: "design + code",
