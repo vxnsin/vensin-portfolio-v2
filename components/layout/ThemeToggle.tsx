@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { canStore } from "@/lib/consent";
 
 type Theme = "light" | "dark";
 
@@ -28,8 +29,8 @@ export function ThemeToggle() {
   const toggle = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
-    // one year; the server reads this to render the right theme on the next visit
-    document.cookie = `theme=${next}; path=/; max-age=31536000; samesite=lax`;
+    // one year; the server reads this to render the right theme on the next visit. only with the visitor's okay (cookie notice).
+    if (canStore()) document.cookie = `theme=${next}; path=/; max-age=31536000; samesite=lax`;
   };
 
   return (

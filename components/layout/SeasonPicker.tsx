@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { isSeason, SEASONS, SEASON_ICON as ICON, type Season, type SeasonSetting } from "@/lib/season-data";
+import { canStore } from "@/lib/consent";
 
 function subscribe(cb: () => void) {
   const obs = new MutationObserver(cb);
@@ -32,7 +33,9 @@ export function SeasonPicker({ fallback, locked = false }: { fallback: Season; l
     const root = document.documentElement;
     root.setAttribute("data-season-choice", next);
     root.setAttribute("data-season", effective); // colours, frames and particles all key off this
-    document.cookie = next === "auto" ? "season=; path=/; max-age=0; samesite=lax" : `season=${next}; path=/; max-age=31536000; samesite=lax`;
+    // the cookie only with the visitor's okay (cookie notice); clearing it is always fine
+    if (next === "auto") document.cookie = "season=; path=/; max-age=0; samesite=lax";
+    else if (canStore()) document.cookie = `season=${next}; path=/; max-age=31536000; samesite=lax`;
   };
 
   return (

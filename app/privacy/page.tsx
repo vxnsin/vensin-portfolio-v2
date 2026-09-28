@@ -53,18 +53,22 @@ export default function PrivacyPage() {
 
       <H>4. Cookies und lokale Speicherung</H>
       <p>
-        Es werden keine Tracking-Cookies gesetzt. Wenn du das Design umschaltest, merkt sich ein technisch notwendiges Cookie
-        (&quot;theme&quot;, ein Jahr gültig) deine Wahl, damit die Seite beim nächsten Besuch sofort richtig aussieht; es enthält nur das
-        Wort &quot;light&quot; oder &quot;dark&quot;. Genauso merkt sich ein Cookie &quot;season&quot; (ein Jahr gültig) eine selbst
-        gewählte Jahreszeit für das Design; ohne Auswahl wird es nicht gesetzt. Ein weiteres Cookie wird nur für den passwortgeschützten
-        Administrationsbereich des Betreibers gesetzt; Besucher sind davon nicht betroffen. Da es sich ausschließlich um technisch
-        erforderliche Cookies handelt, die du selbst durch deine Auswahl setzt, ist keine vorherige Einwilligung nötig. Du kannst deine
-        Auswahl jederzeit über die Schalter im Fußbereich ändern oder die Cookies in deinem Browser löschen.
+        Es werden keine Tracking-Cookies gesetzt. Beim ersten Besuch fragt ein kleines Fenster am unteren Rand, ob die Seite sich dein
+        Aussehen und die Katze merken darf. Sagst du ja, merkt sich ein Cookie (&quot;theme&quot;, ein Jahr gültig) deine Wahl zwischen Tag-
+        und Nachtdesign, es enthält nur das Wort &quot;light&quot; oder &quot;dark&quot;. Genauso merkt sich ein Cookie &quot;season&quot; (ein Jahr
+        gültig) eine selbst gewählte Jahreszeit; ohne Auswahl wird es nicht gesetzt. Wählst du &quot;nur was nötig ist&quot;, funktionieren die
+        Schalter trotzdem, die Seite vergisst sie aber beim Verlassen und speichert nichts davon. Deine Antwort selbst wird in einem Cookie
+        &quot;consent&quot; (ein Jahr gültig) festgehalten, damit die Frage nicht bei jedem Besuch erscheint; du kannst sie jederzeit über den
+        Knopf &quot;cookies&quot; im Fußbereich ändern. Ein weiteres Cookie wird nur für den passwortgeschützten Administrationsbereich des
+        Betreibers gesetzt; Besucher sind davon nicht betroffen. Rechtsgrundlage ist deine Einwilligung (Art.&nbsp;6 Abs.&nbsp;1
+        lit.&nbsp;a DSGVO, §&nbsp;25 Abs.&nbsp;1 TDDDG) beziehungsweise für das Merken der Antwort die technische Erforderlichkeit
+        (§&nbsp;25 Abs.&nbsp;2 TDDDG).
       </p>
       <p>
         Das kleine Klick-Spiel auf der Seite &quot;mochi&quot; speichert seinen Spielstand ausschließlich im lokalen Speicher deines Browsers
-        (localStorage); ebenso merkt sich der Browser dort, ob du die Katze per Tastatur-Code verwandelt hast. Diese Daten verlassen deinen
-        Browser nicht und lassen sich jederzeit über die Browser-Einstellungen löschen. An den Server geht aus dem Spiel nur eine anonyme
+        (localStorage); ebenso merkt sich der Browser dort, ob du die Katze per Tastatur-Code verwandelt hast. Beides passiert nur, wenn du
+        im Cookie-Fenster zugestimmt hast; andernfalls läuft das Spiel nur für den aktuellen Besuch. Diese Daten verlassen deinen Browser
+        nicht und lassen sich jederzeit über die Browser-Einstellungen löschen. An den Server geht aus dem Spiel nur eine anonyme
         Anzahl von Klicks, die zu einem Gesamtzähler addiert wird; sie wird keiner Person und keiner IP-Adresse zugeordnet.
       </p>
 

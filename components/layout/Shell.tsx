@@ -25,6 +25,8 @@ import { LatestBox } from "@/components/widgets/LatestBox";
 import { Typewriter } from "@/components/widgets/Typewriter";
 import { Kaomoji } from "@/components/widgets/Kaomoji";
 import { Wordmark } from "@/components/layout/Wordmark";
+import { CookieNotice } from "./CookieNotice";
+import { CookieButton } from "./CookieButton";
 
 const FOOL_WORDS = ["a professional procrastinator", "definitely not three cats in a coat", "still loading…", "a certified nap enjoyer", "404: developer not found", "your new favourite website (allegedly)"];
 
@@ -45,6 +47,7 @@ export async function Shell({ children }: { children: ReactNode }) {
     <LanyardProvider>
       <AprilFools />
       <Cheats />
+      <CookieNotice />
       <div
         id="top"
         className="relative z-10 mx-auto w-full max-w-[1040px] px-4 py-6 md:py-10"
@@ -123,7 +126,7 @@ export async function Shell({ children }: { children: ReactNode }) {
           <div className="win-body grid gap-3 sm:grid-cols-[1fr_auto] items-center text-xs">
             <div className="grid gap-1">
               <div className="pixel text-ink text-sm"><Wordmark /></div>
-              <div className="text-ink-soft">© {year} luis. all the bugs are mine. no cookies, no tracking.</div>
+              <div className="text-ink-soft">© {year} luis. all the bugs are mine. no tracking. cookies only for the look and the cat.</div>
               <VisitorCounter />
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:justify-end">
@@ -147,6 +150,7 @@ export async function Shell({ children }: { children: ReactNode }) {
               <Link href="/privacy" className="btn text-xs no-underline">
                 privacy
               </Link>
+              <CookieButton />
               <Link href="/credits" className="btn text-xs no-underline">
                 credits
               </Link>

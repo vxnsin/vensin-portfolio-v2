@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import { Window } from "@/components/layout/Window";
 import { FRAME_MS, Sprite, framesFor, type Frame } from "@/components/widgets/cat-frames";
 import { readForm, subscribeForm } from "@/components/widgets/mochi-form";
+import { canStore } from "@/lib/consent";
 import { isSeason, type Season } from "@/lib/season-data";
 import {
   ACHIEVEMENTS, BUILDINGS, GOLDEN_LIFETIME_MS, GOLDEN_MAX_MS, GOLDEN_MIN_MS, OFFLINE_CAP_MS, UPGRADES, WHISKER_BONUS,
@@ -127,6 +128,7 @@ export function Clicker({ initialGlobal, season: initialSeason }: { initialGloba
   useEffect(() => {
     if (!loaded) return;
     const write = () => {
+      if (!canStore()) return; // the visitor said no to remembering (cookie notice): the game runs, the save stays in memory
       try {
         localStorage.setItem(STORAGE, JSON.stringify({ ...saveRef.current, savedAt: Date.now() }));
       } catch {}
