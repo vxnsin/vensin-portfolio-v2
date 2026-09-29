@@ -50,21 +50,23 @@ const SIT_STRETCH = pad([
   "..kk.kk.kkkk..",
 ]);
 
-// sleeping: curled up, breathing, a z that drifts up; head sits one column right and three rows down
+// sleeping: curled up in a loaf, head on the left with closed eyes, tail wrapped around the front, a z that drifts up.
+// head origin is the ear row; the neck anchor sits where the head meets the body so a scarf lands there and not on the belly
 const SLEEP_BASE = pad([
   "..............",
   "..............",
   "..............",
-  "...k.....k....",
-  "..kok...kok...",
-  "..kooooooook..",
-  "..kkoooookkk..",
-  ".kooooooooook.",
-  "koooooooooooo.",
-  "kooooooooook..",
-  ".kkkkkkkkkk...",
+  "..k.....k.....",
+  ".kok...kok....",
+  ".kooooooook...",
+  ".kokkookkokkk.",
+  ".koooowooooook",
+  "kooooooooooook",
+  "kooddddddddook",
+  ".kkkkkkkkkkkk.",
 ]);
-const SLEEP_BREATHE = row(SLEEP_BASE, { 6: "..kkoooookkk..", 7: ".koooooooooook", 8: "kooooooooooook", 9: ".kooooooooook." });
+// breathing: the back rises by one pixel
+const SLEEP_BREATHE = row(SLEEP_BASE, { 5: ".kooooooookkk.", 6: ".kokkookkoooook" });
 const SLEEP_Z1 = row(SLEEP_BASE, { 2: "..........z..." });
 const SLEEP_Z2 = row(SLEEP_BREATHE, { 1: "...........z..", 2: "..........z..." });
 const SLEEP_Z3 = row(SLEEP_BASE, { 0: "............z.", 1: "...........z.." });
@@ -89,10 +91,10 @@ const LOST_A = row(SIT, { 3: ".kokoooookk..?", 4: ".koooowoook..." });
 const LOST_B = row(SIT, { 3: ".kkoooookok...", 4: ".kooowooook..." });
 const LOST_C = row(SIT, { 3: ".kokoooookk...", 4: ".koooowoook..." });
 
-const SLEEP_HEAD: [number, number] = [1, 3];
+const sleep = (grid: string[]): Frame => ({ grid, head: [0, 3], neck: [0, 2] });
 export const FRAMES: Record<Mood, Frame[]> = {
   idle: [f(SIT), f(SIT), f(SIT_TAIL_UP), f(SIT), f(SIT_BLINK), f(SIT), f(SIT_TAIL_UP), f(SIT_STRETCH, [0, 2]), f(SIT_STRETCH, [0, 2]), f(SIT)],
-  sleep: [f(SLEEP_BASE, SLEEP_HEAD), f(SLEEP_Z1, SLEEP_HEAD), f(SLEEP_BREATHE, SLEEP_HEAD), f(SLEEP_Z2, SLEEP_HEAD), f(SLEEP_BASE, SLEEP_HEAD), f(SLEEP_Z3, SLEEP_HEAD), f(SLEEP_BREATHE, SLEEP_HEAD), f(SLEEP_BASE, SLEEP_HEAD)],
+  sleep: [sleep(SLEEP_BASE), sleep(SLEEP_Z1), sleep(SLEEP_BREATHE), sleep(SLEEP_Z2), sleep(SLEEP_BASE), sleep(SLEEP_Z3), sleep(SLEEP_BREATHE), sleep(SLEEP_BASE)],
   code: [f(CODE_A), f(CODE_B), f(CODE_A), f(CODE_B), f(CODE_C), f(CODE_B)],
   music: [f(MUSIC_A), f(MUSIC_B, [0, 1]), f(MUSIC_C), f(MUSIC_B, [0, 1])],
   watch: [f(WATCH_A), f(WATCH_A), f(WATCH_B), f(WATCH_A), f(WATCH_C, [-1, 0]), f(WATCH_C, [-1, 0])],
