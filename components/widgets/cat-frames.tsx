@@ -79,9 +79,10 @@ const MUSIC_A = row(SIT, { 0: "..k.....k.n...", 1: ".kok...kokn..." });
 const MUSIC_B = pad(["..............", ...SIT.slice(0, 10)].map((r, i) => (i === 1 ? ".nk.....k....." : r)));
 const MUSIC_C = row(SIT, { 0: "..k.....k..n..", 1: ".kok...kok.n.." });
 
-const WATCH_A = row(SIT, { 3: ".kokkooookkk..", 4: ".kokwoooowok.." });
-const WATCH_B = row(SIT, { 3: ".kkkoooookkk..", 4: ".kwkoooowkok.." });
-const WATCH_C = row(WATCH_A, { 2: "kooooooook....", 3: "kokkooookkk...", 4: "kokwoooowok..." });
+// watching: eyes wide open (two pixels tall), a tail flick now and then, one blink
+const WATCH_A = row(SIT, { 4: ".kokoowookk..." });
+const WATCH_B = row(SIT_TAIL_UP, { 4: ".kokoowookk..." });
+const WATCH_C = SIT_BLINK;
 
 const POKE_A = row(SIT, { 0: "..k..h..k.....", 3: ".kokoooookk...", 4: ".kooooooook..." });
 const POKE_B = row(SIT, { 0: ".hk.....kh....", 1: ".kok...kok..h.", 3: ".kkkooookkk...", 4: ".koooooooook.." });
@@ -97,7 +98,7 @@ export const FRAMES: Record<Mood, Frame[]> = {
   sleep: [sleep(SLEEP_BASE), sleep(SLEEP_Z1), sleep(SLEEP_BREATHE), sleep(SLEEP_Z2), sleep(SLEEP_BASE), sleep(SLEEP_Z3), sleep(SLEEP_BREATHE), sleep(SLEEP_BASE)],
   code: [f(CODE_A), f(CODE_B), f(CODE_A), f(CODE_B), f(CODE_C), f(CODE_B)],
   music: [f(MUSIC_A), f(MUSIC_B, [0, 1]), f(MUSIC_C), f(MUSIC_B, [0, 1])],
-  watch: [f(WATCH_A), f(WATCH_A), f(WATCH_B), f(WATCH_A), f(WATCH_C, [-1, 0]), f(WATCH_C, [-1, 0])],
+  watch: [f(WATCH_A), f(WATCH_A), f(WATCH_A), f(WATCH_B), f(WATCH_B), f(WATCH_A), f(WATCH_C), f(WATCH_A)],
   poke: [f(POKE_A), f(POKE_B), f(POKE_C), f(POKE_B)],
   lost: [f(LOST_A), f(LOST_A), f(LOST_B), f(LOST_B), f(LOST_C), f(LOST_A)],
 };
