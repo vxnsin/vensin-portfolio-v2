@@ -159,7 +159,7 @@ if [ ! -f "$ENV_FILE" ]; then
   ENV_CREATED=1
 else
   ENV_CREATED=0
-  if grep -q '^PORT=' "$ENV_FILE"; then sed -i "s/^PORT=.*/PORT=$PORT/" "$ENV_FILE"; else echo "PORT=$PORT" >> "$ENV_FILE"; fi
+  if grep -q '^PORT=' "$ENV_FILE"; then sudo sed -i "s/^PORT=.*/PORT=$PORT/" "$ENV_FILE"; else echo "PORT=$PORT" | sudo tee -a "$ENV_FILE" >/dev/null; fi
 fi
 
 # ---------------------------------------------------------------- build
