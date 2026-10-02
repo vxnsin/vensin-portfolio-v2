@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>WFWorkflowName</key><string>health sync</string>
+  <key>WFWorkflowMinimumClientVersion</key><integer>900</integer>
+  <key>WFWorkflowMinimumClientVersionString</key><string>900</string>
+  <key>WFWorkflowClientVersion</key><string>2607.1.3</string>
+  <key>WFWorkflowIcon</key><dict><key>WFWorkflowIconStartColor</key><integer>4282601983</integer><key>WFWorkflowIconGlyphNumber</key><integer>59771</integer></dict>
+  <key>WFWorkflowTypes</key><array><string>NCWidget</string><string>WatchKit</string></array>
+  <key>WFWorkflowHasShortcutInputVariables</key><false/>
+  <key>WFWorkflowImportQuestions</key><array/>
+  <key>WFWorkflowInputContentItemClasses</key><array/>
+  <key>WFWorkflowActions</key>
+  <array>
+
+    <!-- move: active energy, today, sum -->
+    <dict><key>WFWorkflowActionIdentifier</key><string>is.workflow.actions.filter.health.quantity</string>
+      <key>WFWorkflowActionParameters</key><dict>
+        <key>WFHealthSampleType</key><string>Active Energy</string>
+        <key>WFContentItemFilter</key><dict><key>Value</key><dict>
+          <key>WFActionParameterFilterPrefix</key><integer>1</integer>
+          <key>WFActionParameterFilterTemplates</key><array><dict>
+            <key>Property</key><string>Start Date</string><key>Operator</key><integer>1003</integer><key>Removable</key><true/>
+            <key>Values</key><dict><key>Date</key><string></string></dict></dict></array>
+          <key>WFContentPredicateBoundedDate</key><false/></dict><key>WFSerializationType</key><string>WFContentPredicateTableTemplate</string></dict>
+        <key>WFContentItemSortProperty</key><string>Start Date</string>
+        <key>WFContentItemLimitEnabled</key><false/>
+        <key>UUID</key><string>A1000000-0000-0000-0000-000000000001</string></dict></dict>
+    <dict><key>WFWorkflowActionIdentifier</key><string>is.workflow.actions.statistics</string>
+      <key>WFWorkflowActionParameters</key><dict><key>WFStatisticsOperation</key><string>Sum</string>
+        <key>UUID</key><string>B1000000-0000-0000-0000-000000000001</string></dict></dict>
+
+    <!-- exercise: exercise minutes, today, sum -->
+    <dict><key>WFWorkflowActionIdentifier</key><string>is.workflow.actions.filter.health.quantity</string>
+      <key>WFWorkflowActionParameters</key><dict>
+        <key>WFHealthSampleType</key><string>Exercise Minutes</string>
+        <key>WFContentItemFilter</key><dict><key>Value</key><dict>
+          <key>WFActionParameterFilterPrefix</key><integer>1</integer>
+          <key>WFActionParameterFilterTemplates</key><array><dict>
+            <key>Property</key><string>Start Date</string><key>Operator</key><integer>1003</integer><key>Removable</key><true/>
+            <key>Values</key><dict><key>Date</key><string></string></dict></dict></array>
+          <key>WFContentPredicateBoundedDate</key><false/></dict><key>WFSerializationType</key><string>WFContentPredicateTableTemplate</string></dict>
+        <key>WFContentItemLimitEnabled</key><false/>
+        <key>UUID</key><string>A1000000-0000-0000-0000-000000000002</string></dict></dict>
+    <dict><key>WFWorkflowActionIdentifier</key><string>is.workflow.actions.statistics</string>
+      <key>WFWorkflowActionParameters</key><dict><key>WFStatisticsOperation</key><string>Sum</string>
+        <key>UUID</key><string>B1000000-0000-0000-0000-000000000002</string></dict></dict>
+
+    <!-- stand: stand hours, today, sum -->
+    <dict><key>WFWorkflowActionIdentifier</key><string>is.workflow.actions.filter.health.quantity</string>
+      <key>WFWorkflowActionParameters</key><dict>
+        <key>WFHealthSampleType</key><string>Stand Hours</string>
+        <key>WFContentItemFilter</key><dict><key>Value</key><dict>
+          <key>WFActionParameterFilterPrefix</key><integer>1</integer>
+          <key>WFActionParameterFilterTemplates</key><array><dict>
+            <key>Property</key><string>Start Date</string><key>Operator</key><integer>1003</integer><key>Removable</key><true/>
+            <key>Values</key><dict><key>Date</key><string></string></dict></dict></array>
+          <key>WFContentPredicateBoundedDate</key><false/></dict><key>WFSerializationType</key><string>WFContentPredicateTableTemplate</string></dict>
+        <key>WFContentItemLimitEnabled</key><false/>
+        <key>UUID</key><string>A1000000-0000-0000-0000-000000000003</string></dict></dict>
+    <dict><key>WFWorkflowActionIdentifier</key><string>is.workflow.actions.statistics</string>
+      <key>WFWorkflowActionParameters</key><dict><key>WFStatisticsOperation</key><string>Sum</string>
+        <key>UUID</key><string>B1000000-0000-0000-0000-000000000003</string></dict></dict>
+
+    <!-- steps: today, sum -->
+    <dict><key>WFWorkflowActionIdentifier</key><string>is.workflow.actions.filter.health.quantity</string>
+      <key>WFWorkflowActionParameters</key><dict>
+        <key>WFHealthSampleType</key><string>Steps</string>
+        <key>WFContentItemFilter</key><dict><key>Value</key><dict>
+          <key>WFActionParameterFilterPrefix</key><integer>1</integer>
+          <key>WFActionParameterFilterTemplates</key><array><dict>
+            <key>Property</key><string>Start Date</string><key>Operator</key><integer>1003</integer><key>Removable</key><true/>
+            <key>Values</key><dict><key>Date</key><string></string></dict></dict></array>
+          <key>WFContentPredicateBoundedDate</key><false/></dict><key>WFSerializationType</key><string>WFContentPredicateTableTemplate</string></dict>
+        <key>WFContentItemLimitEnabled</key><false/>
+        <key>UUID</key><string>A1000000-0000-0000-0000-000000000004</string></dict></dict>
+    <dict><key>WFWorkflowActionIdentifier</key><string>is.workflow.actions.statistics</string>
+      <key>WFWorkflowActionParameters</key><dict><key>WFStatisticsOperation</key><string>Sum</string>
+        <key>UUID</key><string>B1000000-0000-0000-0000-000000000004</string></dict></dict>
+
+    <!-- dictionary: move / exercise / stand / steps as numbers -->
+    <dict><key>WFWorkflowActionIdentifier</key><string>is.workflow.actions.dictionary</string>
+      <key>WFWorkflowActionParameters</key><dict>
+        <key>UUID</key><string>C1000000-0000-0000-0000-000000000001</string>
+        <key>WFItems</key><dict><key>WFSerializationType</key><string>WFDictionaryFieldValue</string><key>Value</key><dict>
+          <key>WFDictionaryFieldValueItems</key><array>
+            <dict><key>WFItemType</key><integer>3</integer>
+              <key>WFKey</key><dict><key>WFSerializationType</key><string>WFTextTokenString</string><key>Value</key><dict><key>string</key><string>move</string><key>attachmentsByRange</key><dict/></dict></dict>
+              <key>WFValue</key><dict><key>WFSerializationType</key><string>WFTextTokenString</string><key>Value</key><dict><key>string</key><string>￼</string><key>attachmentsByRange</key><dict><key>{0, 1}</key><dict><key>Type</key><string>ActionOutput</string><key>OutputUUID</key><string>B1000000-0000-0000-0000-000000000001</string><key>OutputName</key><string>Statistik berechnen</string></dict></dict></dict></dict></dict>
+            <dict><key>WFItemType</key><integer>3</integer>
+              <key>WFKey</key><dict><key>WFSerializationType</key><string>WFTextTokenString</string><key>Value</key><dict><key>string</key><string>exercise</string><key>attachmentsByRange</key><dict/></dict></dict>
+              <key>WFValue</key><dict><key>WFSerializationType</key><string>WFTextTokenString</string><key>Value</key><dict><key>string</key><string>￼</string><key>attachmentsByRange</key><dict><key>{0, 1}</key><dict><key>Type</key><string>ActionOutput</string><key>OutputUUID</key><string>B1000000-0000-0000-0000-000000000002</string><key>OutputName</key><string>Statistik berechnen</string></dict></dict></dict></dict></dict>
+            <dict><key>WFItemType</key><integer>3</integer>
+              <key>WFKey</key><dict><key>WFSerializationType</key><string>WFTextTokenString</string><key>Value</key><dict><key>string</key><string>stand</string><key>attachmentsByRange</key><dict/></dict></dict>
+              <key>WFValue</key><dict><key>WFSerializationType</key><string>WFTextTokenString</string><key>Value</key><dict><key>string</key><string>￼</string><key>attachmentsByRange</key><dict><key>{0, 1}</key><dict><key>Type</key><string>ActionOutput</string><key>OutputUUID</key><string>B1000000-0000-0000-0000-000000000003</string><key>OutputName</key><string>Statistik berechnen</string></dict></dict></dict></dict></dict>
+            <dict><key>WFItemType</key><integer>3</integer>
+              <key>WFKey</key><dict><key>WFSerializationType</key><string>WFTextTokenString</string><key>Value</key><dict><key>string</key><string>steps</string><key>attachmentsByRange</key><dict/></dict></dict>
+              <key>WFValue</key><dict><key>WFSerializationType</key><string>WFTextTokenString</string><key>Value</key><dict><key>string</key><string>￼</string><key>attachmentsByRange</key><dict><key>{0, 1}</key><dict><key>Type</key><string>ActionOutput</string><key>OutputUUID</key><string>B1000000-0000-0000-0000-000000000004</string><key>OutputName</key><string>Statistik berechnen</string></dict></dict></dict></dict></dict>
+          </array></dict></dict></dict></dict>
+
+    <!-- post to vensin.dev -->
+    <dict><key>WFWorkflowActionIdentifier</key><string>is.workflow.actions.downloadurl</string>
+      <key>WFWorkflowActionParameters</key><dict>
+        <key>WFURL</key><string>https://vensin.dev/api/health</string>
+        <key>WFHTTPMethod</key><string>POST</string>
+        <key>WFHTTPBodyType</key><string>JSON</string>
+        <key>WFJSONValues</key><dict><key>WFSerializationType</key><string>WFDictionaryFieldValue</string><key>Value</key><dict><key>WFDictionaryFieldValueItems</key><array/></dict></dict>
+        <key>WFInput</key><dict><key>WFSerializationType</key><string>WFTextTokenAttachment</string><key>Value</key><dict><key>Type</key><string>ActionOutput</string><key>OutputUUID</key><string>C1000000-0000-0000-0000-000000000001</string><key>OutputName</key><string>Wörterbuch</string></dict></dict>
+        <key>WFHTTPHeaders</key><dict><key>WFSerializationType</key><string>WFDictionaryFieldValue</string><key>Value</key><dict>
+          <key>WFDictionaryFieldValueItems</key><array><dict><key>WFItemType</key><integer>0</integer>
+            <key>WFKey</key><dict><key>WFSerializationType</key><string>WFTextTokenString</string><key>Value</key><dict><key>string</key><string>Authorization</string><key>attachmentsByRange</key><dict/></dict></dict>
+            <key>WFValue</key><dict><key>WFSerializationType</key><string>WFTextTokenString</string><key>Value</key><dict><key>string</key><string>Bearer HEALTH_TOKEN_HIER</string><key>attachmentsByRange</key><dict/></dict></dict></dict></array></dict></dict>
+        <key>ShowHeaders</key><true/>
+        <key>UUID</key><string>D1000000-0000-0000-0000-000000000001</string></dict></dict>
+
+  </array>
+</dict>
+</plist>
