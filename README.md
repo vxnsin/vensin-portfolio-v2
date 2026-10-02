@@ -144,10 +144,10 @@ Without the public key the cards still arrive, the buttons just do nothing; `/ad
 `POST /api/health` with `Authorization: Bearer <HEALTH_TOKEN>` and a JSON body:
 
 ```json
-{ "move": 420, "exercise": 25, "stand": 9, "steps": 6800 }
+{ "move": 420, "exercise": 25, "stand": 9, "steps": 6800, "goals": { "move": 500, "exercise": 30, "stand": 12 } }
 ```
 
-Goals default to the `HEALTH_*_GOAL` env vars and can be overridden per request (`moveGoal`, `exerciseGoal`, `standGoal`).
+`goals` is optional; missing goals fall back to the `HEALTH_*_GOAL` env vars. The older flat form (`moveGoal`, `exerciseGoal`, `standGoal`) still works. Values may arrive as numbers or as Health strings like `"512,3 kcal"`, units and decimal commas are handled.
 
 iPhone setup (Shortcuts app):
 

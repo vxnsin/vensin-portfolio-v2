@@ -5,7 +5,8 @@ import { getHealth, saveHealth } from "@/lib/store";
 
 // Receives today's Apple Watch activity from an iOS Shortcut (see README).
 // POST /api/health  Authorization: Bearer <HEALTH_TOKEN>
-// { "move": 420, "exercise": 25, "stand": 9, "steps": 6800, "moveGoal": 500, "exerciseGoal": 30, "standGoal": 12 }
+// { "move": 420, "exercise": 25, "stand": 9, "steps": 6800, "goals": { "move": 500, "exercise": 30, "stand": 12 } }
+// The older flat form (moveGoal / exerciseGoal / standGoal) is still accepted; a nested "goals" wins when both are present.
 
 // The shortcut hands over whatever Health gives it: "512,3 kcal", "1.234 Schritte", "25 min", plain numbers, sometimes nothing.
 // Units are dropped, a decimal comma becomes a point, a thousands separator disappears, an empty value counts as 0.
@@ -33,6 +34,15 @@ const Body = z.object({
   date: z.string().max(10).optional(),
 });
 
+// the shortcut sends the goals as a nested object; lift them into the flat fields before validation
+function liftGoals(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const { goals, ...rest } = raw as Record<string, unknown>;
+  if (!goals || typeof goals !== "object") return raw;
+  const g = goals as Record<string, unknown>;
+  return { ...rest, moveGoal: g.move ?? rest.moveGoal, exerciseGoal: g.exercise ?? rest.exerciseGoal, standGoal: g.stand ?? rest.standGoal };
+}
+
 function authorized(req: Request) {
   const token = process.env.HEALTH_TOKEN;
   if (!token) return false;
@@ -53,7 +63,7 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
-  const parsed = Body.safeParse(raw);
+  const parsed = Body.safeParse(liftGoals(raw));
   if (!parsed.success) return NextResponse.json({ error: "invalid body", issues: parsed.error.issues }, { status: 400 });
 
   const health = { ...parsed.data, updatedAt: new Date().toISOString() };
