@@ -21,7 +21,12 @@ const num = z.preprocess((v) => {
   const n = Number(t);
   return Number.isFinite(n) ? n : 0;
 }, z.number());
-const goal = (fallback: number) => z.preprocess((v) => (v === "" || v === null || v === undefined ? fallback : v), num.pipe(z.number().positive()));
+// a goal of 0 (the shortcut could not read it) or nothing at all means: use the default from the env
+const goal = (fallback: number) =>
+  z.preprocess((v) => {
+    const n = v === "" || v === null || v === undefined ? 0 : num.safeParse(v).data ?? 0;
+    return n > 0 ? n : fallback;
+  }, z.number().positive());
 
 const Body = z.object({
   move: num.pipe(z.number().min(0)),
