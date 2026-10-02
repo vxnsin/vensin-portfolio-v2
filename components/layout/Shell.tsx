@@ -17,6 +17,7 @@ import { kvGet } from "@/lib/db";
 import { SeasonGreeting } from "./SeasonGreeting";
 import { AprilFools } from "@/components/decor/AprilFools";
 import { Cheats } from "@/components/decor/Cheats";
+import { AwayTab } from "@/components/decor/AwayTab";
 import { Window } from "./Window";
 import { LanyardProvider } from "@/components/discord/LanyardProvider";
 import { DiscordPresence } from "@/components/discord/DiscordPresence";
@@ -47,6 +48,7 @@ export async function Shell({ children }: { children: ReactNode }) {
     <LanyardProvider>
       <AprilFools />
       <Cheats />
+      <AwayTab />
       <CookieNotice />
       <div
         id="top"
