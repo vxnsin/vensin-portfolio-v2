@@ -1,6 +1,41 @@
-# vensin.dev v2
+<!-- cozy:cards -->
+<!-- /cozy:cards -->
 
-My personal site, rebuilt from scratch. A cozy old-web layout with anime energy, live Discord presence, a photo/video gallery, a contact form that pings me on Discord, Apple Watch rings in the sidebar, and a small admin panel. Mobile friendly.
+<div align="center">
+
+**My little corner of the internet: old-web layout, anime energy, and a sidebar that shows what I'm doing right now.**
+
+[![vensin.dev](https://img.shields.io/badge/vensin.dev-visit-c4381f?labelColor=2b2420)](https://vensin.dev)
+[![Next.js](https://img.shields.io/badge/next.js-16-ece1cf?labelColor=2b2420&logo=nextdotjs&logoColor=ece1cf)](https://nextjs.org)
+[![React](https://img.shields.io/badge/react-19-7fb8e0?labelColor=2b2420&logo=react&logoColor=7fb8e0)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/typescript-5-3178c6?labelColor=2b2420&logo=typescript&logoColor=7fb8e0)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/tailwind-4-3d7a4b?labelColor=2b2420&logo=tailwindcss&logoColor=7cc68d)](https://tailwindcss.com)
+[![SQLite](https://img.shields.io/badge/sqlite-one_file-a87fe0?labelColor=2b2420&logo=sqlite&logoColor=c9b3ef)](https://sqlite.org)
+
+</div>
+
+vensin.dev v2 is my personal site, rebuilt from scratch: pixel fonts, little windows, a starry
+sky and a pixel cat called mochi who lives in the sidebar. Everything on it is live. The Discord
+window shows what I'm coding, watching or listening to, the music page counts every Spotify
+play, the anime page logs every episode, and my Apple Watch rings close (or don't) in public.
+
+| | |
+| --- | --- |
+| **Live sidebar** | Discord presence with handlers for Spotify, VS Code, anime, YouTube and games, a "today" window, Apple Watch rings, and mochi reacting to all of it |
+| **Music** | now playing with synced lyrics, a listening log with yearly stats, top tracks and artists, a listening clock |
+| **Anime** | watched and watchlist shelves, a watch log with weekly bars, finished-season badges |
+| **Seasons** | the whole site changes with the calendar, with specials for christmas, new year, halloween, valentine's day and april fools |
+| **Guestbook & contact** | spam screening, Discord cards with approve and reject buttons |
+| **Mochi clicker** | an idle game with a shop, upgrades, golden mochi and nine lives |
+| **Admin panel** | every text, project, photo and season is editable without touching code |
+
+Mobile friendly, no tracking cookies, and one SQLite file holds everything.
+
+## Contents
+
+- **Setup:** [Stack](#stack) · [Run](#run) · [Data & background jobs](#data--background-jobs) · [Pages](#pages) · [Deploy](#deploy) · [Where to edit content](#where-to-edit-content)
+- **Features:** [Sidebar widgets](#sidebar-widgets) · [Discord widget](#discord-widget-adding-a-service) · [Music page](#music-page) · [Seasons](#seasons) · [Guestbook](#guestbook--discord-buttons) · [Apple Watch rings](#apple-watch-rings) · [Watch log](#watch-log) · [Pixel cat](#pixel-cat)
+- **Running it safely:** [Abuse limits](#abuse-limits) · [Backups](#backups) · [Maintenance mode](#maintenance-mode)
 
 ## Stack
 
