@@ -4,7 +4,6 @@ import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react
 import type { Health } from "@/lib/store";
 import { DateBlock } from "./DateBlock";
 import { Weather } from "./Weather";
-import { JapanNow } from "./JapanNow";
 import { ActivityRings } from "./ActivityRings";
 
 const AUTO_MS = 9000;
@@ -16,7 +15,7 @@ const useMounted = () => useSyncExternalStore(noop, () => true, () => false);
 
 type Page = { key: string; title: string; node: ReactNode };
 
-/** "today" window: date, weather, and activity rings (or tokyo time until ring data exists). */
+/** "today" window: date, weather, and activity rings (once ring data exists). */
 export function TodayCycle({ health }: { health: Health | null }) {
   const mounted = useMounted();
   const [page, setPage] = useState(0);
@@ -25,9 +24,7 @@ export function TodayCycle({ health }: { health: Health | null }) {
   const pages: Page[] = [
     { key: "date", title: "today", node: <DateBlock /> },
     { key: "weather", title: "weather at my place", node: <Weather /> },
-    health
-      ? { key: "rings", title: "activity", node: <ActivityRings health={health} /> }
-      : { key: "japan", title: "meanwhile in japan", node: <JapanNow /> },
+    ...(health ? [{ key: "rings", title: "activity", node: <ActivityRings health={health} /> }] : []),
   ];
 
   useEffect(() => {

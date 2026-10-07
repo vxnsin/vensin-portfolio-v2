@@ -712,7 +712,7 @@ textarea.input { resize: vertical; min-height: 80px; }
 .moon-ground { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 22vh; animation: moon-ground 1.2s ease 2.6s both; }
 @keyframes moon-ground { from { transform: translateY(30px); opacity: 0; } }
 .moon-pair { position: absolute; left: 50%; bottom: 15.2vh; transform: translateX(-50%); animation: moon-pair 1.4s ease 3.3s both; }
-.moon-pair img, .moon-pair svg { position: relative; display: block; }
+.moon-pair img { position: relative; display: block; }
 .moon-shadow { position: absolute; left: -6%; right: -6%; bottom: -2.5vh; height: 5vh; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(12, 16, 32, 0.75), transparent 70%); }
 @keyframes moon-pair { from { transform: translateX(-50%) translateY(24px); opacity: 0; } }
 .moon-caption { position: absolute; left: 0; right: 0; bottom: 3vh; animation: moon-fade 1.5s ease 4.6s both; text-shadow: 0 1px 0 #000; }
