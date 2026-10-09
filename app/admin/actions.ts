@@ -35,6 +35,7 @@ import { deleteProject, moveProject, saveProject, type ProjectLink, type Project
 import { deleteSetupItem, moveSetupItem, saveSetupItem } from "@/lib/setup";
 import { saveAbout } from "@/lib/about";
 import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
+import { deleteFolder, listFolders, moveFolder, saveFolder, setItemCaption, setItemFolder } from "@/lib/gallery";
 
 export type ActionState = { ok: boolean; error?: string } | null;
 
@@ -267,7 +268,9 @@ export async function uploadAction(_prev: ActionState, formData: FormData): Prom
   await requireAdmin();
   const file = formData.get("file");
   const caption = String(formData.get("caption") ?? "").trim().slice(0, 120);
-  const tag = String(formData.get("tag") ?? "").trim().toLowerCase().slice(0, 30) || "misc";
+  const folderRaw = String(formData.get("folder") ?? "");
+  const folder = listFolders().find((f) => f.id === folderRaw) ?? null;
+  const tag = folder?.slug ?? "";
 
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "pick a file first" };
   const video = isVideo(file);
@@ -294,9 +297,9 @@ export async function uploadAction(_prev: ActionState, formData: FormData): Prom
       url = `/uploads/${name}`;
     }
 
-    await addGalleryItem({ url, kind: processed.kind, caption, tag, pathname });
+    await addGalleryItem({ url, kind: processed.kind, caption, tag, folderId: folder?.id ?? null, pathname });
     revalidatePath("/admin/gallery");
-    revalidatePath("/gallery");
+    revalidatePath("/gallery", "layout");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "upload failed" };
@@ -313,7 +316,48 @@ export async function deleteGalleryAction(formData: FormData) {
     } catch {}
   }
   revalidatePath("/admin/gallery");
-    revalidatePath("/gallery");
+  revalidatePath("/gallery", "layout");
+}
+
+/* ---------- gallery folders ---------- */
+
+export async function saveFolderAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const res = saveFolder({
+    id: String(formData.get("id") ?? "") || undefined,
+    parentId: String(formData.get("parent") ?? "") || null,
+    name: String(formData.get("name") ?? ""),
+    icon: String(formData.get("icon") ?? "folder"),
+    exclusive: formData.get("exclusive") === "on",
+    unlisted: formData.get("unlisted") === "on",
+  });
+  if (!res.ok) return { ok: false, error: res.error };
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
+  return { ok: true };
+}
+
+export async function deleteFolderAction(formData: FormData) {
+  await requireAdmin();
+  deleteFolder(String(formData.get("id")));
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
+}
+
+export async function moveFolderAction(formData: FormData) {
+  await requireAdmin();
+  moveFolder(String(formData.get("id")), formData.get("dir") === "up" ? -1 : 1);
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
+}
+
+export async function updateGalleryItemAction(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  setItemFolder(id, String(formData.get("folder") ?? "") || null);
+  if (formData.has("caption")) setItemCaption(id, String(formData.get("caption") ?? ""));
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
 }
 
 /* ---------- update log ---------- */

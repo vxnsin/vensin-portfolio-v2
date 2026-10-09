@@ -2,8 +2,9 @@
 
 import { useActionState } from "react";
 import { uploadAction, type ActionState } from "../actions";
+import type { FolderOption } from "./FolderForm";
 
-export function UploadForm({ tags }: { tags: string[] }) {
+export function UploadForm({ folders, defaultFolder }: { folders: FolderOption[]; defaultFolder?: string }) {
   const [state, action, pending] = useActionState<ActionState, FormData>(uploadAction, null);
   return (
     <form action={action} className="grid gap-3 text-xs sm:grid-cols-2">
@@ -16,13 +17,15 @@ export function UploadForm({ tags }: { tags: string[] }) {
         <input name="caption" maxLength={120} className="input" placeholder="sunset ride" />
       </label>
       <label className="grid gap-1">
-        <span className="text-ink-soft">tag</span>
-        <input name="tag" maxLength={30} className="input" placeholder="bike" list="tags" />
-        <datalist id="tags">
-          {tags.map((t) => (
-            <option key={t} value={t} />
+        <span className="text-ink-soft">folder</span>
+        <select name="folder" defaultValue={defaultFolder ?? ""} className="input">
+          <option value="">(no folder, top level)</option>
+          {folders.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.label}
+            </option>
           ))}
-        </datalist>
+        </select>
       </label>
       {state?.error && <p className="text-[var(--dnd)] sm:col-span-2">{state.error}</p>}
       {state?.ok && (
