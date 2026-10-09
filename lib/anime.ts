@@ -45,12 +45,14 @@ export async function scrapeWatched(limit = Infinity): Promise<WatchedAnime[] | 
 
 /** Recently watched episodes, covers + links upgraded via Kitsu. */
 export async function fetchRecentlyWatched(): Promise<WatchedAnime[] | null> {
-  const out = await scrapeWatched(12);
-  if (!out) return null;
+  // aniworld lists every episode on its own, so a binge fills the top with one title: scan the whole page until eight different anime are found
+  const scanned = await scrapeWatched();
+  if (!scanned) return null;
+  const out = scanned.slice(0, 12);
 
-  // de-dupe by title (several episodes of the same show), keep newest
+  // de-dupe by title (several episodes of the same show), keep newest: the last eight different anime
   const seen = new Set<string>();
-  const unique = out.filter((a) => (seen.has(a.title) ? false : (seen.add(a.title), true))).slice(0, 8);
+  const unique = scanned.filter((a) => (seen.has(a.title) ? false : (seen.add(a.title), true))).slice(0, 8);
 
   const sources = new Map(unique.map((a) => [a.title, a.url]));
   for (const a of unique) {

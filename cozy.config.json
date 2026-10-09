@@ -14,7 +14,6 @@
     { "type": "button", "id": "nav-guestbook", "label": "sign the guestbook", "link": "https://vensin.dev/guestbook" },
     { "type": "button", "id": "nav-mochi", "label": "play with mochi", "link": "https://vensin.dev/mochi" },
     { "type": "repo", "link": "https://github.com/vxnsin/vensin-portfolio-v2" },
-    { "type": "commits", "link": "https://github.com/vxnsin/vensin-portfolio-v2/commits" },
-    { "type": "contributors", "link": "https://github.com/vxnsin/vensin-portfolio-v2/graphs/contributors" }
+    { "type": "commits", "link": "https://github.com/vxnsin/vensin-portfolio-v2/commits" }
   ]
 }

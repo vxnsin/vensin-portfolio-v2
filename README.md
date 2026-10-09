@@ -9,23 +9,25 @@
 
 <a href="https://github.com/vxnsin/vensin-portfolio-v2/commits"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/commits-dark.svg?v=a800c81143"><img src="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/commits-light.svg?v=a800c81143" width="840" alt="latest commits of vxnsin/vensin-portfolio-v2"></picture></a>
 
-<a href="https://github.com/vxnsin/vensin-portfolio-v2/graphs/contributors"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/contributors-dark.svg?v=4849c3446c"><img src="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/contributors-light.svg?v=4849c3446c" width="840" alt="contributors: vxnsin"></picture></a>
-
 </div>
 <!-- /cozy:cards -->
 
-<div align="center">
-
 **My little corner of the internet: old-web layout, anime energy, and a sidebar that shows what I'm doing right now.**
 
-[![vensin.dev](https://img.shields.io/badge/vensin.dev-visit-c4381f?labelColor=2b2420)](https://vensin.dev)
-[![Next.js](https://img.shields.io/badge/next.js-16-ece1cf?labelColor=2b2420&logo=nextdotjs&logoColor=ece1cf)](https://nextjs.org)
-[![React](https://img.shields.io/badge/react-19-7fb8e0?labelColor=2b2420&logo=react&logoColor=7fb8e0)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/typescript-5-3178c6?labelColor=2b2420&logo=typescript&logoColor=7fb8e0)](https://www.typescriptlang.org)
-[![Tailwind CSS](https://img.shields.io/badge/tailwind-4-3d7a4b?labelColor=2b2420&logo=tailwindcss&logoColor=7cc68d)](https://tailwindcss.com)
-[![SQLite](https://img.shields.io/badge/sqlite-one_file-a87fe0?labelColor=2b2420&logo=sqlite&logoColor=c9b3ef)](https://sqlite.org)
+[![vensin.dev][b-site]][site] [![Next.js][b-next]][next] [![React][b-react]][react] [![TypeScript][b-ts]][ts] [![Tailwind CSS][b-tw]][tw] [![SQLite][b-sqlite]][sqlite]
 
-</div>
+[site]: https://vensin.dev
+[next]: https://nextjs.org
+[react]: https://react.dev
+[ts]: https://www.typescriptlang.org
+[tw]: https://tailwindcss.com
+[sqlite]: https://sqlite.org
+[b-site]: https://img.shields.io/badge/vensin.dev-visit-c4381f?labelColor=2b2420
+[b-next]: https://img.shields.io/badge/next.js-16-ece1cf?labelColor=2b2420&logo=nextdotjs&logoColor=ece1cf
+[b-react]: https://img.shields.io/badge/react-19-7fb8e0?labelColor=2b2420&logo=react&logoColor=7fb8e0
+[b-ts]: https://img.shields.io/badge/typescript-5-3178c6?labelColor=2b2420&logo=typescript&logoColor=7fb8e0
+[b-tw]: https://img.shields.io/badge/tailwind-4-3d7a4b?labelColor=2b2420&logo=tailwindcss&logoColor=7cc68d
+[b-sqlite]: https://img.shields.io/badge/sqlite-one_file-a87fe0?labelColor=2b2420&logo=sqlite&logoColor=c9b3ef
 
 vensin.dev v2 is my personal site, rebuilt from scratch: pixel fonts, little windows, a starry
 sky and a pixel cat called mochi who lives in the sidebar. Everything on it is live. The Discord
