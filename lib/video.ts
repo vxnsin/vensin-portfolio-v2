@@ -5,12 +5,17 @@ import sharp from "sharp";
 import { getDb } from "./db";
 import { UPLOAD_DIR } from "./upload";
 
-// Videos from a phone are huge (4k, 50 Mbit/s, often hevc): a home connection cannot stream that through the tunnel.
-// So every uploaded video gets, in the background and one at a time:
-//   a still  (<name>.poster.webp) for tiles, folder covers and the player before it starts
-//   a web copy (<name>.web.mp4): h.264, at most 1920px and 30 fps, ~8 Mbit/s, starts playing right away
-// The original stays and can be downloaded. Needs ffmpeg on the server (`sudo apt install ffmpeg` on the pi);
-// without it everything still works, just without stills and web copies.
+// Every uploaded video goes through this queue, one at a time, in the background:
+//   1. the original is cleaned: repacked by ffmpeg with only its picture and sound, nothing else. no location, no
+//      device or software names, no xmp, no chapters, no subtitle or data tracks (gopros and drones keep gps there).
+//      picture and sound are copied as they are, so nothing is re-encoded and nothing gets worse.
+//      (the upload already blanked the known location fields in place right away, see lib/media-meta.ts; this is the
+//      thorough pass.)
+//   2. a still (<name>.poster.webp) for tiles, folder covers and the player before it starts
+//   3. a web copy (<name>.web.mp4): h.264, at most 1920px and 30 fps, ~8 Mbit/s, starts playing right away.
+//      phone videos are huge (4k, 50 Mbit/s, often hevc); a home connection cannot stream that through the tunnel.
+// Needs ffmpeg on the server (`sudo apt install ffmpeg` on the pi). Without it the location is still blanked, but
+// there is no thorough clean, no still and no web copy.
 
 const FFMPEG = process.env.FFMPEG_PATH || "ffmpeg";
 const FFPROBE = process.env.FFPROBE_PATH || "ffprobe";
@@ -112,11 +117,47 @@ async function makeWebCopy(src: string, dest: string, p: VideoProbe) {
   await fs.rename(tmp, dest);
 }
 
+/* ---------- cleaning the original ---------- */
+
+const CONTAINER: Record<string, string> = { ".mov": "mov", ".mp4": "mp4", ".m4v": "mp4", ".webm": "webm" };
+
+/**
+ * Repacks a video with nothing but its picture and sound streams and no metadata at all, then puts it in place of
+ * the original. "0:V" is video without attached cover pictures (those are little jpegs that can carry exif).
+ */
+export async function cleanVideo(src: string): Promise<void> {
+  const ext = path.extname(src).toLowerCase();
+  const format = CONTAINER[ext] ?? "mp4";
+  const tmp = `${src}.clean.part`;
+  const args = [
+    "-v", "error", "-y", "-i", src,
+    "-map", "0:V", "-map", "0:a?",
+    "-c", "copy",
+    "-map_metadata", "-1", "-map_metadata:s", "-1", "-map_chapters", "-1",
+    "-dn", "-sn",
+    "-fflags", "+bitexact", "-flags:v", "+bitexact", "-flags:a", "+bitexact", // no "encoder: lavf…" tag either
+    ...(format === "webm" ? [] : ["-movflags", "+faststart"]),
+    "-f", format, tmp,
+  ];
+  const r = await run(FFMPEG, args, { stdout: false });
+  if (r.code !== 0) {
+    await fs.rm(tmp, { force: true });
+    throw new Error(`cleaning failed: ${r.err.split("\n").filter(Boolean).pop() ?? r.code}`);
+  }
+  // make sure the clean file is a whole video before it replaces the original
+  const [before, after] = await Promise.all([probe(src), probe(tmp)]);
+  if (!after || (before && before.duration > 0 && Math.abs(after.duration - before.duration) > Math.max(1, before.duration * 0.02))) {
+    await fs.rm(tmp, { force: true });
+    throw new Error("cleaned file looks incomplete, kept the original");
+  }
+  await fs.rename(tmp, src);
+}
+
 /* ---------- the queue ---------- */
 
-type Row = { id: string; url: string; poster: string | null; web_status: string | null };
+type Row = { id: string; url: string; poster: string | null; web_status: string | null; meta_clean: number };
 const db = () => getDb();
-const setRow = (id: string, fields: Partial<{ poster: string | null; web_url: string | null; web_status: string }>) => {
+const setRow = (id: string, fields: Partial<{ poster: string | null; web_url: string | null; web_status: string; meta_clean: number }>) => {
   const keys = Object.keys(fields);
   if (!keys.length) return;
   db()
@@ -124,11 +165,11 @@ const setRow = (id: string, fields: Partial<{ poster: string | null; web_url: st
     .run(...keys.map((k) => fields[k as keyof typeof fields] ?? null), id);
 };
 
-/** the files that belong to an upload besides itself (still and web copy), for deleting */
+/** the files that belong to an upload besides itself (still, web copy, half-done work), for deleting */
 export function derivedFiles(url: string): string[] {
   if (!url.startsWith("/uploads/")) return [];
   const base = path.join(UPLOAD_DIR, path.basename(url));
-  return [`${base}.poster.webp`, `${base}.web.mp4`, `${base}.web.mp4.part`];
+  return [`${base}.poster.webp`, `${base}.web.mp4`, `${base}.web.mp4.part`, `${base}.clean.part`];
 }
 
 let working = false;
@@ -137,11 +178,13 @@ let current: string | null = null;
 
 export const videoQueueState = () => ({ ffmpeg: available, working, current });
 
-/** starts working through the videos that still need a still or a web copy, unless it is already busy */
+/** starts working through the videos that still need cleaning, a still or a web copy, unless it is already busy */
 export function kickVideoQueue() {
   if (working) return;
   void work();
 }
+
+const NEXT = "select id, url, poster, web_status, meta_clean from gallery where kind = 'video' and (meta_clean = 0 or web_status is null or web_status = 'pending') order by created_at limit 1";
 
 async function work() {
   working = true;
@@ -157,7 +200,7 @@ async function work() {
     }
     db().prepare("update gallery set web_status = 'pending' where web_status = 'no-ffmpeg'").run();
     for (;;) {
-      const row = db().prepare("select id, url, poster, web_status from gallery where kind = 'video' and (web_status is null or web_status = 'pending') order by created_at limit 1").get() as Row | undefined;
+      const row = db().prepare(NEXT).get() as Row | undefined;
       if (!row) break;
       current = row.id;
       await processOne(row);
@@ -171,12 +214,28 @@ async function work() {
 }
 
 async function processOne(row: Row) {
-  if (!row.url.startsWith("/uploads/")) return setRow(row.id, { web_status: "skipped" }); // stored elsewhere (blob)
+  const needsWeb = row.web_status === null || row.web_status === "pending";
+  if (!row.url.startsWith("/uploads/")) return setRow(row.id, { web_status: "skipped", meta_clean: -1 }); // stored elsewhere (blob)
   const src = path.join(UPLOAD_DIR, path.basename(row.url));
-  if (!existsSync(src)) return setRow(row.id, { web_status: "failed" });
+  if (!existsSync(src)) return setRow(row.id, { web_status: "failed", meta_clean: -1 });
+  const still = () => db().prepare("select 1 from gallery where id = ?").get(row.id);
+
+  // 1. the thorough clean comes first: everything made afterwards starts from the clean file
+  if (row.meta_clean === 0) {
+    try {
+      await cleanVideo(src);
+      if (!still()) return;
+      setRow(row.id, { meta_clean: 1 });
+    } catch (e) {
+      console.error(`[video] ${row.url}:`, e instanceof Error ? e.message : e);
+      if (!still()) return;
+      setRow(row.id, { meta_clean: -1 });
+    }
+  }
+  if (!needsWeb) return;
+
   setRow(row.id, { web_status: "working" });
   const [posterFile, webFile] = derivedFiles(row.url);
-  const still = () => db().prepare("select 1 from gallery where id = ?").get(row.id);
   try {
     const p = await probe(src);
     if (!row.poster) {

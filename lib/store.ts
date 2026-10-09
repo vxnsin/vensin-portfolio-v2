@@ -6,7 +6,7 @@ export { uid, DATA_DIR } from "./db";
 /* ---------- types ---------- */
 
 export type Message = { id: string; name: string; email: string; message: string; createdAt: string; read: boolean };
-export type GalleryItem = { id: string; url: string; kind: "image" | "video"; caption: string; tag: string; folderId: string | null; /** when it was shot, local time with offset; null when unknown */ takenAt: string | null; title: string; /** video still */ poster: string | null; /** light copy for streaming, when there is one */ webUrl: string | null; webStatus: WebStatus | null; createdAt: string; pathname?: string };
+export type GalleryItem = { id: string; url: string; kind: "image" | "video"; caption: string; tag: string; folderId: string | null; /** when it was shot, local time with offset; null when unknown */ takenAt: string | null; title: string; /** video still */ poster: string | null; /** light copy for streaming, when there is one */ webUrl: string | null; webStatus: WebStatus | null; /** videos: metadata removed by ffmpeg (1), still to do (0), not possible (-1) */ metaClean: number; createdAt: string; pathname?: string };
 export type WebStatus = "pending" | "working" | "done" | "skipped" | "failed" | "no-ffmpeg";
 export type UpdateEntry = { id: string; date: string; text: string };
 export type Settings = { updateLog: UpdateEntry[]; marquee: string[] };
@@ -77,7 +77,7 @@ export async function deleteMessage(id: string) {
 
 /* ---------- gallery ---------- */
 
-type GalleryRow = { id: string; url: string; kind: "image" | "video"; caption: string; tag: string; folder_id: string | null; taken_at: string | null; title: string | null; poster: string | null; web_url: string | null; web_status: string | null; pathname: string | null; created_at: string };
+type GalleryRow = { id: string; url: string; kind: "image" | "video"; caption: string; tag: string; folder_id: string | null; taken_at: string | null; title: string | null; poster: string | null; web_url: string | null; web_status: string | null; meta_clean: number | null; pathname: string | null; created_at: string };
 const toGallery = (r: GalleryRow): GalleryItem => ({
   id: r.id,
   url: r.url,
@@ -90,6 +90,7 @@ const toGallery = (r: GalleryRow): GalleryItem => ({
   poster: r.poster ?? null,
   webUrl: r.web_url ?? null,
   webStatus: (r.web_status as WebStatus | null) ?? null,
+  metaClean: r.meta_clean ?? 0,
   pathname: r.pathname ?? undefined,
   createdAt: r.created_at,
 });
@@ -100,12 +101,12 @@ export async function listGallery(): Promise<GalleryItem[]> {
   return (getDb().prepare("select * from gallery order by created_at desc").all() as GalleryRow[]).map(toGallery).sort((a, b) => when(b) - when(a));
 }
 export const listGalleryFresh = listGallery;
-type NewGalleryItem = Omit<GalleryItem, "id" | "createdAt" | "title" | "poster" | "webUrl" | "webStatus"> & Partial<Pick<GalleryItem, "title" | "poster" | "webUrl" | "webStatus">>;
+type NewGalleryItem = Omit<GalleryItem, "id" | "createdAt" | "title" | "poster" | "webUrl" | "webStatus" | "metaClean"> & Partial<Pick<GalleryItem, "title" | "poster" | "webUrl" | "webStatus">>;
 export async function addGalleryItem(item: NewGalleryItem): Promise<GalleryItem> {
-  const it: GalleryItem = { id: uid(), createdAt: new Date().toISOString(), title: "", poster: null, webUrl: null, webStatus: null, ...item };
+  const it: GalleryItem = { id: uid(), createdAt: new Date().toISOString(), title: "", poster: null, webUrl: null, webStatus: null, metaClean: item.kind === "video" ? 0 : 1, ...item };
   getDb()
-    .prepare("insert into gallery (id, url, kind, caption, title, tag, folder_id, taken_at, poster, web_url, web_status, pathname, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-    .run(it.id, it.url, it.kind, it.caption, it.title, it.tag, it.folderId, it.takenAt, it.poster, it.webUrl, it.webStatus, it.pathname ?? null, it.createdAt);
+    .prepare("insert into gallery (id, url, kind, caption, title, tag, folder_id, taken_at, poster, web_url, web_status, meta_clean, pathname, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .run(it.id, it.url, it.kind, it.caption, it.title, it.tag, it.folderId, it.takenAt, it.poster, it.webUrl, it.webStatus, it.metaClean, it.pathname ?? null, it.createdAt);
   return it;
 }
 export async function removeGalleryItem(id: string): Promise<GalleryItem | undefined> {

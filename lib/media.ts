@@ -31,8 +31,8 @@ export async function processImage(input: Buffer, name: string, type = ""): Prom
   let buffer = input;
   const takenAt = await photoTakenAt(buffer);
   if (/image\/hei[cf]/i.test(type) || HEIC_EXT.test(name)) buffer = Buffer.from(await convert({ buffer, format: "JPEG", quality: 0.92 }));
-  // gifs stay gifs so they keep moving
-  if (type === "image/gif" || ext(name) === ".gif") return { buffer, ext: ".gif", contentType: "image/gif", kind: "image", takenAt };
+  // gifs stay gifs so they keep moving, but are written anew so comments and xmp blocks are gone too
+  if (type === "image/gif" || ext(name) === ".gif") return { buffer: await sharp(buffer, { animated: true }).gif().toBuffer(), ext: ".gif", contentType: "image/gif", kind: "image", takenAt };
   const webp = await sharp(buffer)
     .rotate() // respect exif orientation (phone photos)
     .resize({ width: 2200, height: 2200, fit: "inside", withoutEnlargement: true })
@@ -89,4 +89,10 @@ export async function processVideoFile(file: string): Promise<{ takenAt: string 
   } finally {
     await fh.close();
   }
+}
+
+/** a small picture kept at its exact size (88x31 buttons and the like), written anew so no metadata survives: gifs stay animated gifs, everything else becomes a png */
+export async function cleanSmallImage(input: Buffer, name: string, type = ""): Promise<{ buffer: Buffer; ext: string }> {
+  if (type === "image/gif" || ext(name) === ".gif") return { buffer: await sharp(input, { animated: true }).gif().toBuffer(), ext: ".gif" };
+  return { buffer: await sharp(input).png().toBuffer(), ext: ".png" };
 }

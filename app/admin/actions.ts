@@ -33,7 +33,7 @@ import { isSeason, setSeasonSetting } from "@/lib/season";
 import { deleteProject, moveProject, saveProject, type ProjectLink, type ProjectStatus } from "@/lib/projects";
 import { deleteSetupItem, moveSetupItem, saveSetupItem } from "@/lib/setup";
 import { saveAbout } from "@/lib/about";
-import { MAX_IMAGE_BYTES, processUpload } from "@/lib/media";
+import { cleanSmallImage, MAX_IMAGE_BYTES, processUpload } from "@/lib/media";
 import { UPLOAD_DIR } from "@/lib/upload";
 import { wallTime } from "@/lib/media-meta";
 import { deleteFolder, moveFolder, saveFolder, setFolderCover, setItemCaption, setItemFolder, setItemTakenAt, setItemTitle } from "@/lib/gallery";
@@ -469,11 +469,16 @@ export async function addNeighborAction(_prev: ActionState, formData: FormData):
   if (!name || !url.startsWith("http")) return { ok: false, error: "name and a valid site url are required" };
   if (file instanceof File && file.size > 0) {
     if (!file.type.startsWith("image/") || file.size > 512 * 1024) return { ok: false, error: "button must be an image under 512 kb" };
-    const dot = file.name.lastIndexOf(".");
-    const ext = (dot >= 0 ? file.name.slice(dot) : ".png").toLowerCase();
-    const fileName = `btn-${uid()}${ext}`;
+    // written anew so nothing from the original file (exif, comments, xmp) comes along
+    let clean: { buffer: Buffer; ext: string };
+    try {
+      clean = await cleanSmallImage(Buffer.from(await file.arrayBuffer()), file.name, file.type);
+    } catch {
+      return { ok: false, error: "could not read that image" };
+    }
+    const fileName = `btn-${uid()}${clean.ext}`;
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
-    await fs.writeFile(path.join(UPLOAD_DIR, fileName), Buffer.from(await file.arrayBuffer()));
+    await fs.writeFile(path.join(UPLOAD_DIR, fileName), clean.buffer);
     buttonUrl = `/uploads/${fileName}`;
   }
   if (!buttonUrl) return { ok: false, error: "add a button image url or upload one" };

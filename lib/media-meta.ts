@@ -146,11 +146,18 @@ export function stripVideoLocation(buf: Buffer): number {
       n++;
     }
   };
+  // a whole box with a location in it becomes a "free" box full of zeros: every player skips those, and the file
+  // keeps its size. (filling it with spaces instead breaks boxes that have an inner layout, like loci.)
+  const free = (b: Box) => {
+    buf.write("free", b.start + 4, "latin1");
+    buf.fill(0, b.start + b.header, b.end);
+    n++;
+  };
   try {
     let keys = new Map<number, string>();
     walk(buf, (b) => {
-      // quicktime / android: ©xyz holds "+52.5200+013.4050/"; 3gpp: loci
-      if (b.type === "©xyz" || b.type === "loci") blank(b.start + b.header, b.end);
+      // quicktime / android: ©xyz holds "+52.5200+013.4050/"; 3gpp: loci (name, longitude, latitude, altitude)
+      if (b.type === "©xyz" || b.type === "loci") free(b);
       if (b.type === "keys") keys = metaKeys(buf, b);
       if (b.type === "ilst") {
         for (const item of boxes(buf, b.start + b.header, b.end)) {

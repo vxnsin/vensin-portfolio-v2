@@ -78,6 +78,8 @@ function migrate(db: Database.Database) {
   if (!galCols.includes("poster")) db.exec("alter table gallery add column poster text");
   if (!galCols.includes("web_url")) db.exec("alter table gallery add column web_url text");
   if (!galCols.includes("web_status")) db.exec("alter table gallery add column web_status text");
+  // videos: 0 = metadata still to be removed by ffmpeg, 1 = removed, -1 = could not be (location was still blanked on upload)
+  if (!galCols.includes("meta_clean")) db.exec("alter table gallery add column meta_clean integer not null default 0");
   const folderCols = (db.prepare("pragma table_info(gallery_folders)").all() as Array<{ name: string }>).map((c) => c.name);
   if (!folderCols.includes("cover_id")) db.exec("alter table gallery_folders add column cover_id text");
   db.exec("create index if not exists gallery_folder on gallery (folder_id)");

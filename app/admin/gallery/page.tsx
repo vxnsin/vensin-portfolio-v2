@@ -237,11 +237,26 @@ export default async function AdminGallery({ searchParams }: Props) {
                     <button type="submit" className="btn text-[10px]">
                       save
                     </button>
-                    {st && (
-                      <span className="text-[10px] truncate" style={st.tone === "ok" ? { color: "var(--ok)" } : st.tone === "bad" ? { color: "var(--dnd)" } : { color: "var(--ink-soft)" }}>
-                        {st.text}
-                      </span>
-                    )}
+                    <span className="grid text-[10px] min-w-0">
+                      {st && (
+                        <span className="truncate" style={st.tone === "ok" ? { color: "var(--ok)" } : st.tone === "bad" ? { color: "var(--dnd)" } : { color: "var(--ink-soft)" }}>
+                          {st.text}
+                        </span>
+                      )}
+                      {it.kind === "video" ? (
+                        <span
+                          className="truncate"
+                          style={{ color: it.metaClean === 1 ? "var(--ok)" : it.metaClean === -1 ? "var(--dnd)" : "var(--ink-soft)" }}
+                          title="location, device, software and every other tag removed from the original"
+                        >
+                          {it.metaClean === 1 ? "metadata removed" : it.metaClean === -1 ? "only location removed" : ffmpeg ? "removing metadata…" : "location removed, rest needs ffmpeg"}
+                        </span>
+                      ) : (
+                        <span className="truncate" style={{ color: "var(--ok)" }}>
+                          metadata removed
+                        </span>
+                      )}
+                    </span>
                   </div>
                 </form>
                 <div className="gallery-row-side grid gap-1 content-start">
