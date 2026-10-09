@@ -52,7 +52,7 @@ export async function fetchRecentlyWatched(): Promise<WatchedAnime[] | null> {
 
   // de-dupe by title (several episodes of the same show), keep newest: the last eight different anime
   const seen = new Set<string>();
-  const unique = scanned.filter((a) => (seen.has(a.title) ? false : (seen.add(a.title), true))).slice(0, 8);
+  const unique = scanned.filter((a) => (seen.has(a.title) ? false : (seen.add(a.title), true))).slice(0, 12);
 
   const sources = new Map(unique.map((a) => [a.title, a.url]));
   for (const a of unique) {
