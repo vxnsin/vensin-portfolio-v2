@@ -13,7 +13,6 @@ import { disconnectSpotify } from "@/lib/spotify";
 import { importExport } from "@/lib/spotify-export";
 import {
   addFavorite,
-  addGalleryItem,
   addNeighbor,
   addUpdate,
   deleteMessage,
@@ -34,9 +33,10 @@ import { isSeason, setSeasonSetting } from "@/lib/season";
 import { deleteProject, moveProject, saveProject, type ProjectLink, type ProjectStatus } from "@/lib/projects";
 import { deleteSetupItem, moveSetupItem, saveSetupItem } from "@/lib/setup";
 import { saveAbout } from "@/lib/about";
-import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
+import { MAX_IMAGE_BYTES, processUpload } from "@/lib/media";
+import { UPLOAD_DIR } from "@/lib/upload";
 import { wallTime } from "@/lib/media-meta";
-import { deleteFolder, listFolders, moveFolder, saveFolder, setItemCaption, setItemFolder, setItemTakenAt } from "@/lib/gallery";
+import { deleteFolder, moveFolder, saveFolder, setItemCaption, setItemFolder, setItemTakenAt } from "@/lib/gallery";
 
 export type ActionState = { ok: boolean; error?: string } | null;
 
@@ -75,7 +75,7 @@ export async function saveProjectAction(_prev: ActionState, formData: FormData):
   let thumbnail = str("thumbnail", 500);
   const file = formData.get("thumbnailFile");
   if (file instanceof File && file.size > 0) {
-    if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "max 30 MB per image" };
+    if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "max 100 MB per image" };
     try {
       const processed = await processUpload(file);
       if (processed.kind !== "image") return { ok: false, error: "thumbnails have to be images" };
@@ -158,7 +158,7 @@ export async function saveSetupAction(_prev: ActionState, formData: FormData): P
   let image = str("image");
   const file = formData.get("imageFile");
   if (file instanceof File && file.size > 0) {
-    if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "max 30 MB per image" };
+    if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "max 100 MB per image" };
     try {
       const processed = await processUpload(file);
       if (processed.kind !== "image") return { ok: false, error: "pictures only" };
@@ -263,52 +263,7 @@ export async function deleteMessageAction(formData: FormData) {
 
 /* ---------- gallery ---------- */
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? path.join(process.cwd(), "public", "uploads");
-
-export async function uploadAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAdmin();
-  const file = formData.get("file");
-  const caption = String(formData.get("caption") ?? "").trim().slice(0, 120);
-  const folderRaw = String(formData.get("folder") ?? "");
-  const folder = listFolders().find((f) => f.id === folderRaw) ?? null;
-  const tag = folder?.slug ?? "";
-  // the file's own date on the uploading device, used only when the photo or video carries no capture time
-  const lastModified = Number(formData.get("lastModified"));
-
-  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "pick a file first" };
-  const video = isVideo(file);
-  if (!video && !file.type.startsWith("image/") && !/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(file.name)) {
-    return { ok: false, error: "images (jpg, png, webp, gif, heic) or videos (mp4, mov, webm) only" };
-  }
-  if (file.size > (video ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) {
-    return { ok: false, error: video ? "max 200 MB per video" : "max 30 MB per image" };
-  }
-
-  try {
-    const processed = await processUpload(file);
-    const name = `${uid()}${processed.ext}`;
-    let url: string;
-    let pathname: string | undefined;
-
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const blob = await put(`gallery/${name}`, processed.buffer, { access: "public", addRandomSuffix: false, contentType: processed.contentType });
-      url = blob.url;
-      pathname = blob.pathname;
-    } else {
-      await fs.mkdir(UPLOAD_DIR, { recursive: true });
-      await fs.writeFile(path.join(UPLOAD_DIR, name), processed.buffer);
-      url = `/uploads/${name}`;
-    }
-
-    const fallback = Number.isFinite(lastModified) && lastModified > Date.UTC(1995, 0, 1) && lastModified < Date.now() + 86_400_000 ? wallTime(new Date(lastModified)) : null;
-    await addGalleryItem({ url, kind: processed.kind, caption, tag, folderId: folder?.id ?? null, takenAt: processed.takenAt ?? fallback, pathname });
-    revalidatePath("/admin/gallery");
-    revalidatePath("/gallery", "layout");
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "upload failed" };
-  }
-}
+// uploads themselves go through /api/admin/upload in pieces, so there is no size limit (see lib/upload.ts)
 
 export async function deleteGalleryAction(formData: FormData) {
   await requireAdmin();
