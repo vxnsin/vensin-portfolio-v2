@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 // `next start` only serves files that were in public/ at build time, so anything uploaded later lands here.
 // Supports range requests: safari and iOS will not play a video without them.
 
-const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR ?? path.join(process.cwd(), "public", "uploads"));
+const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR ?? path.join(/* turbopackIgnore: true */ process.cwd(), "public", "uploads"));
 
 const TYPES: Record<string, string> = {
   ".webp": "image/webp", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".gif": "image/gif", ".avif": "image/avif", ".svg": "image/svg+xml",

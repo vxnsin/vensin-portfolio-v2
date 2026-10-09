@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
         url = blob.url;
         pathname = blob.pathname;
       } else {
-        await finishTo(id, path.join(UPLOAD_DIR, final));
+        await finishTo(id, path.join(/* turbopackIgnore: true */ UPLOAD_DIR, final));
         url = `/uploads/${final}`;
       }
     } else {
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
         pathname = blob.pathname;
       } else {
         await fs.mkdir(UPLOAD_DIR, { recursive: true });
-        await fs.writeFile(path.join(UPLOAD_DIR, final), processed.buffer);
+        await fs.writeFile(path.join(/* turbopackIgnore: true */ UPLOAD_DIR, final), processed.buffer);
         url = `/uploads/${final}`;
       }
     }

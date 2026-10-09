@@ -8,7 +8,7 @@ import { DATA_DIR } from "./db";
 // .data/incoming, never held in memory. A piece only lands if it starts exactly where the file ends, so a dropped
 // connection can simply ask how far it got and carry on from there.
 
-export const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR ?? path.join(process.cwd(), "public", "uploads"));
+export const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR ?? path.join(/* turbopackIgnore: true */ process.cwd(), "public", "uploads"));
 const INCOMING = path.join(DATA_DIR, "incoming");
 export const MAX_CHUNK_BYTES = 96 * 1024 * 1024;
 const STALE_MS = 24 * 60 * 60 * 1000;

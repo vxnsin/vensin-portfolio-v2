@@ -25,7 +25,7 @@ export function ffmpegAvailable(): boolean {
   if (available !== null && (available || Date.now() - checkedAt < 10 * 60 * 1000)) return available;
   checkedAt = Date.now();
   try {
-    available = spawnSync(FFMPEG, ["-version"], { timeout: 5000 }).status === 0 && spawnSync(FFPROBE, ["-version"], { timeout: 5000 }).status === 0;
+    available = spawnSync(/* turbopackIgnore: true */ FFMPEG, ["-version"], { timeout: 5000 }).status === 0 && spawnSync(/* turbopackIgnore: true */ FFPROBE, ["-version"], { timeout: 5000 }).status === 0;
   } catch {
     available = false;
   }
@@ -35,7 +35,7 @@ export function ffmpegAvailable(): boolean {
 /** runs a tool at the lowest priority so the site stays quick while a video converts */
 function run(cmd: string, args: string[], opts: { stdout?: boolean } = {}): Promise<{ code: number; out: Buffer; err: string }> {
   const lowPriority = process.platform !== "win32" && existsSync("/usr/bin/nice");
-  const child = lowPriority ? spawn("/usr/bin/nice", ["-n", "19", cmd, ...args]) : spawn(cmd, args, { windowsHide: true });
+  const child = lowPriority ? spawn(/* turbopackIgnore: true */ "/usr/bin/nice", ["-n", "19", cmd, ...args]) : spawn(/* turbopackIgnore: true */ cmd, args, { windowsHide: true });
   const out: Buffer[] = [];
   let err = "";
   child.stdout.on("data", (d: Buffer) => opts.stdout !== false && out.push(d));

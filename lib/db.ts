@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync } from "fs";
 import path from "path";
 
 // One SQLite file holds everything: content, settings, health data, and a cache for external APIs.
-export const DATA_DIR = process.env.DATA_DIR ?? (process.env.VERCEL ? "/tmp/vensin-data" : path.join(process.cwd(), ".data"));
+export const DATA_DIR = process.env.DATA_DIR ?? (process.env.VERCEL ? "/tmp/vensin-data" : path.join(/* turbopackIgnore: true */ process.cwd(), ".data"));
 export const DB_FILE = path.join(DATA_DIR, "vensin.sqlite");
 
 const SCHEMA = `
