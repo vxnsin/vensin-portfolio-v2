@@ -4,21 +4,30 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { GalleryItem } from "@/lib/store";
+import { VideoPlayer } from "./VideoPlayer";
 
 export type ItemFolder = { name: string; href: string };
+
+/** what an item is called: its title, else its caption */
+const nameOf = (it: GalleryItem) => it.title || it.caption;
 
 function Thumb({ it }: { it: GalleryItem }) {
   if (it.kind === "video") {
     return (
       <div className="relative w-full h-full">
-        <video src={`${it.url}#t=0.1`} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+        {it.poster ? (
+          <img src={it.poster} alt={nameOf(it) || "video"} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        ) : (
+          // no still yet (it gets made in the background): the browser shows the first frame
+          <video src={`${it.url}#t=0.1`} muted playsInline preload="metadata" className="w-full h-full object-cover" />
+        )}
         <span className="absolute left-1.5 bottom-1.5 chip text-[10px] bg-paper" aria-hidden>
           ▶ video
         </span>
       </div>
     );
   }
-  return <img src={it.url} alt={it.caption || "photo"} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />;
+  return <img src={it.url} alt={nameOf(it) || "photo"} loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />;
 }
 
 type Kind = "all" | "image" | "video";
@@ -115,12 +124,12 @@ export function Gallery({ items, folders, showFolder }: { items: GalleryItem[]; 
                     <div className="aspect-square border border-line bg-paper-2 overflow-hidden">
                       <Thumb it={it} />
                     </div>
-                    {(it.caption || f) && (
+                    {(nameOf(it) || f) && (
                       <div className="mt-1 text-[11px] truncate">
-                        {it.caption && <span className="group-hover:text-accent">{it.caption}</span>}
+                        {nameOf(it) && <span className="group-hover:text-accent">{nameOf(it)}</span>}
                         {f && (
                           <span className="text-ink-soft">
-                            {it.caption ? " · " : ""}
+                            {nameOf(it) ? " · " : ""}
                             {f.name}
                           </span>
                         )}
@@ -135,15 +144,15 @@ export function Gallery({ items, folders, showFolder }: { items: GalleryItem[]; 
       ))}
 
       {current && open !== null && (
-        <div className="fixed inset-0 z-50 grid place-items-center p-4" style={{ background: "rgba(0,0,0,.75)" }} onClick={() => setOpen(null)} role="dialog" aria-modal aria-label={current.caption || "photo"}>
-          <figure className="win max-w-[92vw] max-h-[90vh] grid" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 grid place-items-center p-4" style={{ background: "rgba(0,0,0,.75)" }} onClick={() => setOpen(null)} role="dialog" aria-modal aria-label={nameOf(current) || current.kind}>
+          <figure className="win max-w-[92vw] max-h-[94vh] grid" onClick={(e) => e.stopPropagation()}>
             <div className="win-title">
               <span className="dots" aria-hidden>
                 <i />
                 <i />
                 <i />
               </span>
-              <span className="flex-1 truncate">{current.caption || (current.kind === "video" ? "video" : "photo")}</span>
+              <span className="flex-1 truncate">{nameOf(current) || (current.kind === "video" ? "video" : "photo")}</span>
               <span className="text-[10px] text-ink-soft">
                 {open + 1}/{visible.length}
               </span>
@@ -152,10 +161,18 @@ export function Gallery({ items, folders, showFolder }: { items: GalleryItem[]; 
               </button>
             </div>
             {current.kind === "video" ? (
-              <video key={current.id} src={current.url} controls autoPlay playsInline className="max-w-[90vw] max-h-[75vh] bg-black" />
+              <VideoPlayer
+                key={current.id}
+                src={current.webUrl ?? current.url}
+                original={current.url}
+                poster={current.poster}
+                converting={current.webStatus === "pending" || current.webStatus === "working"}
+                label={nameOf(current) || "video"}
+              />
             ) : (
-              <img src={current.url} alt={current.caption || "photo"} className="max-w-[90vw] max-h-[75vh] object-contain bg-paper-2" />
+              <img src={current.url} alt={nameOf(current) || "photo"} className="max-w-[90vw] max-h-[72vh] object-contain bg-paper-2 mx-auto" />
             )}
+            {current.title && current.caption && <p className="px-3 pt-2 text-[11px] text-ink-soft max-w-[min(90vw,720px)] whitespace-pre-line">{current.caption}</p>}
             <div className="flex justify-between items-center gap-2 px-3 py-1.5 text-[11px] border-t border-line">
               <button type="button" className="btn text-[11px]" onClick={() => setOpen((open - 1 + visible.length) % visible.length)}>
                 ← prev

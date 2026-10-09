@@ -36,7 +36,8 @@ import { saveAbout } from "@/lib/about";
 import { MAX_IMAGE_BYTES, processUpload } from "@/lib/media";
 import { UPLOAD_DIR } from "@/lib/upload";
 import { wallTime } from "@/lib/media-meta";
-import { deleteFolder, moveFolder, saveFolder, setItemCaption, setItemFolder, setItemTakenAt } from "@/lib/gallery";
+import { deleteFolder, moveFolder, saveFolder, setFolderCover, setItemCaption, setItemFolder, setItemTakenAt, setItemTitle } from "@/lib/gallery";
+import { derivedFiles, kickVideoQueue } from "@/lib/video";
 
 export type ActionState = { ok: boolean; error?: string } | null;
 
@@ -265,17 +266,57 @@ export async function deleteMessageAction(formData: FormData) {
 
 // uploads themselves go through /api/admin/upload in pieces, so there is no size limit (see lib/upload.ts)
 
+/** removes an item and its files: the upload itself, a video's still and web copy */
+async function deleteGalleryItem(id: string) {
+  const item = await removeGalleryItem(id);
+  if (!item) return;
+  try {
+    if (item.pathname && process.env.BLOB_READ_WRITE_TOKEN) await del(item.url);
+    else if (item.url.startsWith("/uploads/")) await fs.unlink(path.join(UPLOAD_DIR, path.basename(item.url)));
+  } catch {}
+  for (const f of derivedFiles(item.url)) await fs.rm(f, { force: true }).catch(() => {});
+}
+
 export async function deleteGalleryAction(formData: FormData) {
   await requireAdmin();
-  const item = await removeGalleryItem(String(formData.get("id")));
-  if (item) {
-    try {
-      if (item.pathname && process.env.BLOB_READ_WRITE_TOKEN) await del(item.url);
-      else if (item.url.startsWith("/uploads/")) await fs.unlink(path.join(UPLOAD_DIR, item.url.replace("/uploads/", "")));
-    } catch {}
+  await deleteGalleryItem(String(formData.get("id")));
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
+}
+
+/** several items at once: the ticked boxes, then "move" to a folder or "delete" */
+export async function bulkGalleryAction(formData: FormData) {
+  await requireAdmin();
+  const ids = formData.getAll("ids").map(String).filter(Boolean).slice(0, 1000);
+  const op = String(formData.get("op") ?? "");
+  if (op === "move") {
+    const folder = String(formData.get("folder") ?? "") || null;
+    for (const id of ids) setItemFolder(id, folder);
+  } else if (op === "delete") {
+    for (const id of ids) await deleteGalleryItem(id);
   }
   revalidatePath("/admin/gallery");
   revalidatePath("/gallery", "layout");
+}
+
+/** picks an item as the cover of the folder it sits in (or of the given folder); "auto" clears it */
+export async function setFolderCoverAction(formData: FormData) {
+  await requireAdmin();
+  const folder = String(formData.get("folder") ?? "");
+  if (!folder) return;
+  const item = String(formData.get("item") ?? "");
+  setFolderCover(folder, item && item !== "auto" ? item : null);
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
+}
+
+/** tries a failed or skipped video conversion again */
+export async function retryVideoAction(formData: FormData) {
+  await requireAdmin();
+  const { getDb } = await import("@/lib/db");
+  getDb().prepare("update gallery set web_status = 'pending' where id = ? and kind = 'video'").run(String(formData.get("id")));
+  kickVideoQueue();
+  revalidatePath("/admin/gallery");
 }
 
 /* ---------- gallery folders ---------- */
@@ -313,7 +354,8 @@ export async function moveFolderAction(formData: FormData) {
 export async function updateGalleryItemAction(formData: FormData) {
   await requireAdmin();
   const id = String(formData.get("id"));
-  setItemFolder(id, String(formData.get("folder") ?? "") || null);
+  if (formData.has("folder")) setItemFolder(id, String(formData.get("folder") ?? "") || null);
+  if (formData.has("title")) setItemTitle(id, String(formData.get("title") ?? ""));
   if (formData.has("caption")) setItemCaption(id, String(formData.get("caption") ?? ""));
   if (formData.has("takenAt")) {
     // a datetime-local field: "2026-06-01T21:03", read as this server's local time; empty clears it

@@ -9,6 +9,7 @@ import { listFolders } from "@/lib/gallery";
 import { wallTime } from "@/lib/media-meta";
 import { ext, isImageName, isVideoName, MAX_IMAGE_BYTES, processImage, processVideoFile, videoType } from "@/lib/media";
 import { appendChunk, discard, finishTo, partPath, readPart, received, UPLOAD_DIR, validId } from "@/lib/upload";
+import { kickVideoQueue } from "@/lib/video";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -122,7 +123,9 @@ export async function POST(req: NextRequest) {
 
     // the file's own date on the uploading device, only when the photo or video carries no capture time
     const fallback = Number.isFinite(lastModified) && lastModified > Date.UTC(1995, 0, 1) && lastModified < Date.now() + 86_400_000 ? wallTime(new Date(lastModified)) : null;
-    const item = await addGalleryItem({ url, kind: video ? "video" : "image", caption, tag: folder?.slug ?? "", folderId: folder?.id ?? null, takenAt: takenAt ?? fallback, pathname });
+    const item = await addGalleryItem({ url, kind: video ? "video" : "image", caption, tag: folder?.slug ?? "", folderId: folder?.id ?? null, takenAt: takenAt ?? fallback, pathname, webStatus: video ? "pending" : null });
+    // a still and a light web copy get made in the background (lib/video.ts)
+    if (video) kickVideoQueue();
     revalidatePath("/admin/gallery");
     revalidatePath("/gallery", "layout");
     return NextResponse.json({ ok: true, id: item.id, takenAt: item.takenAt });

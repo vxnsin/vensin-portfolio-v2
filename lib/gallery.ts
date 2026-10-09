@@ -8,7 +8,7 @@ import { FOLDER_ICONS, type FolderIcon } from "./gallery-icons";
 //   only here - its items do not show up in "all" or in the parent folders, only when you open the folder (a concert, say)
 //   unlisted  - same, and the folder is left out of the tree for visitors; whoever has the link can still open it
 
-export type Folder = { id: string; parentId: string | null; slug: string; name: string; icon: FolderIcon; exclusive: boolean; unlisted: boolean; position: number; createdAt: string };
+export type Folder = { id: string; parentId: string | null; slug: string; name: string; icon: FolderIcon; exclusive: boolean; unlisted: boolean; position: number; createdAt: string; /** the item picked as cover, if any */ coverId: string | null };
 
 export type FolderNode = Folder & {
   path: string[]; // slugs from the root, for the url
@@ -21,7 +21,7 @@ export type FolderNode = Folder & {
 
 export type GalleryTree = { roots: FolderNode[]; byId: Map<string, FolderNode>; all: FolderNode[] };
 
-type Row = { id: string; parent_id: string | null; slug: string; name: string; icon: string; exclusive: number; unlisted: number; position: number; created_at: string };
+type Row = { id: string; parent_id: string | null; slug: string; name: string; icon: string; exclusive: number; unlisted: number; position: number; created_at: string; cover_id: string | null };
 const toFolder = (r: Row): Folder => ({
   id: r.id,
   parentId: r.parent_id,
@@ -32,6 +32,7 @@ const toFolder = (r: Row): Folder => ({
   unlisted: r.unlisted === 1,
   position: r.position,
   createdAt: r.created_at,
+  coverId: r.cover_id ?? null,
 });
 
 export const listFolders = (): Folder[] => (getDb().prepare("select * from gallery_folders order by position, name").all() as Row[]).map(toFolder);
@@ -66,10 +67,15 @@ export function buildTree(folders: Folder[], items: GalleryItem[]): GalleryTree 
     n.count = filed.length;
     // the cover prefers what the folder shows when opened, then anything filed under it
     const shown = itemsIn(tree, items, n);
-    n.cover = (shown.find((i) => i.kind === "image") ?? filed.find((i) => i.kind === "image"))?.url ?? null;
+    // the picked cover first, then the first photo or video still it shows, then anything filed under it
+    const picked = n.coverId ? items.find((i) => i.id === n.coverId) : undefined;
+    n.cover = (picked && thumbOf(picked)) || shown.map(thumbOf).find(Boolean) || filed.map(thumbOf).find(Boolean) || null;
   }
   return tree;
 }
+
+/** the picture that stands for an item: the photo itself, or a video's still */
+export const thumbOf = (i: GalleryItem): string | null => (i.kind === "image" ? i.url : i.poster);
 
 /** is `folderId` inside `node` (or node itself) without crossing a closed folder on the way down? */
 function reaches(tree: GalleryTree, folderId: string | null, node: FolderNode | null, stop: (f: Folder) => boolean = closed): boolean {
@@ -204,9 +210,18 @@ export function setItemFolder(itemId: string, folderId: string | null) {
 }
 
 export function setItemCaption(itemId: string, caption: string) {
-  getDb().prepare("update gallery set caption = ? where id = ?").run(caption.trim().slice(0, 120), itemId);
+  getDb().prepare("update gallery set caption = ? where id = ?").run(caption.trim().slice(0, 500), itemId);
 }
 
 export function setItemTakenAt(itemId: string, takenAt: string | null) {
   getDb().prepare("update gallery set taken_at = ? where id = ?").run(takenAt, itemId);
+}
+
+export function setItemTitle(itemId: string, title: string) {
+  getDb().prepare("update gallery set title = ? where id = ?").run(title.trim().slice(0, 80), itemId);
+}
+
+/** picks an item as a folder's cover; null goes back to automatic */
+export function setFolderCover(folderId: string, itemId: string | null) {
+  getDb().prepare("update gallery_folders set cover_id = ? where id = ?").run(itemId, folderId);
 }

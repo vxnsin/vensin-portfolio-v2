@@ -73,6 +73,13 @@ function migrate(db: Database.Database) {
     });
   }
   if (!galCols.includes("taken_at")) db.exec("alter table gallery add column taken_at text");
+  if (!galCols.includes("title")) db.exec("alter table gallery add column title text not null default ''");
+  // videos: a still for tiles and covers, and a light web copy (h.264, 1080p) made in the background by ffmpeg
+  if (!galCols.includes("poster")) db.exec("alter table gallery add column poster text");
+  if (!galCols.includes("web_url")) db.exec("alter table gallery add column web_url text");
+  if (!galCols.includes("web_status")) db.exec("alter table gallery add column web_status text");
+  const folderCols = (db.prepare("pragma table_info(gallery_folders)").all() as Array<{ name: string }>).map((c) => c.name);
+  if (!folderCols.includes("cover_id")) db.exec("alter table gallery_folders add column cover_id text");
   db.exec("create index if not exists gallery_folder on gallery (folder_id)");
   db.exec("create unique index if not exists gallery_folders_slug on gallery_folders (coalesce(parent_id, ''), slug)");
 }

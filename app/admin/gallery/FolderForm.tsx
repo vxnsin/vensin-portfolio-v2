@@ -71,20 +71,23 @@ export function FolderForm({ folder, parents, onDone }: { folder?: FolderValues;
   );
 }
 
-/** one row in the folder list, with an inline editor */
-export function FolderRow({ folder, depth, parents, count, href, children }: { folder: FolderValues & { id: string }; depth: number; parents: FolderOption[]; count: number; href: string; children: React.ReactNode }) {
+/** one row in the folder list, with an inline editor; clicking the name opens its contents below */
+export function FolderRow({ folder, depth, parents, count, href, manageHref, selected, children }: { folder: FolderValues & { id: string }; depth: number; parents: FolderOption[]; count: number; href: string; manageHref: string; selected: boolean; children: React.ReactNode }) {
   const [editing, setEditing] = useState(false);
   return (
-    <li className="border border-dashed border-line bg-paper-2 p-2" style={{ marginLeft: depth * 18 }}>
+    <li className={`border bg-paper-2 p-2 ${selected ? "border-accent" : "border-dashed border-line"}`} style={{ marginLeft: depth * 18 }}>
       {editing ? (
         <FolderForm folder={folder} parents={parents} onDone={() => setEditing(false)} />
       ) : (
         <div className="flex items-center gap-2 text-xs min-w-0">
-          <FolderGlyph icon={folder.icon} scale={2} />
-          <a href={href} target="_blank" rel="noreferrer" className="pixel text-ink truncate no-underline hover:text-accent">
+          <FolderGlyph icon={folder.icon} scale={2} open={selected} />
+          <a href={manageHref} className={`pixel truncate no-underline hover:text-accent ${selected ? "text-accent" : "text-ink"}`} aria-current={selected ? "true" : undefined} title="manage what is in this folder">
             {folder.name}
           </a>
           <span className="text-ink-soft shrink-0">{count}</span>
+          <a href={href} target="_blank" rel="noreferrer" className="text-[10px] text-ink-soft no-underline hover:text-accent shrink-0" title="open the public page">
+            ↗
+          </a>
           {folder.exclusive && <span className="chip text-[9px]">only here</span>}
           {folder.unlisted && <span className="chip text-[9px]">unlisted</span>}
           <span className="ml-auto flex items-center gap-1 shrink-0">
