@@ -750,3 +750,6 @@ textarea.input { resize: vertical; min-height: 80px; }
 .folder-tile:hover .folder-glyph { transform: translateY(-3px); }
 .folder-name { margin-top: 6px; }
 .status-bar { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; padding: 3px 8px; border-top: 1.5px solid var(--line); background: var(--paper-2); }
+.month-rule { display: flex; align-items: center; gap: 8px; font-family: var(--font-pixel); font-weight: normal; margin-top: 4px; }
+.month-rule::after { content: ""; order: 1; flex: 1; border-top: 1px dashed var(--line); }
+.month-rule > span:last-child { order: 2; }

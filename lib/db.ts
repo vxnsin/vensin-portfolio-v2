@@ -72,6 +72,7 @@ function migrate(db: Database.Database) {
       db.prepare("update gallery set folder_id = ? where tag = ?").run(id, tag);
     });
   }
+  if (!galCols.includes("taken_at")) db.exec("alter table gallery add column taken_at text");
   db.exec("create index if not exists gallery_folder on gallery (folder_id)");
   db.exec("create unique index if not exists gallery_folders_slug on gallery_folders (coalesce(parent_id, ''), slug)");
 }

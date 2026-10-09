@@ -206,3 +206,7 @@ export function setItemFolder(itemId: string, folderId: string | null) {
 export function setItemCaption(itemId: string, caption: string) {
   getDb().prepare("update gallery set caption = ? where id = ?").run(caption.trim().slice(0, 120), itemId);
 }
+
+export function setItemTakenAt(itemId: string, takenAt: string | null) {
+  getDb().prepare("update gallery set taken_at = ? where id = ?").run(takenAt, itemId);
+}

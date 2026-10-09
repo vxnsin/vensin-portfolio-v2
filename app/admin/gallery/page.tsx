@@ -96,6 +96,10 @@ export default async function AdminGallery() {
             <form action={updateGalleryItemAction} className="grid gap-1">
               <input type="hidden" name="id" value={it.id} />
               <input name="caption" defaultValue={it.caption} maxLength={120} placeholder="no caption" className="input !text-[11px] !py-1" />
+              <label className="grid gap-0.5" title={it.takenAt ? "read from the file; change it if it is wrong" : "the file had no date, it sorts by upload time"}>
+                <span className="text-[10px] text-ink-soft">taken {it.takenAt ? "" : "(unknown, sorted by upload)"}</span>
+                <input type="datetime-local" name="takenAt" defaultValue={it.takenAt?.slice(0, 16) ?? ""} className="input !text-[11px] !py-1" />
+              </label>
               <div className="flex gap-1">
                 <select name="folder" defaultValue={it.folderId ?? ""} className="input !text-[11px] !py-1 min-w-0">
                   <option value="">(top level)</option>

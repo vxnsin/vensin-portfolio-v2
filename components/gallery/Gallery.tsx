@@ -23,7 +23,18 @@ function Thumb({ it }: { it: GalleryItem }) {
 
 type Kind = "all" | "image" | "video";
 
-/** the photo grid of one folder view, with a lightbox (arrow keys, esc) and small filters */
+const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+// dates are read straight from the stored text (local time where it was shot), so server and browser print the same
+const stamp = (it: GalleryItem) => it.takenAt ?? it.createdAt;
+const monthKey = (it: GalleryItem) => stamp(it).slice(0, 7);
+const monthLabel = (key: string) => `${MONTHS[Number(key.slice(5, 7)) - 1]} ${key.slice(0, 4)}`;
+function whenLabel(it: GalleryItem) {
+  const s = stamp(it);
+  const day = `${Number(s.slice(8, 10))} ${MONTHS[Number(s.slice(5, 7)) - 1].slice(0, 3)} ${s.slice(0, 4)}`;
+  return it.takenAt ? `${day}, ${s.slice(11, 16)}` : `uploaded ${day}`;
+}
+
+/** the photo grid of one folder view, split by month, with a lightbox (arrow keys, esc) and small filters */
 export function Gallery({ items, folders, showFolder }: { items: GalleryItem[]; folders: Record<string, ItemFolder>; showFolder: boolean }) {
   const [kind, setKind] = useState<Kind>("all");
   const [oldest, setOldest] = useState(false);
@@ -32,6 +43,15 @@ export function Gallery({ items, folders, showFolder }: { items: GalleryItem[]; 
   const filtered = kind === "all" ? items : items.filter((i) => i.kind === kind);
   const visible = oldest ? [...filtered].reverse() : filtered;
   const hasBoth = items.some((i) => i.kind === "video") && items.some((i) => i.kind === "image");
+
+  // consecutive runs of the same month, each with the index of its first item in `visible` (for the lightbox)
+  const groups: Array<{ key: string; offset: number; items: GalleryItem[] }> = [];
+  visible.forEach((it, i) => {
+    const key = monthKey(it);
+    const last = groups[groups.length - 1];
+    if (last && last.key === key) last.items.push(it);
+    else groups.push({ key, offset: i, items: [it] });
+  });
 
   useEffect(() => {
     if (open === null) return;
@@ -71,37 +91,48 @@ export function Gallery({ items, folders, showFolder }: { items: GalleryItem[]; 
             ))}
           {items.length > 1 && (
             <button type="button" onClick={() => setOldest((o) => !o)} className="chip cursor-pointer hover:bg-accent-soft ml-auto">
-              {oldest ? "oldest first ↑" : "newest first ↓"}
+              {oldest ? "oldest shot first ↑" : "newest shot first ↓"}
             </button>
           )}
         </div>
       )}
 
-      <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-        {visible.map((it, i) => {
-          const f = showFolder ? where(it) : undefined;
-          return (
-            <li key={it.id} className="min-w-0">
-              <button type="button" onClick={() => setOpen(i)} className="block w-full text-left group cursor-pointer">
-                <div className="aspect-square border border-line bg-paper-2 overflow-hidden">
-                  <Thumb it={it} />
-                </div>
-                {(it.caption || f) && (
-                  <div className="mt-1 text-[11px] truncate">
-                    {it.caption && <span className="group-hover:text-accent">{it.caption}</span>}
-                    {f && (
-                      <span className="text-ink-soft">
-                        {it.caption ? " · " : ""}
-                        {f.name}
-                      </span>
+      {groups.map((g) => (
+        <section key={`${g.key}-${g.offset}`} className="grid gap-2" aria-label={monthLabel(g.key)}>
+          {groups.length > 1 && (
+            <h3 className="month-rule text-[10px] text-ink-soft">
+              <span>{monthLabel(g.key)}</span>
+              <span>{g.items.length}</span>
+            </h3>
+          )}
+          <ul className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            {g.items.map((it, k) => {
+              const i = g.offset + k;
+              const f = showFolder ? where(it) : undefined;
+              return (
+                <li key={it.id} className="min-w-0">
+                  <button type="button" onClick={() => setOpen(i)} className="block w-full text-left group cursor-pointer" title={whenLabel(it)}>
+                    <div className="aspect-square border border-line bg-paper-2 overflow-hidden">
+                      <Thumb it={it} />
+                    </div>
+                    {(it.caption || f) && (
+                      <div className="mt-1 text-[11px] truncate">
+                        {it.caption && <span className="group-hover:text-accent">{it.caption}</span>}
+                        {f && (
+                          <span className="text-ink-soft">
+                            {it.caption ? " · " : ""}
+                            {f.name}
+                          </span>
+                        )}
+                      </div>
                     )}
-                  </div>
-                )}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))}
 
       {current && open !== null && (
         <div className="fixed inset-0 z-50 grid place-items-center p-4" style={{ background: "rgba(0,0,0,.75)" }} onClick={() => setOpen(null)} role="dialog" aria-modal aria-label={current.caption || "photo"}>
@@ -139,7 +170,7 @@ export function Gallery({ items, folders, showFolder }: { items: GalleryItem[]; 
                     {" · "}
                   </>
                 )}
-                {new Date(current.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                {whenLabel(current)}
               </span>
               <button type="button" className="btn text-[11px]" onClick={() => setOpen((open + 1) % visible.length)}>
                 next →

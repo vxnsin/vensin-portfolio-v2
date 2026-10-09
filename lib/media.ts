@@ -1,7 +1,8 @@
 import sharp from "sharp";
 import convert from "heic-convert";
+import { photoTakenAt, stripVideoLocation, videoTakenAt } from "./media-meta";
 
-export type Processed = { buffer: Buffer; ext: string; contentType: string; kind: "image" | "video" };
+export type Processed = { buffer: Buffer; ext: string; contentType: string; kind: "image" | "video"; /** capture time from the file itself, null if it has none */ takenAt: string | null };
 
 export const MAX_IMAGE_BYTES = 30 * 1024 * 1024;
 export const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
@@ -25,8 +26,14 @@ export async function processUpload(file: File): Promise<Processed> {
   if (isVideo(file)) {
     const e = ext(file.name) || ".mp4";
     const type = file.type || (e === ".webm" ? "video/webm" : e === ".mov" ? "video/quicktime" : "video/mp4");
-    return { buffer, ext: e, contentType: type, kind: "video" };
+    const takenAt = e === ".webm" ? null : videoTakenAt(buffer);
+    // phones write where a video was recorded into the file; that never goes online
+    if (e !== ".webm") stripVideoLocation(buffer);
+    return { buffer, ext: e, contentType: type, kind: "video", takenAt };
   }
+
+  // read the date before anything re-encodes the picture (that drops all metadata, gps included)
+  const takenAt = await photoTakenAt(buffer);
 
   if (isHeic(file)) {
     const out = await convert({ buffer, format: "JPEG", quality: 0.92 });
@@ -35,7 +42,7 @@ export async function processUpload(file: File): Promise<Processed> {
 
   // gifs stay gifs so they keep moving
   if (file.type === "image/gif" || ext(file.name) === ".gif") {
-    return { buffer, ext: ".gif", contentType: "image/gif", kind: "image" };
+    return { buffer, ext: ".gif", contentType: "image/gif", kind: "image", takenAt };
   }
 
   const webp = await sharp(buffer)
@@ -44,5 +51,5 @@ export async function processUpload(file: File): Promise<Processed> {
     .webp({ quality: 84 })
     .toBuffer();
 
-  return { buffer: webp, ext: ".webp", contentType: "image/webp", kind: "image" };
+  return { buffer: webp, ext: ".webp", contentType: "image/webp", kind: "image", takenAt };
 }

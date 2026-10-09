@@ -35,7 +35,8 @@ import { deleteProject, moveProject, saveProject, type ProjectLink, type Project
 import { deleteSetupItem, moveSetupItem, saveSetupItem } from "@/lib/setup";
 import { saveAbout } from "@/lib/about";
 import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
-import { deleteFolder, listFolders, moveFolder, saveFolder, setItemCaption, setItemFolder } from "@/lib/gallery";
+import { wallTime } from "@/lib/media-meta";
+import { deleteFolder, listFolders, moveFolder, saveFolder, setItemCaption, setItemFolder, setItemTakenAt } from "@/lib/gallery";
 
 export type ActionState = { ok: boolean; error?: string } | null;
 
@@ -271,6 +272,8 @@ export async function uploadAction(_prev: ActionState, formData: FormData): Prom
   const folderRaw = String(formData.get("folder") ?? "");
   const folder = listFolders().find((f) => f.id === folderRaw) ?? null;
   const tag = folder?.slug ?? "";
+  // the file's own date on the uploading device, used only when the photo or video carries no capture time
+  const lastModified = Number(formData.get("lastModified"));
 
   if (!(file instanceof File) || file.size === 0) return { ok: false, error: "pick a file first" };
   const video = isVideo(file);
@@ -297,7 +300,8 @@ export async function uploadAction(_prev: ActionState, formData: FormData): Prom
       url = `/uploads/${name}`;
     }
 
-    await addGalleryItem({ url, kind: processed.kind, caption, tag, folderId: folder?.id ?? null, pathname });
+    const fallback = Number.isFinite(lastModified) && lastModified > Date.UTC(1995, 0, 1) && lastModified < Date.now() + 86_400_000 ? wallTime(new Date(lastModified)) : null;
+    await addGalleryItem({ url, kind: processed.kind, caption, tag, folderId: folder?.id ?? null, takenAt: processed.takenAt ?? fallback, pathname });
     revalidatePath("/admin/gallery");
     revalidatePath("/gallery", "layout");
     return { ok: true };
@@ -356,6 +360,12 @@ export async function updateGalleryItemAction(formData: FormData) {
   const id = String(formData.get("id"));
   setItemFolder(id, String(formData.get("folder") ?? "") || null);
   if (formData.has("caption")) setItemCaption(id, String(formData.get("caption") ?? ""));
+  if (formData.has("takenAt")) {
+    // a datetime-local field: "2026-06-01T21:03", read as this server's local time; empty clears it
+    const raw = String(formData.get("takenAt") ?? "");
+    const d = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(raw) ? new Date(raw) : null;
+    setItemTakenAt(id, d && Number.isFinite(d.getTime()) ? wallTime(d) : null);
+  }
   revalidatePath("/admin/gallery");
   revalidatePath("/gallery", "layout");
 }

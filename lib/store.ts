@@ -6,7 +6,7 @@ export { uid, DATA_DIR } from "./db";
 /* ---------- types ---------- */
 
 export type Message = { id: string; name: string; email: string; message: string; createdAt: string; read: boolean };
-export type GalleryItem = { id: string; url: string; kind: "image" | "video"; caption: string; tag: string; folderId: string | null; createdAt: string; pathname?: string };
+export type GalleryItem = { id: string; url: string; kind: "image" | "video"; caption: string; tag: string; folderId: string | null; /** when it was shot, local time with offset; null when unknown */ takenAt: string | null; createdAt: string; pathname?: string };
 export type UpdateEntry = { id: string; date: string; text: string };
 export type Settings = { updateLog: UpdateEntry[]; marquee: string[] };
 export type Favorite = { id: string; kitsuId: string; slug: string; title: string; poster: string | null; note: string; rating: number; createdAt: string };
@@ -76,16 +76,18 @@ export async function deleteMessage(id: string) {
 
 /* ---------- gallery ---------- */
 
-type GalleryRow = { id: string; url: string; kind: "image" | "video"; caption: string; tag: string; folder_id: string | null; pathname: string | null; created_at: string };
-const toGallery = (r: GalleryRow): GalleryItem => ({ id: r.id, url: r.url, kind: r.kind, caption: r.caption, tag: r.tag, folderId: r.folder_id ?? null, pathname: r.pathname ?? undefined, createdAt: r.created_at });
+type GalleryRow = { id: string; url: string; kind: "image" | "video"; caption: string; tag: string; folder_id: string | null; taken_at: string | null; pathname: string | null; created_at: string };
+const toGallery = (r: GalleryRow): GalleryItem => ({ id: r.id, url: r.url, kind: r.kind, caption: r.caption, tag: r.tag, folderId: r.folder_id ?? null, takenAt: r.taken_at ?? null, pathname: r.pathname ?? undefined, createdAt: r.created_at });
 
 export async function listGallery(): Promise<GalleryItem[]> {
-  return (getDb().prepare("select * from gallery order by created_at desc").all() as GalleryRow[]).map(toGallery);
+  // newest shot first; things without a capture time count by when they were uploaded
+  const when = (i: GalleryItem) => Date.parse(i.takenAt ?? i.createdAt) || 0;
+  return (getDb().prepare("select * from gallery order by created_at desc").all() as GalleryRow[]).map(toGallery).sort((a, b) => when(b) - when(a));
 }
 export const listGalleryFresh = listGallery;
 export async function addGalleryItem(item: Omit<GalleryItem, "id" | "createdAt">): Promise<GalleryItem> {
   const it: GalleryItem = { id: uid(), createdAt: new Date().toISOString(), ...item };
-  getDb().prepare("insert into gallery (id, url, kind, caption, tag, folder_id, pathname, created_at) values (?, ?, ?, ?, ?, ?, ?, ?)").run(it.id, it.url, it.kind, it.caption, it.tag, it.folderId, it.pathname ?? null, it.createdAt);
+  getDb().prepare("insert into gallery (id, url, kind, caption, tag, folder_id, taken_at, pathname, created_at) values (?, ?, ?, ?, ?, ?, ?, ?, ?)").run(it.id, it.url, it.kind, it.caption, it.tag, it.folderId, it.takenAt, it.pathname ?? null, it.createdAt);
   return it;
 }
 export async function removeGalleryItem(id: string): Promise<GalleryItem | undefined> {
