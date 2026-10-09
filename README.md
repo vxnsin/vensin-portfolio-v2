@@ -3,12 +3,6 @@
 
 <a href="https://vensin.dev"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/header-dark.svg?v=47646b3344"><img src="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/header-light.svg?v=47646b3344" width="840" alt="vensin.dev · ヴェンシン · v2 · a cozy old-web corner · an anime enthusiast · live from my discord · home of mochi the cat"></picture></a>
 
-<a href="https://vensin.dev"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/nav-site-dark.svg?v=65d047b3cd"><img src="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/nav-site-light.svg?v=65d047b3cd" width="154" alt="visit vensin.dev →"></picture></a><a href="https://vensin.dev/guestbook"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/nav-guestbook-dark.svg?v=38b0bb3925"><img src="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/nav-guestbook-light.svg?v=38b0bb3925" width="147" alt="sign the guestbook"></picture></a><a href="https://vensin.dev/mochi"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/nav-mochi-dark.svg?v=f1a8cd686f"><img src="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/nav-mochi-light.svg?v=f1a8cd686f" width="128" alt="play with mochi"></picture></a>
-
-<a href="https://github.com/vxnsin/vensin-portfolio-v2"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/repo-dark.svg?v=e0c79cc6b3"><img src="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/repo-light.svg?v=e0c79cc6b3" width="840" alt="vxnsin/vensin-portfolio-v2: vensin.dev v2 - cozy old-web portfolio with anime energy and live Discord presence"></picture></a>
-
-<a href="https://github.com/vxnsin/vensin-portfolio-v2/commits"><picture><source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/commits-dark.svg?v=eec0d39543"><img src="https://raw.githubusercontent.com/vxnsin/vensin-portfolio-v2/output/commits-light.svg?v=eec0d39543" width="840" alt="latest commits of vxnsin/vensin-portfolio-v2"></picture></a>
-
 </div>
 <!-- /cozy:cards -->
 
