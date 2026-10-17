@@ -45,7 +45,7 @@ export default async function AboutPage() {
           </p>
         ))}
         <p className="text-ink-soft text-xs">
-          the short version: {site.tagline}. the long version is below, the live version is in the sidebar.
+          the short version: {site.tagline}.
         </p>
       </div>
 
