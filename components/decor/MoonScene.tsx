@@ -4,94 +4,15 @@ import { useEffect, useState } from "react";
 
 // Type "moon" and the site steps aside. The scene fills the screen and plays in order: a night sky, a huge moon that
 // flies in from the top and settles over everything, a lit patch of ground, and two people seen from behind who sit
-// down on it and look up. Everything is pixel art drawn from small grids as svg, so it stays crisp on any screen.
-// The two are nobody in particular, a couple in the site's colours. Drop your own sprite at public/moon/couple.png
-// and it takes their place.
+// down on it and look up. Sky, moon and ground are pixel art drawn from small grids as svg, so they stay crisp on any
+// screen; the two are the sprite at public/moon/couple.png.
 
 const COL: Record<string, string> = {
-  k: "#1b1523",
-  // left: dark hair with a highlight, skin, lavender jacket with shade and white stripes, trousers
-  H: "#2a2438", h: "#3f3752", D: "#d8a97a", Y: "#a99cff", y: "#8a7ce0", W: "#f4f2f6", w: "#d9d6e6", P: "#262a3a", p: "#1b1e2b",
-  // right: pale hair with a highlight and pink tips, skin, white jacket with a pink mark
-  L: "#f3e8f4", l: "#ffffff", T: "#ff8fb4", S: "#f5e0cf", Q: "#ff8fb4",
   // moon: face, dark patches, crater floors, rim, highlight
   M: "#e4f5f3", m: "#9fd3e0", c: "#6fa9bd", r: "#5f94ab", i: "#ffffff",
   // ground, bright edge to dark: the cyan and navy of the sprite that sits on it
   A: "#93e9f6", B: "#4d577a", C: "#2f3752", E: "#1c2033",
 };
-
-const LEFT = [
-  "........kkkkkkkk........",
-  "......kkHHHHHHHHkk......",
-  ".....kHHhHHHHHHHHHk.....",
-  "....kHHhhHHHHHHHHHHk....",
-  "....kHHhHHHHHHHHHHHk....",
-  "....kHHHHHHHHHHHHHHk....",
-  "....kHHHHHHHHHHHHHHk....",
-  ".....kHHHHHHHHHHHHk.....",
-  "......kkHHHHHHHHkk......",
-  "........kDDDDDDk........",
-  "........kDDDDDDk........",
-  "....kkkkkYYYYYYkkkkk....",
-  "..kkYYYYYYYYYYYYYYYYkk..",
-  ".kYYYYYYYYYYYYYYYYYYYYk.",
-  ".kYYYYYWWWWWWWWWWYYYYYk.",
-  ".kYYYYYwwwwwwwwwwYYYYYk.",
-  ".kYYYYYYYYYYYYYYYYYYYYk.",
-  ".kyYYYYYYYYYYYYYYYYYYyk.",
-  ".kyYYYYYYYYYYYYYYYYYYyk.",
-  ".kyYYYYYYYYYYYYYYYYYYyk.",
-  ".kyYYWWWWWWWWWWWWWWYYyk.",
-  ".kyYYwwwwwwwwwwwwwwYYyk.",
-  ".kyyYYYYYYYYYYYYYYYYyyk.",
-  ".kyyYYYYYYYYYYYYYYYYyyk.",
-  ".kDkyYYYYYYYYYYYYYYykDk.",
-  ".kDkkyyyyyyyyyyyyyykkDk.",
-  "..kk.kPPPPPPPPPPPPk.kk..",
-  "....kPPPPPPPPPPPPPPk....",
-  "...kPPPPPPPPPPPPPPPPk...",
-  "..kPPPPPPPPPPPPPPPPPPk..",
-  "..kpPPPPPPPPPPPPPPPPpk..",
-  "..kppppppppppppppppppk..",
-  "...kkkkkkkkkkkkkkkkkk...",
-];
-const RIGHT = [
-  "........kkkkkkkk........",
-  "......kkLLLLLLLLkk......",
-  ".....kLLlLLLLLLLLLk.....",
-  "....kLLllLLLLLLLLLLk....",
-  "....kLLlLLLLLLLLLLLk....",
-  "....kLLLLLLLLLLLLLLk....",
-  "....kLLLLLLLLLLLLLLk....",
-  "....kLLLLLLLLLLLLLLk....",
-  "....kTLLLLLLLLLLLLTk....",
-  "....kTTkkSSSSSSkkTTk....",
-  ".....kk.kSSSSSSk.kk.....",
-  "....kkkkkWWWWWWkkkkk....",
-  "..kkWWWWWWWWWWWWWWWWkk..",
-  ".kWWWWWWWWWWWWWWWWWWWWk.",
-  ".kWWWWWWWWQQQQWWWWWWWWk.",
-  ".kWWWWWWWWQQQQWWWWWWWWk.",
-  ".kWWWWWWWWWWWWWWWWWWWWk.",
-  ".kwWWWWWWWWWWWWWWWWWWwk.",
-  ".kwWWWWWWWWWWWWWWWWWWwk.",
-  ".kwWWWWWWWWWWWWWWWWWWwk.",
-  ".kwWWWWWWWWWWWWWWWWWWwk.",
-  ".kwwWWWWWWWWWWWWWWWWwwk.",
-  ".kwwWWWWWWWWWWWWWWWWwwk.",
-  ".kwwWWWWWWWWWWWWWWWWwwk.",
-  ".kSkwWWWWWWWWWWWWWWwkSk.",
-  ".kSkkwwwwwwwwwwwwwwkkSk.",
-  "..kk.kPPPPPPPPPPPPk.kk..",
-  "....kPPPPPPPPPPPPPPk....",
-  "...kPPPPPPPPPPPPPPPPk...",
-  "..kPPPPPPPPPPPPPPPPPPk..",
-  "..kpPPPPPPPPPPPPPPPPpk..",
-  "..kppppppppppppppppppk..",
-  "...kkkkkkkkkkkkkkkkkk...",
-];
-const FIG_W = 24 + 3 + 24;
-const FIG_H = 34;
 
 const hash = (x: number, y: number) => {
   const v = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453;
@@ -165,9 +86,6 @@ const Cells = ({ cells, dx = 0, dy = 0 }: { cells: Array<[number, number, string
     ))}
   </>
 );
-const gridCells = (grid: string[]): Array<[number, number, string]> => grid.flatMap((row, y) => [...row].flatMap((ch, x) => (COL[ch] ? [[x, y, ch] as [number, number, string]] : [])));
-const LEFT_CELLS = gridCells(LEFT);
-const RIGHT_CELLS = gridCells(RIGHT);
 
 /** whole-number zoom for a pixel sprite so no row or column gets dropped or doubled unevenly; smooth shrink only if it is too tall */
 function fitSprite(img: HTMLImageElement): { width: number; height: number; smooth: boolean } {
@@ -179,8 +97,6 @@ function fitSprite(img: HTMLImageElement): { width: number; height: number; smoo
 }
 
 export function MoonScene({ onClose }: { onClose: () => void }) {
-  // a sprite of your own at public/moon/couple.png replaces the built-in pair
-  const [custom, setCustom] = useState<boolean | null>(null);
   const [fit, setFit] = useState<{ width: number; height: number; smooth: boolean } | null>(null);
   useEffect(() => {
     document.documentElement.setAttribute("data-moon", "");
@@ -209,25 +125,13 @@ export function MoonScene({ onClose }: { onClose: () => void }) {
       </svg>
       <div className="moon-pair">
         <i className="moon-shadow" aria-hidden />
-        {custom !== false && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src="/moon/couple.png"
-            alt=""
-            onLoad={(e) => {
-              setFit(fitSprite(e.currentTarget));
-              setCustom(true);
-            }}
-            onError={() => setCustom(false)}
-            style={{ imageRendering: fit?.smooth ? "auto" : "pixelated", width: fit?.width, height: fit?.height, display: custom && fit ? "block" : "none" }}
-          />
-        )}
-        {custom === false && (
-          <svg viewBox={`0 0 ${FIG_W} ${FIG_H}`} shapeRendering="crispEdges" aria-label="two people sitting on the ground, looking at the moon" style={{ height: "38vh", width: "auto" }}>
-            <Cells cells={LEFT_CELLS} />
-            <Cells cells={RIGHT_CELLS} dx={27} dy={1} />
-          </svg>
-        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/moon/couple.png"
+          alt="two people sitting on the ground, looking at the moon"
+          onLoad={(e) => setFit(fitSprite(e.currentTarget))}
+          style={{ imageRendering: fit?.smooth ? "auto" : "pixelated", width: fit?.width, height: fit?.height, display: fit ? "block" : "none" }}
+        />
       </div>
       <div className="moon-caption text-center text-xs">
         <div className="pixel text-base" style={{ color: "#e9e6da" }}>the moon</div>

@@ -6,6 +6,10 @@ const RINGS = [
   { key: "stand", goal: "standGoal", color: "#5ad7ff", label: "stand", unit: "h" },
 ] as const;
 
+// move data is buggy right now: the ring is shown greyed out as "n/a" and left out of the closed count. flip back to false once fixed.
+const MOVE_DISABLED = true;
+const isOff = (key: string) => MOVE_DISABLED && key === "move";
+
 const GRID = 31; // cells per side
 const CELL = 3; // screen pixels per cell
 const SIZE = GRID * CELL;
@@ -45,30 +49,36 @@ function ago(iso: string) {
 
 /** Apple Watch rings in pixel style, fed by /api/health. */
 export function ActivityRings({ health }: { health: Health }) {
-  const closed = RINGS.filter((r) => health[r.key] >= health[r.goal]).length;
+  const active = RINGS.filter((r) => !isOff(r.key));
+  const closed = active.filter((r) => health[r.key] >= health[r.goal]).length;
+  const total = active.length;
   return (
     <div className="flex items-center gap-3 justify-center">
       <svg width={SIZE} height={SIZE} viewBox={`0 0 ${GRID} ${GRID}`} shapeRendering="crispEdges" aria-label="activity rings" className="shrink-0">
-        <PixelRing inner={12} outer={15} pct={health.move / health.moveGoal} color={RINGS[0].color} />
+        <PixelRing inner={12} outer={15} pct={MOVE_DISABLED ? 0 : health.move / health.moveGoal} color={MOVE_DISABLED ? "var(--ink-soft)" : RINGS[0].color} />
         <PixelRing inner={8} outer={11} pct={health.exercise / health.exerciseGoal} color={RINGS[1].color} />
         <PixelRing inner={4} outer={7} pct={health.stand / health.standGoal} color={RINGS[2].color} />
         <text x={CENTER + 0.5} y={CENTER + 1.6} textAnchor="middle" fontSize="3.4" fill="var(--ink)" fontFamily="var(--font-pixel)" shapeRendering="auto">
-          {closed}/3
+          {closed}/{total}
         </text>
       </svg>
       <div className="text-[11px] grid gap-0.5 min-w-0 flex-1 max-w-[150px]">
         {RINGS.map((r) => (
           <div key={r.key} className="flex items-center justify-between gap-2">
-            <span style={{ color: r.color }}>{r.label}</span>
-            <span className="pixel whitespace-nowrap">
-              {Math.round(health[r.key])}
-              <span className="text-ink-soft">/{health[r.goal]}</span>
-            </span>
+            <span style={{ color: isOff(r.key) ? "var(--ink-soft)" : r.color }}>{r.label}</span>
+            {isOff(r.key) ? (
+              <span className="pixel whitespace-nowrap text-ink-soft" title="temporarily unavailable">n/a</span>
+            ) : (
+              <span className="pixel whitespace-nowrap">
+                {Math.round(health[r.key])}
+                <span className="text-ink-soft">/{health[r.goal]}</span>
+              </span>
+            )}
           </div>
         ))}
         {typeof health.steps === "number" && <div className="text-ink-soft mt-0.5">{health.steps.toLocaleString("de-DE")} steps</div>}
         <div className="text-[10px] text-ink-soft mt-0.5">
-          {closed === 3 ? "all rings closed ✦" : `${closed}/3 closed`} · {ago(health.updatedAt)}
+          {closed === total ? "all rings closed ✦" : `${closed}/${total} closed`} · {ago(health.updatedAt)}
         </div>
       </div>
     </div>

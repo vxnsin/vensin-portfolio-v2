@@ -11,6 +11,7 @@ import { fetchNowPlaying, fetchRecentPlays, fetchSpotifyData, spotifyConnected, 
 import { importPlays } from "./listens";
 import { getLatest, saveLatest } from "./store";
 import { kvGet } from "./db";
+import { kickVideoQueue, videoQueueState } from "./video";
 
 // a fresh spotify connection makes every spotify job due right away
 const spotifySince = () => { const at = kvGet<string | null>("spotify:connected_at", null); return at ? new Date(at).getTime() : 0; };
@@ -92,4 +93,5 @@ export const jobs: Job[] = [
   { id: "github-contributions", label: "github: contribution graph", daily: "00:05", run: () => refresh(CACHE_KEYS.githubContributions, TTL.githubContributions, fetchContributionYears, { throwOnError: true }) },
   { id: "backup", label: `backup: sqlite → backups/ + ${process.env.BACKUP_UPLOAD === "catbox" && process.env.BACKUP_PASSPHRASE ? "catbox (encrypted), link in discord" : "file in discord"}`, daily: "03:30", run: runBackup },
   { id: "blocked-cleanup", label: "guestbook: delete blocked cards past retention", daily: "04:00", run: purgeBlockedCards },
+  { id: "gallery-video", label: "gallery: video stills and web copies (needs ffmpeg)", every: 10 * MIN, run: async () => (kickVideoQueue(), videoQueueState()) },
 ];

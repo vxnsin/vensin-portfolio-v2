@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { site } from "@/data/site";
 
-/** Click to cycle through kaomoji. Small, silly, on brand. */
+/** Click to cycle through kaomoji. Small, silly, on brand. they are cute and fun! */
 export function Kaomoji({ className = "" }: { className?: string }) {
   const [i, setI] = useState(0);
   return (

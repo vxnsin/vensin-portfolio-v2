@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync } from "fs";
 import path from "path";
 
 // One SQLite file holds everything: content, settings, health data, and a cache for external APIs.
-export const DATA_DIR = process.env.DATA_DIR ?? (process.env.VERCEL ? "/tmp/vensin-data" : path.join(process.cwd(), ".data"));
+export const DATA_DIR = process.env.DATA_DIR ?? (process.env.VERCEL ? "/tmp/vensin-data" : path.join(/* turbopackIgnore: true */ process.cwd(), ".data"));
 export const DB_FILE = path.join(DATA_DIR, "vensin.sqlite");
 
 const SCHEMA = `
@@ -11,6 +11,7 @@ const SCHEMA = `
   create table if not exists cache (key text primary key, value text not null, fetched_at integer not null, expires_at integer not null);
   create table if not exists messages (id text primary key, name text not null, email text not null, message text not null, created_at text not null, read integer not null default 0);
   create table if not exists gallery (id text primary key, url text not null, kind text not null, caption text not null default '', tag text not null default 'misc', pathname text, created_at text not null);
+  create table if not exists gallery_folders (id text primary key, parent_id text, slug text not null, name text not null, icon text not null default 'folder', exclusive integer not null default 0, unlisted integer not null default 0, position integer not null default 0, created_at text not null);
   create table if not exists updates (id text primary key, date text not null, text text not null, created_at text not null);
   create table if not exists favorites (id text primary key, kitsu_id text not null unique, slug text not null default '', title text not null, poster text, note text not null default '', rating integer not null default 8, position integer not null, created_at text not null);
   create table if not exists seen_activities (key text primary key, first_seen text not null);
@@ -59,6 +60,30 @@ function migrate(db: Database.Database) {
   if (!logCols.includes("imported")) db.exec("alter table anime_log add column imported integer not null default 0");
   const msgCols = (db.prepare("pragma table_info(messages)").all() as Array<{ name: string }>).map((c) => c.name);
   if (!msgCols.includes("ip_hash")) db.exec("alter table messages add column ip_hash text not null default ''");
+  // gallery: items live in folders now; the old free-text tags become top-level folders once
+  const galCols = (db.prepare("pragma table_info(gallery)").all() as Array<{ name: string }>).map((c) => c.name);
+  if (!galCols.includes("folder_id")) {
+    db.exec("alter table gallery add column folder_id text");
+    const tags = (db.prepare("select distinct tag from gallery where tag != ''").all() as Array<{ tag: string }>).map((r) => r.tag);
+    tags.forEach((tag, i) => {
+      const id = uid();
+      const slug = tag.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "misc";
+      db.prepare("insert into gallery_folders (id, parent_id, slug, name, position, created_at) values (?, null, ?, ?, ?, ?)").run(id, slug, tag, i, new Date().toISOString());
+      db.prepare("update gallery set folder_id = ? where tag = ?").run(id, tag);
+    });
+  }
+  if (!galCols.includes("taken_at")) db.exec("alter table gallery add column taken_at text");
+  if (!galCols.includes("title")) db.exec("alter table gallery add column title text not null default ''");
+  // videos: a still for tiles and covers, and a light web copy (h.264, 1080p) made in the background by ffmpeg
+  if (!galCols.includes("poster")) db.exec("alter table gallery add column poster text");
+  if (!galCols.includes("web_url")) db.exec("alter table gallery add column web_url text");
+  if (!galCols.includes("web_status")) db.exec("alter table gallery add column web_status text");
+  // videos: 0 = metadata still to be removed by ffmpeg, 1 = removed, -1 = could not be (location was still blanked on upload)
+  if (!galCols.includes("meta_clean")) db.exec("alter table gallery add column meta_clean integer not null default 0");
+  const folderCols = (db.prepare("pragma table_info(gallery_folders)").all() as Array<{ name: string }>).map((c) => c.name);
+  if (!folderCols.includes("cover_id")) db.exec("alter table gallery_folders add column cover_id text");
+  db.exec("create index if not exists gallery_folder on gallery (folder_id)");
+  db.exec("create unique index if not exists gallery_folders_slug on gallery_folders (coalesce(parent_id, ''), slug)");
 }
 
 /* ---------- tiny kv helpers ---------- */

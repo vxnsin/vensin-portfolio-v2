@@ -1,0 +1,14 @@
+{
+  "theme": "autumn",
+  "repo": "vxnsin/vensin-portfolio-v2",
+  "cards": [
+    {
+      "type": "header",
+      "wordmark": "vensin.dev",
+      "subtitle": "ヴェンシン · v2",
+      "typewriter": ["a cozy old-web corner", "an anime enthusiast", "live from my discord", "home of mochi the cat"],
+      "effect": "leaves",
+      "link": "https://vensin.dev"
+    }
+  ]
+}

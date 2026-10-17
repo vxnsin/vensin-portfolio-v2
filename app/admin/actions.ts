@@ -13,7 +13,6 @@ import { disconnectSpotify } from "@/lib/spotify";
 import { importExport } from "@/lib/spotify-export";
 import {
   addFavorite,
-  addGalleryItem,
   addNeighbor,
   addUpdate,
   deleteMessage,
@@ -34,7 +33,11 @@ import { isSeason, setSeasonSetting } from "@/lib/season";
 import { deleteProject, moveProject, saveProject, type ProjectLink, type ProjectStatus } from "@/lib/projects";
 import { deleteSetupItem, moveSetupItem, saveSetupItem } from "@/lib/setup";
 import { saveAbout } from "@/lib/about";
-import { isVideo, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, processUpload } from "@/lib/media";
+import { cleanSmallImage, MAX_IMAGE_BYTES, processUpload } from "@/lib/media";
+import { UPLOAD_DIR } from "@/lib/upload";
+import { wallTime } from "@/lib/media-meta";
+import { deleteFolder, moveFolder, saveFolder, setFolderCover, setItemCaption, setItemFolder, setItemTakenAt, setItemTitle } from "@/lib/gallery";
+import { derivedFiles, kickVideoQueue } from "@/lib/video";
 
 export type ActionState = { ok: boolean; error?: string } | null;
 
@@ -73,7 +76,7 @@ export async function saveProjectAction(_prev: ActionState, formData: FormData):
   let thumbnail = str("thumbnail", 500);
   const file = formData.get("thumbnailFile");
   if (file instanceof File && file.size > 0) {
-    if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "max 30 MB per image" };
+    if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "max 100 MB per image" };
     try {
       const processed = await processUpload(file);
       if (processed.kind !== "image") return { ok: false, error: "thumbnails have to be images" };
@@ -156,7 +159,7 @@ export async function saveSetupAction(_prev: ActionState, formData: FormData): P
   let image = str("image");
   const file = formData.get("imageFile");
   if (file instanceof File && file.size > 0) {
-    if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "max 30 MB per image" };
+    if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "max 100 MB per image" };
     try {
       const processed = await processUpload(file);
       if (processed.kind !== "image") return { ok: false, error: "pictures only" };
@@ -261,59 +264,107 @@ export async function deleteMessageAction(formData: FormData) {
 
 /* ---------- gallery ---------- */
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR ?? path.join(process.cwd(), "public", "uploads");
+// uploads themselves go through /api/admin/upload in pieces, so there is no size limit (see lib/upload.ts)
 
-export async function uploadAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
-  await requireAdmin();
-  const file = formData.get("file");
-  const caption = String(formData.get("caption") ?? "").trim().slice(0, 120);
-  const tag = String(formData.get("tag") ?? "").trim().toLowerCase().slice(0, 30) || "misc";
-
-  if (!(file instanceof File) || file.size === 0) return { ok: false, error: "pick a file first" };
-  const video = isVideo(file);
-  if (!video && !file.type.startsWith("image/") && !/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(file.name)) {
-    return { ok: false, error: "images (jpg, png, webp, gif, heic) or videos (mp4, mov, webm) only" };
-  }
-  if (file.size > (video ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES)) {
-    return { ok: false, error: video ? "max 200 MB per video" : "max 30 MB per image" };
-  }
-
+/** removes an item and its files: the upload itself, a video's still and web copy */
+async function deleteGalleryItem(id: string) {
+  const item = await removeGalleryItem(id);
+  if (!item) return;
   try {
-    const processed = await processUpload(file);
-    const name = `${uid()}${processed.ext}`;
-    let url: string;
-    let pathname: string | undefined;
-
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const blob = await put(`gallery/${name}`, processed.buffer, { access: "public", addRandomSuffix: false, contentType: processed.contentType });
-      url = blob.url;
-      pathname = blob.pathname;
-    } else {
-      await fs.mkdir(UPLOAD_DIR, { recursive: true });
-      await fs.writeFile(path.join(UPLOAD_DIR, name), processed.buffer);
-      url = `/uploads/${name}`;
-    }
-
-    await addGalleryItem({ url, kind: processed.kind, caption, tag, pathname });
-    revalidatePath("/admin/gallery");
-    revalidatePath("/gallery");
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "upload failed" };
-  }
+    if (item.pathname && process.env.BLOB_READ_WRITE_TOKEN) await del(item.url);
+    else if (item.url.startsWith("/uploads/")) await fs.unlink(path.join(UPLOAD_DIR, path.basename(item.url)));
+  } catch {}
+  for (const f of derivedFiles(item.url)) await fs.rm(f, { force: true }).catch(() => {});
 }
 
 export async function deleteGalleryAction(formData: FormData) {
   await requireAdmin();
-  const item = await removeGalleryItem(String(formData.get("id")));
-  if (item) {
-    try {
-      if (item.pathname && process.env.BLOB_READ_WRITE_TOKEN) await del(item.url);
-      else if (item.url.startsWith("/uploads/")) await fs.unlink(path.join(UPLOAD_DIR, item.url.replace("/uploads/", "")));
-    } catch {}
+  await deleteGalleryItem(String(formData.get("id")));
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
+}
+
+/** several items at once: the ticked boxes, then "move" to a folder or "delete" */
+export async function bulkGalleryAction(formData: FormData) {
+  await requireAdmin();
+  const ids = formData.getAll("ids").map(String).filter(Boolean).slice(0, 1000);
+  const op = String(formData.get("op") ?? "");
+  if (op === "move") {
+    const folder = String(formData.get("folder") ?? "") || null;
+    for (const id of ids) setItemFolder(id, folder);
+  } else if (op === "delete") {
+    for (const id of ids) await deleteGalleryItem(id);
   }
   revalidatePath("/admin/gallery");
-    revalidatePath("/gallery");
+  revalidatePath("/gallery", "layout");
+}
+
+/** picks an item as the cover of the folder it sits in (or of the given folder); "auto" clears it */
+export async function setFolderCoverAction(formData: FormData) {
+  await requireAdmin();
+  const folder = String(formData.get("folder") ?? "");
+  if (!folder) return;
+  const item = String(formData.get("item") ?? "");
+  setFolderCover(folder, item && item !== "auto" ? item : null);
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
+}
+
+/** tries a failed or skipped video conversion again */
+export async function retryVideoAction(formData: FormData) {
+  await requireAdmin();
+  const { getDb } = await import("@/lib/db");
+  getDb().prepare("update gallery set web_status = 'pending' where id = ? and kind = 'video'").run(String(formData.get("id")));
+  kickVideoQueue();
+  revalidatePath("/admin/gallery");
+}
+
+/* ---------- gallery folders ---------- */
+
+export async function saveFolderAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  await requireAdmin();
+  const res = saveFolder({
+    id: String(formData.get("id") ?? "") || undefined,
+    parentId: String(formData.get("parent") ?? "") || null,
+    name: String(formData.get("name") ?? ""),
+    icon: String(formData.get("icon") ?? "folder"),
+    exclusive: formData.get("exclusive") === "on",
+    unlisted: formData.get("unlisted") === "on",
+  });
+  if (!res.ok) return { ok: false, error: res.error };
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
+  return { ok: true };
+}
+
+export async function deleteFolderAction(formData: FormData) {
+  await requireAdmin();
+  deleteFolder(String(formData.get("id")));
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
+}
+
+export async function moveFolderAction(formData: FormData) {
+  await requireAdmin();
+  moveFolder(String(formData.get("id")), formData.get("dir") === "up" ? -1 : 1);
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
+}
+
+export async function updateGalleryItemAction(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id"));
+  if (formData.has("folder")) setItemFolder(id, String(formData.get("folder") ?? "") || null);
+  if (formData.has("title")) setItemTitle(id, String(formData.get("title") ?? ""));
+  if (formData.has("caption")) setItemCaption(id, String(formData.get("caption") ?? ""));
+  if (formData.has("takenAt")) {
+    // a datetime-local field: "2026-06-01T21:03", read as this server's local time; empty clears it
+    const raw = String(formData.get("takenAt") ?? "");
+    const d = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(raw) ? new Date(raw) : null;
+    setItemTakenAt(id, d && Number.isFinite(d.getTime()) ? wallTime(d) : null);
+  }
+  revalidatePath("/admin/gallery");
+  revalidatePath("/gallery", "layout");
 }
 
 /* ---------- update log ---------- */
@@ -418,11 +469,16 @@ export async function addNeighborAction(_prev: ActionState, formData: FormData):
   if (!name || !url.startsWith("http")) return { ok: false, error: "name and a valid site url are required" };
   if (file instanceof File && file.size > 0) {
     if (!file.type.startsWith("image/") || file.size > 512 * 1024) return { ok: false, error: "button must be an image under 512 kb" };
-    const dot = file.name.lastIndexOf(".");
-    const ext = (dot >= 0 ? file.name.slice(dot) : ".png").toLowerCase();
-    const fileName = `btn-${uid()}${ext}`;
+    // written anew so nothing from the original file (exif, comments, xmp) comes along
+    let clean: { buffer: Buffer; ext: string };
+    try {
+      clean = await cleanSmallImage(Buffer.from(await file.arrayBuffer()), file.name, file.type);
+    } catch {
+      return { ok: false, error: "could not read that image" };
+    }
+    const fileName = `btn-${uid()}${clean.ext}`;
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
-    await fs.writeFile(path.join(UPLOAD_DIR, fileName), Buffer.from(await file.arrayBuffer()));
+    await fs.writeFile(path.join(UPLOAD_DIR, fileName), clean.buffer);
     buttonUrl = `/uploads/${fileName}`;
   }
   if (!buttonUrl) return { ok: false, error: "add a button image url or upload one" };
