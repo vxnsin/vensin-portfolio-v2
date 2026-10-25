@@ -45,7 +45,7 @@ export default async function AdminHome() {
       label: "backups",
       ok: backups.length > 0 && Boolean(lastBackup?.ok),
       note: backups.length
-        ? `${backups.length} local${backupUploadMode() === "catbox" ? " + encrypted copy on catbox, link in discord" : backupUploadMode() === "discord" ? " + file in discord" : " only (set DISCORD_BACKUP_CHANNEL_ID or DISCORD_BACKUP_WEBHOOK_URL)"}`
+        ? `${backups.length} local${backupUploadMode() === "discord" ? " + file in discord" : " only (set DISCORD_BACKUP_CHANNEL_ID or DISCORD_BACKUP_WEBHOOK_URL)"}`
         : "none yet — runs nightly at 03:30",
     },
     {
@@ -127,12 +127,10 @@ export default async function AdminHome() {
       <Window title="backups" dashed bodyClassName="text-xs">
         <p className="text-ink-soft mb-2">
           a gzipped copy of the sqlite file every night at 03:30, kept in <code>{BACKUP_DIR}</code> (last {process.env.BACKUP_KEEP ?? 14})
-          {backupUploadMode() === "catbox"
-            ? ", encrypted with BACKUP_PASSPHRASE and uploaded to catbox, link posted to your backup channel"
-            : backupUploadMode() === "discord"
-              ? " and posted as a file to your discord backup channel (set BACKUP_UPLOAD=catbox plus BACKUP_PASSPHRASE for an encrypted off-site copy with just a link in discord)"
-              : ". add DISCORD_BACKUP_CHANNEL_ID (bot) or DISCORD_BACKUP_WEBHOOK_URL to get a copy off-site too"}
-          . to restore: stop the site, gunzip the file (decrypt first with scripts/decrypt-backup.mjs if it came from catbox), put it in place as
+          {backupUploadMode() === "discord"
+            ? " and posted as a file to your discord backup channel"
+            : ". add DISCORD_BACKUP_CHANNEL_ID (bot) or DISCORD_BACKUP_WEBHOOK_URL to get a copy off-site too"}
+          . to restore: stop the site, gunzip the file, put it in place as
           vensin.sqlite, delete the -wal and -shm files next to it, start again.
         </p>
         {backups.length === 0 ? (
