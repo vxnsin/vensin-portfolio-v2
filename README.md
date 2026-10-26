@@ -52,6 +52,14 @@ npm ci && npm run build
 DATA_DIR=/var/lib/vensin UPLOAD_DIR=/var/lib/vensin/uploads npm start
 ```
 
+Or let [werft](https://github.com/vxnsin/werft) do it, which builds the site, runs it as a service and pulls new commits later with `werft update vensin`:
+
+```bash
+sudo werft install https://github.com/vxnsin/vensin-portfolio-v2
+```
+
+Caddy, DNS and the tunnel are not part of that; `scripts/setup-pi.sh` still covers them.
+
 Vercel works for previews too, but nothing is saved there between restarts.
 
 ## Credits

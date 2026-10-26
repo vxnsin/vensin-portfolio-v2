@@ -1,0 +1,120 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/vxnsin/werft/main/schema/werft.schema.json
+#
+# Install and update with werft (https://github.com/vxnsin/werft):
+#   sudo werft install https://github.com/vxnsin/vensin-portfolio-v2
+# werft builds the site and runs it as a systemd service. Caddy, DNS and the
+# tunnel are not part of this; scripts/setup-pi.sh still covers those.
+schema: 1
+name: vensin
+description: vensin.dev, a cozy old-web corner
+
+source:
+  channel: branch
+  branch: main
+
+requires:
+  os: [debian>=12, ubuntu>=22.04]
+  commands: [node>=22, npm]
+  apt: [build-essential, python3]
+
+questions:
+  - id: port
+    prompt: Which port should the site listen on?
+    type: port
+    default: 3000
+  - id: admin_password
+    prompt: Password for the admin panel (/admin)
+    type: password
+  - id: admin_secret
+    type: password
+    generate: random(48)
+  - id: impressum_url
+    prompt: Address of the impressum page
+    type: url
+    optional: true
+  - id: server_actions_origins
+    prompt: Extra hosts allowed to submit forms, comma separated (e.g. 192.168.178.67:3000)
+    optional: true
+
+  - id: discord
+    prompt: Send the contact form, guestbook and backups to Discord?
+    type: bool
+    default: false
+    env: SETUP_DISCORD
+  - id: discord_bot_token
+    prompt: Discord bot token (empty to use a webhook instead)
+    type: password
+    optional: true
+    when: discord
+  - id: discord_webhook_url
+    prompt: Webhook of a private Discord channel
+    type: url
+    optional: true
+    when: discord
+  - id: discord_public_key
+    prompt: Public key of the Discord app, for the buttons on notification cards
+    optional: true
+    when: discord
+  - id: discord_backup_channel_id
+    prompt: Channel id for the nightly database backup
+    optional: true
+    when: discord
+
+  - id: weather
+    prompt: Show the weather widget?
+    type: bool
+    default: false
+    env: SETUP_WEATHER
+  - id: weather_lat
+    prompt: Latitude (rough is fine)
+    when: weather
+  - id: weather_lon
+    prompt: Longitude (rough is fine)
+    when: weather
+
+  - id: spotify
+    prompt: Connect Spotify for the music page?
+    type: bool
+    default: false
+    env: SETUP_SPOTIFY
+  - id: spotify_client_id
+    prompt: Spotify client id
+    when: spotify
+  - id: spotify_client_secret
+    prompt: Spotify client secret
+    type: password
+    when: spotify
+
+  - id: health_token
+    type: password
+    generate: random(32)
+
+config:
+  env_file: /etc/vensin/.env
+  env:
+    NODE_ENV: production
+
+# sqlite, uploads and the Next.js image cache survive updates
+shared: [.data, public/uploads, .next/cache]
+
+install:
+  - name: npm ci
+    run: npm ci --no-audit --no-fund || { npm ci --no-audit --no-fund --ignore-scripts && (cd node_modules/unrs-resolver && node postinstall.js || true); }
+  - name: next build
+    run: NODE_OPTIONS=--max-old-space-size=2048 NEXT_PUBLIC_BUILD_SHA="${WERFT_VERSION##*-}" npm run build
+
+update:
+  backup:
+    paths: ["{{ .werft_shared }}/.data/vensin.sqlite"]
+    keep: 7
+
+runtime:
+  type: systemd
+  systemd:
+    exec: node_modules/.bin/next start
+    user: vensin
+    restart: always
+
+health:
+  http: http://localhost:{{ .port }}/robots.txt
+  timeout: 90s
