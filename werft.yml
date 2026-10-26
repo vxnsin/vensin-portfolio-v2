@@ -21,6 +21,7 @@ questions:
   - id: port
     prompt: Which port should the site listen on?
     type: port
+    warden: true
     default: 3000
   - id: admin_password
     prompt: Password for the admin panel (/admin)
